@@ -499,9 +499,9 @@ BM.SPRITE_FILES = {
  "gastly": {
   "attack": {
    "src": "sprites/gastly.attack.png",
-   "cellW": 152,
+   "cellW": 172,
    "cellH": 130,
-   "anchorX": 76,
+   "anchorX": 86,
    "anchorY": 129,
    "frames": [
     0,
@@ -510,9 +510,9 @@ BM.SPRITE_FILES = {
   },
   "run": {
    "src": "sprites/gastly.run.png",
-   "cellW": 246,
+   "cellW": 107,
    "cellH": 130,
-   "anchorX": 123,
+   "anchorX": 53,
    "anchorY": 129,
    "frames": [
     0,
