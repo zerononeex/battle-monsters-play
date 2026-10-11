@@ -2451,6 +2451,8 @@ BM.ART = {
  "icons/xp_candy_m": "art/icons/xp_candy_m.png",
  "icons/xp_candy_s": "art/icons/xp_candy_s.png",
  "maps/kanto": "art/maps/kanto.png",
+ "ui/banner_kanto_a": "art/ui/banner_kanto_a.png",
+ "ui/banner_kanto_b": "art/ui/banner_kanto_b.png",
  "ui/logo": "art/ui/logo.png",
  "ui/region_hoenn": "art/ui/region_hoenn.png",
  "ui/region_johto": "art/ui/region_johto.png",
