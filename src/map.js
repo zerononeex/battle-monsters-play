@@ -237,8 +237,7 @@ BM.MapScreen = function (ui) {
     if (!PATH) buildPath();
     if (from && idx(from) >= 0 && idx(from) < idx(target)) { placeToken(M.nodes[from]); drawToken(0); startWalk(from, target); }
     else { const at = tokenAt(); tokenS = NODE_S[idx(at)]; placeToken(M.nodes[at]); drawToken(0); BM.Save.setMapAt(at); }
-    const tk = BM.Sprites.artSrc('icons/battle_ticket');
-    $('map-tickets').innerHTML = (tk ? `<img src="${tk}" alt="">` : '🎫') + `<b>${prof().tickets}</b>`;
+    $('map-tickets').innerHTML = BM.ticketIcon() + `<b>${prof().tickets}</b>`;
   }
   tap($('btn-map-back'), () => { BM.Audio.sfx('tap'); ui.go('title'); });
   tap($('btn-map-dev'), () => { BM.Audio.sfx('tap'); ui.openPrebattle('dev_types'); });

@@ -31,17 +31,23 @@
     <span id="home-wallet" class="wallet"></span>
     <button id="btn-title-settings" class="icon-btn" aria-label="Settings">⚙</button>
   </div>
-  <div class="carousel">
-    <button id="btn-reg-prev" class="car-arrow" aria-label="Previous region">◀</button>
-    <div id="regions" class="regions"></div>
-    <button id="btn-reg-next" class="car-arrow" aria-label="Next region">▶</button>
+  <div class="home-mid">
+    <div class="home-car">
+      <div class="carousel">
+        <button id="btn-reg-prev" class="car-arrow" aria-label="Previous region">◀</button>
+        <div id="regions" class="regions"></div>
+        <button id="btn-reg-next" class="car-arrow" aria-label="Next region">▶</button>
+      </div>
+      <div id="reg-dots" class="reg-dots"></div>
+    </div>
+    <!-- HH1: the Prism Tower's FIXED slot, pinned right — always visible, one tap, never part of the carousel -->
+    <button id="btn-home-tower" class="home-tower"><span class="ht-art"></span><span class="ht-name">Prism Tower</span><span class="ht-sub"></span></button>
   </div>
-  <div id="reg-dots" class="reg-dots"></div>
   <div class="home-btns">
     <button id="btn-team" class="home-btn"><span class="hb-i">🎴</span>Teams</button>
-    <button id="btn-collection" class="home-btn"><span class="hb-i">📦</span>PC Box</button>
+    <button id="btn-collection" class="home-btn"><span class="hb-i pc-ico">📦</span>PC Box</button>
     <button id="btn-items" class="home-btn"><span class="hb-i">🎒</span>Items</button>
-    <button id="btn-gacha" class="home-btn gacha"><span class="hb-i">🎰</span>Gacha</button>
+    <button id="btn-gacha" class="home-btn gacha"><span class="hb-i">🎰</span>Safari Zone</button>
   </div>
   <canvas id="title-sprite" width="200" height="140"></canvas>
 </section>
@@ -58,22 +64,23 @@
     <button id="btn-map-back" class="icon-btn" aria-label="Back">◀</button>
   </div>
   <button id="btn-map-dev" class="dev-btn map-dev hidden">DEV: Type Test</button>
-  <button id="btn-bonus" class="bonus-banner">⭐ BONUS ZONE</button>
+  <button id="btn-bonus" class="bonus-banner">🗼 PRISM TOWER</button>
 </section>
 
-<!-- Bonus Zone (Phase 7): XP stages · treasure stages · the locked Mega section — its own screen, never on the campaign path -->
+<!-- Prism Tower (FF1/HH2, Phase 7.5; internal id stays "bonus" — was the Bonus Zone): its stages presented as tower FLOORS —
+     the locked Mega floor on top, the XP training floors, the treasure vaults at the bottom. Never on the campaign path. -->
 <section id="scr-bonus" class="screen hidden">
   <div class="bz-panel fit">
     <div class="sub-head">
       <button id="btn-bonus-back" class="icon-btn" aria-label="Back to the map">◀</button>
-      <h2>⭐ Bonus Zone</h2>
+      <h2>🗼 Prism Tower</h2>
       <span class="sub-hint">Replay these as often as you like — they never block the map!</span>
     </div>
-    <h3 class="bz-h">XP stages <small>team XP for everyone you bring + an XP candy</small></h3>
-    <div id="bz-xp" class="bz-row"></div>
-    <h3 class="bz-h">Treasure stages <small>the first clear always finds the treasure</small></h3>
-    <div id="bz-treasure" class="bz-row treasure-row"></div>
-    <div id="bz-mega" class="bz-row"></div>
+    <div class="tower">
+      <div class="floor top"><span class="fl-plate"><b>TOP</b>Mega floor</span><div id="bz-mega" class="bz-row"></div></div>
+      <div class="floor"><span class="fl-plate"><b>4F–1F</b>XP training<small>team XP for everyone you bring + an XP candy</small></span><div id="bz-xp" class="bz-row"></div></div>
+      <div class="floor ground"><span class="fl-plate"><b>B1</b>Treasure vaults<small>the first clear always finds the treasure</small></span><div id="bz-treasure" class="bz-row treasure-row"></div></div>
+    </div>
   </div>
 </section>
 
@@ -92,7 +99,7 @@
     <div class="row-btns">
       <button id="btn-pre-back" class="big-btn alt mid">◀ Map</button>
       <button id="btn-pre-team" class="big-btn alt mid">🎴 Team</button>
-      <button id="btn-pre-challenge" class="big-btn mid ch-btn">🧠 Challenge</button>
+      <button id="btn-pre-challenge" class="big-btn mid ch-btn"><span class="cb-t">Clear Stage</span><small class="cb-s"></small></button>
       <button id="btn-pre-go" class="big-btn">⚔ Battle!</button>
     </div>
   </div>
@@ -102,7 +109,7 @@
 <section id="scr-collection" class="screen hidden">
   <div class="sub-head">
     <button id="btn-coll-back" class="icon-btn" aria-label="Back">◀</button>
-    <h2>PC Box <span id="coll-count" class="head-count"></span></h2>
+    <h2><span class="pc-ico">📦</span> PC Box <span id="coll-count" class="head-count"></span></h2>
     <button id="btn-coll-filter" class="pill-btn filter-btn">⚙ Filter<span class="fcount"></span></button>
     <button id="btn-coll-bag" class="pill-btn">🎒 Items</button>
     <button id="btn-dev-unlock" class="dev-btn hidden">DEV: unlock all</button>
@@ -132,18 +139,18 @@
     <div id="team-sum" class="team-sum"></div>
   </div>
   <div class="ta-box">
-    <div class="ta-box-head"><span id="ta-box-title" class="ta-box-title">PC Box</span>
+    <div class="ta-box-head"><span class="pc-ico">📦</span><span id="ta-box-title" class="ta-box-title">PC Box</span>
       <button id="btn-team-filter" class="pill-btn filter-btn ta-filter">⚙ Filter<span class="fcount"></span></button></div>
     <div id="ta-strip" class="ta-strip may-scroll"></div>
   </div>
 </section>
 
-<!-- Gacha (Phase 5, §4.5 / §4.8): two always-open Kanto banners, ticket / Poké Ball currency, pity counter on screen,
+<!-- Safari Zone (R1; was "Gacha" — internal ids keep gacha) (Phase 5, §4.5 / §4.8): two always-open Kanto banners, ticket / Poké Ball currency, pity counter on screen,
      Master Ball trade + the Legendary Gacha. Same component language as the H2/T3 screens. -->
 <section id="scr-gacha" class="screen hidden">
   <div class="sub-head">
     <button id="btn-gacha-back" class="icon-btn" aria-label="Back">◀</button>
-    <h2>Gacha</h2>
+    <h2>Safari Zone</h2>
     <span class="wallet gacha-wallet"></span>
   </div>
   <div class="gacha-body">
@@ -156,7 +163,8 @@
       </div>
       <button id="btn-pull1" class="pull-btn"></button>
       <button id="btn-pull10" class="pull-btn ten"></button>
-      <button id="btn-earn" class="side-btn earn">🧠 Answer &amp; Earn Tickets</button>
+      <button id="btn-earn" class="pull-btn earn"></button>
+      
       <button id="btn-master-trade" class="side-btn"></button>
       <button id="btn-legend" class="side-btn legend"></button>
     </div>
@@ -174,7 +182,6 @@
     <span id="ch-earned" class="ch-earned"></span>
   </div>
   <div class="ch-stagebox">
-    <div id="ch-sound" class="ch-sound hidden">🔊 Turn sound on? The words are spoken out loud — check the volume and that the iPad isn't on silent.</div>
     <div id="ch-card" class="ch-card"></div>
     <div id="ch-feedback" class="ch-feedback hidden"></div>
   </div>
@@ -219,11 +226,11 @@
   </div>
 </section>
 
-<!-- Challenge mode chooser (pre-battle → 🧠 Challenge) -->
+<!-- Challenge mode chooser (pre-battle → Challenge) -->
 <section id="scr-chmode" class="overlay hidden">
   <div class="panel chmode-panel fit">
     <button id="btn-chmode-x" class="panel-x" aria-label="Close">✕</button>
-    <h2>🧠 Challenge</h2>
+    <h2>⭐ Clear Stage</h2>
     <p id="chmode-help"></p>
     <div class="row-btns">
       <button id="btn-ch-clear" class="ch-pick clear"></button>
@@ -403,7 +410,7 @@
 <section id="scr-legend" class="overlay hidden">
   <div class="panel legend-panel fit">
     <button id="btn-legend-x" class="panel-x" aria-label="Close">✕</button>
-    <h2>✨ Legendary Gacha</h2>
+    <h2>✨ Legendary Safari Zone</h2>
     <p id="legend-help"></p>
     <div id="legend-pool" class="legend-pool"></div>
     <button id="btn-legend-pull" class="big-btn"></button>

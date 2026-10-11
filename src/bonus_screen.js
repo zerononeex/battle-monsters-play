@@ -1,4 +1,5 @@
-// BONUS ZONE screen (Phase 7, user design): own screen off the campaign map (the map's ⭐ BONUS banner). Three sections that
+// PRISM TOWER screen (FF1/HH2 Phase 7.5 — was the BONUS ZONE; internal id `bonus`; Phase 7 user design): its stages are
+// presented as tower FLOORS. Entry: the pinned home slot (primary) or the map's banner. Three sections that
 // fit without scrolling: XP STAGES (Regular · Great · Ultra · Master — ball icon, level band, XP + candy per win), TREASURE
 // STAGES (each stone, the Poké Ball stage, the item stage — headline drop, "1st clear: guaranteed"), and the MEGA STONE
 // section shown LOCKED ("Beat Johto to unlock 🔒"). A card opens the normal pre-battle screen for that stage. Data: data/bonus.js.
@@ -24,7 +25,7 @@ BM.BonusScreen = function (ui) {
     for (const st of BM.BONUS_STAGES.filter((s) => s.bonus === 'xp')) {
       const t = BM.BONUS_TIERS.find((x) => x.id === st.tier), candy = Object.entries(st.candy).map(([id, n]) => (n > 1 ? n + '× ' : '') + icon(id)).join('');
       xp.appendChild(card(st, `<span class="bz-ball">${BM.ballHtml(t.ball)}</span><b class="bz-name">${t.name}</b><span class="bz-band">Lv ${t.minLv}+</span>` +
-        `<span class="bz-pay">+${t.xp.toLocaleString()} XP · ${candy}</span>`, 'xp tier-' + t.id));
+        `<span class="bz-pay">+${t.xp.toLocaleString()} XP · ${candy}</span><span class="bz-fl">${BM.BONUS_TIERS.indexOf(t) + 1}F</span>`, 'xp tier-' + t.id));
     }
     for (const st of BM.BONUS_STAGES.filter((s) => s.bonus === 'treasure')) {
       tr.appendChild(card(st, `<span class="bz-icon">${icon(st.headline)}</span><b class="bz-name">${st.name}</b><span class="bz-band">Lv ${st.level}</span>` +
@@ -39,6 +40,6 @@ BM.BonusScreen = function (ui) {
     $('scr-bonus').style.backgroundImage = art ? `linear-gradient(rgba(20,10,40,.35), rgba(20,10,40,.35)), url("${art}")` : '';
     ui.fit($('scr-bonus'));
   }
-  tap($('btn-bonus-back'), () => { BM.Audio.sfx('tap'); ui.go('map'); });
+  tap($('btn-bonus-back'), () => { BM.Audio.sfx('tap'); ui.go(ui.from() || 'map'); });
   return { render };
 };

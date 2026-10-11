@@ -107,4 +107,21 @@ BM.BASE_STATS = {
   vileplume: [75, 80, 85, 110, 90, 50],
   weezing: [65, 90, 120, 85, 70, 60],
   rhydon: [105, 130, 120, 45, 45, 40],
+  // Phase 7.5 (EE1 / CC1 / CC2) — PokéAPI pokemon_stats.csv. NB Hitmonchan's Sp. Def is 110 in PokéAPI (the CC1 note said 35;
+  // PokéAPI wins per the phase prompt — BR-068).
+  pidgeotto: [63, 60, 55, 50, 50, 71],
+  raticate: [55, 81, 60, 50, 70, 97],
+  metapod: [50, 20, 55, 25, 25, 30],
+  butterfree: [60, 45, 50, 90, 80, 70],
+  graveler: [55, 95, 115, 45, 45, 35],
+  golem: [80, 120, 130, 55, 65, 45],
+  clefable: [95, 70, 73, 95, 90, 60],
+  gloom: [60, 65, 70, 85, 75, 40],
+  tentacruel: [80, 70, 65, 80, 120, 100],
+  electrode: [60, 50, 70, 80, 80, 150],
+  crobat: [85, 90, 80, 70, 80, 130],
+  steelix: [75, 85, 200, 55, 65, 30],
+  tangrowth: [100, 100, 125, 110, 50, 50],
+  rhyperior: [115, 140, 130, 55, 55, 40],
+  hitmonchan: [50, 105, 79, 35, 110, 76],
 };

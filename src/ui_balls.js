@@ -20,3 +20,14 @@ BM.genFaceHtml = function (lv) {
   const face = BM.Sprites && BM.Sprites.artSrc('icons/ap_generator_' + lv);
   return face ? `<img src="${face}" alt="" data-ball="${BM.GEN_BALLS[lv]}">` : BM.ballHtml(BM.GEN_BALLS[lv], 'gen-ball');
 };
+// JJ1 (one ticket, one art): EVERY player-visible Battle Ticket is the shared battle_ticket.png. The 🎫 emoji is only the
+// pre-art fallback inside this helper — never the rendered choice once the art exists.
+BM.ticketIcon = function (cls = '') {
+  const src = BM.Sprites && BM.Sprites.artSrc('icons/battle_ticket');
+  return src ? `<img class="tk-img ${cls}" src="${src}" alt="ticket" data-ticket="1">` : `<span class="tk-emo ${cls}" data-ticket="1">🎫</span>`;
+};
+// S1 (Phase 7.5): PC Box = the Pokémon Center PC terminal icon (assets/ui/icons/pc_box.png, ASSET_PROMPTS #317); 📦 until it lands.
+BM.pcIcon = function (cls = '') {
+  const src = BM.Sprites && BM.Sprites.artSrc('icons/pc_box');
+  return src ? `<img class="pc-img ${cls}" src="${src}" alt="" data-pc="1">` : `<span class="pc-emo ${cls}" data-pc="1">📦</span>`;
+};

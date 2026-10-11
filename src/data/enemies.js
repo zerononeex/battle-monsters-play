@@ -35,6 +35,24 @@ window.BM = window.BM || {};
     E('hitmonlee', 'Hitmonlee', ['fighting'], 455, 50, 87, 'bruiser', { size: 1.25 }),
     // Phase 4: Giovanni's Dugtrio — the user's locked Dodger example (25%)
     E('dugtrio', 'Dugtrio', ['ground'], 425, 35, 120, 'rusher', { trait: 'dodger', dodge: 0.25, size: 1.1 }),
+    // Phase 7.5 EE1 evolution sweep (missing stages of in-game species; canon stats PokéAPI) + CC2 Electrode + the two
+    // Gen 1 stages the sweep's additions imply (Butterfree after Metapod, Golem after Graveler — chain test, BR-068)
+    E('pidgeotto', 'Pidgeotto', ['normal', 'flying'], 349, 63, 71, 'balanced', { trait: 'flyer', attackType: 'flying', size: 1.15 }),
+    E('raticate', 'Raticate', ['normal'], 413, 55, 97, 'rusher', { size: 1.1 }),
+    E('metapod', 'Metapod', ['bug'], 205, 50, 30, 'tank', { size: 0.85, dmg: 1 }), // Harden: a wall that barely hits
+    E('butterfree', 'Butterfree', ['bug', 'flying'], 395, 60, 70, 'ranged', { trait: 'flyer', attackType: 'bug', size: 1.15 }),
+    E('graveler', 'Graveler', ['rock', 'ground'], 390, 55, 35, 'tank', { size: 1.15 }),
+    E('golem', 'Golem', ['rock', 'ground'], 495, 80, 45, 'tank', { size: 1.4 }),
+    E('clefable', 'Clefable', ['fairy'], 483, 95, 60, 'balanced', { size: 1.15 }),
+    E('gloom', 'Gloom', ['grass', 'poison'], 395, 60, 40, 'ranged', { size: 1 }),
+    E('tentacruel', 'Tentacruel', ['water', 'poison'], 515, 80, 100, 'ranged', { size: 1.3 }),
+    E('electrode', 'Electrode', ['electric'], 490, 60, 150, 'rusher', { size: 1 }), // CC2: the fastest Pokémon in Gen 1
+    E('crobat', 'Crobat', ['poison', 'flying'], 535, 85, 130, 'rusher', { trait: 'flyer', attackType: 'poison', size: 1.3 }),
+    E('steelix', 'Steelix', ['steel', 'ground'], 510, 75, 30, 'tank', { size: 1.8 }),
+    E('tangrowth', 'Tangrowth', ['grass'], 535, 100, 50, 'tank', { size: 1.4 }),
+    E('rhyperior', 'Rhyperior', ['ground', 'rock'], 535, 115, 40, 'bruiser', { attackType: 'rock', size: 1.65 }),
+    // CC1: Bruno's Hitmonchan — heavy melee bruiser; the elemental punches flash fire / ice / electric, damage stays Fighting
+    E('hitmonchan', 'Hitmonchan', ['fighting'], 455, 50, 76, 'bruiser', { size: 1.25, aceClass: true }),
   ];
   const bosses = [
     E('onix', 'Onix', ['rock', 'ground'], 385, 35, 70, 'tank', { boss: true, size: 1.7 }),
@@ -46,10 +64,43 @@ window.BM = window.BM || {};
   // G3 bounty size class (data): fodder 10 AP · medium 20 · large 40 · boss 150 (BM.C.BOUNTY). Base forms are fodder,
   // evolved forms medium, Pidgeot (a 3-stage final) large; gym/E4/Champion aces are always boss.
   const SIZE = { pidgeot: 'large', golbat: 'medium', arbok: 'medium', tangela: 'medium', rhyhorn: 'medium', venomoth: 'medium',
-    mr_mime: 'medium', rapidash: 'medium', dewgong: 'medium', cloyster: 'medium', hitmonlee: 'medium', dugtrio: 'medium' };
+    mr_mime: 'medium', rapidash: 'medium', dewgong: 'medium', cloyster: 'medium', hitmonlee: 'medium', dugtrio: 'medium',
+    pidgeotto: 'medium', raticate: 'medium', metapod: 'medium', butterfree: 'large', graveler: 'medium', golem: 'large', clefable: 'medium',
+    gloom: 'medium', tentacruel: 'medium', electrode: 'medium', crobat: 'large', steelix: 'large', tangrowth: 'medium', rhyperior: 'large',
+    hitmonchan: 'medium' };
   for (const f of fodder) f.sizeClass = SIZE[f.id] || 'fodder';
   for (const f of bosses) f.sizeClass = 'boss';
-  for (const f of fodder) BM.addLine({ id: f.id, name: f.name, enemyOnly: true, forms: [{ ...f, runOnly: true, size: f.size || 1 }] });
+  // Hitmonchan is an ace-class enemy (run + attack sheets, CC1); the others are run-only wave fodder
+  for (const f of fodder) BM.addLine({ id: f.id, name: f.name, enemyOnly: true, forms: [{ ...f, runOnly: !f.aceClass, size: f.size || 1 }] });
   for (const f of bosses) BM.addLine({ id: f.id, name: f.name, enemyOnly: true, forms: [{ ...f, size: f.size || 1 }] });
   BM.ENEMY_ONLY = [...fodder, ...bosses].map((f) => f.id);
 })();
+
+// EE1 CHAIN COMPLETENESS (Phase 7.5): the canonical FORWARD evolutions of every species in the game (PokéAPI chains). In scope:
+// Gen 1 stages + the cross-gen evolutions of Kanto species already adopted (Scizor, Kleavor, Porygon2/Z, Perrserker, the
+// Eeveelutions, Crobat, Steelix, Tangrowth, Rhyperior). OUT by the user's standing roster rule: baby pre-evolutions (Pichu,
+// Igglybuff, Cleffa, Mime Jr., Munchlax, Tyrogue) and Mr. Rime. `BM.EVO_PENDING` = canonical evolutions NOT added, each
+// waiting on a user call (BUG_REGISTRY BR-068) — the chain test lists them instead of failing silently.
+// Pre-evolutions are not required (enemy lines enter at the stage the waves need: Dewgong, Cloyster, Dugtrio…).
+BM.EVO_CANON = {
+  bulbasaur: ['ivysaur'], ivysaur: ['venusaur'], charmander: ['charmeleon'], charmeleon: ['charizard'], squirtle: ['wartortle'], wartortle: ['blastoise'],
+  pikachu: ['raichu'], magikarp: ['gyarados'], gastly: ['haunter'], haunter: ['gengar'], abra: ['kadabra'], kadabra: ['alakazam'],
+  machop: ['machoke'], machoke: ['machamp'], vulpix: ['ninetales'], jigglypuff: ['wigglytuff'], cubone: ['marowak'], dratini: ['dragonair'], dragonair: ['dragonite'],
+  psyduck: ['golduck'], meowth: ['persian'], meowth_galar: ['perrserker'], growlithe: ['arcanine'], scyther: ['scizor', 'kleavor'],
+  porygon: ['porygon2'], porygon2: ['porygon_z'], eevee: ['vaporeon', 'jolteon', 'flareon', 'espeon', 'umbreon', 'leafeon', 'glaceon', 'sylveon'],
+  pidgey: ['pidgeotto'], pidgeotto: ['pidgeot'], rattata: ['raticate'], caterpie: ['metapod'], metapod: ['butterfree'],
+  geodude: ['graveler'], graveler: ['golem'], zubat: ['golbat'], golbat: ['crobat'], clefairy: ['clefable'],
+  oddish: ['gloom'], gloom: ['vileplume', 'bellossom'], staryu: ['starmie'], tentacool: ['tentacruel'], voltorb: ['electrode'], ekans: ['arbok'],
+  koffing: ['weezing'], tangela: ['tangrowth'], rhyhorn: ['rhydon'], rhydon: ['rhyperior'], venonat: ['venomoth'], ponyta: ['rapidash'],
+  onix: ['steelix'], mr_mime: [], hitmonlee: [], hitmonchan: [], snorlax: [], lapras: [], ditto: [], pinsir: [], aerodactyl: [],
+  // final forms (nothing further in scope)
+  venusaur: [], charizard: [], blastoise: [], raichu: [], gyarados: [], gengar: [], alakazam: [], machamp: [], ninetales: [],
+  wigglytuff: [], marowak: [], vaporeon: [], dragonite: [], golduck: [], persian: [], perrserker: [], arcanine: [], scizor: [],
+  kleavor: [], porygon_z: [], mewtwo: [], mew: [], articuno: [], zapdos: [], moltres: [], jolteon: [], flareon: [],
+  espeon: [], umbreon: [], leafeon: [], glaceon: [], sylveon: [], pidgeot: [], arbok: [], venomoth: [], rapidash: [],
+  dewgong: [], cloyster: [], dugtrio: [], raticate: [], butterfree: [], golem: [], clefable: [], tentacruel: [], electrode: [],
+  crobat: [], steelix: [], tangrowth: [], rhyperior: [], starmie: [], vileplume: [], weezing: [],
+};
+BM.EVO_PENDING = { bellossom: 'Gloom → Bellossom (Gen 2 Sun Stone branch) — not listed by the EE1 sweep; add or exclude? (BR-068)' };
+// species key of a form: branch variants share their species (every typed Eevee = eevee, Kleavor's Scyther = scyther)
+BM.speciesOf = (f) => (f.line && f.line.startsWith('eevee_') && f.stage === 0 ? 'eevee' : f.id === 'scyther_kleavor' ? 'scyther' : f.id);

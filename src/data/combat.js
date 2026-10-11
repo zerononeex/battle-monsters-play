@@ -63,7 +63,16 @@ window.BM = window.BM || {};
     hitmonlee: ['Double Kick', 'kick', 60, 2], dugtrio: ['Dig (three heads)', 'rock', 60, 3],
     onix: ['Rock Slide', 'rock', 110], starmie: ['Swift', 'star', 230], vileplume: ['Petal Blizzard', 'leaf', 220],
     weezing: ['Sludge Bomb', 'poison', 200], rhydon: ['Earthquake', 'rock', 80],
+    // Phase 7.5 EE1 / CC1 / CC2
+    pidgeotto: ['Wing Attack', 'wing', 60], raticate: ['Hyper Fang', 'fang', 60], metapod: ['Harden', 'slam', 60],
+    butterfree: ['Gust', 'psy', 180], graveler: ['Rock Throw', 'rock', 110], golem: ['Rock Slide', 'rock', 120],
+    clefable: ['Moonblast', 'fairy', 200], gloom: ['Acid', 'poison', 180], tentacruel: ['Sludge Wave', 'poison', 170],
+    electrode: ['Spark', 'spark', 60], crobat: ['Cross Poison', 'wing', 60, 2], steelix: ['Iron Tail', 'slam', 80],
+    tangrowth: ['Vine Whip', 'vine', 140, 2], rhyperior: ['Rock Wrecker', 'rock', 110],
+    hitmonchan: ['Fire / Ice / Thunder Punch', 'punch', 60, 3], // CC1 signature: the elemental punches (see FLAIR)
   };
+  // CC1: visual-only "flair" — each punch flashes the next element in turn; the damage stays the form's own type (Fighting)
+  BM.COMBAT_FLAIR = { hitmonchan: ['fire', 'ice', 'electric'] };
   // How each visual is drawn when its move sprite is not generated yet: projectile (flies), stream (attacker -> target
   // at once), or melee (a burst on the target).
   BM.FX_KINDS = {
@@ -81,6 +90,7 @@ window.BM = window.BM || {};
     snorlax: 50, dragonite: 80, porygon_z: 80, aerodactyl: 80, kleavor: 60,
     articuno: 140, zapdos: 110, moltres: 140, mew: 100, mewtwo: 160,
     onix: 70, vileplume: 100, weezing: 110, rhydon: 120, koffing: 50, cloyster: 0,
+    golem: 80, steelix: 70, rhyperior: 110, tentacruel: 60, butterfree: 50,
   };
   // K4 STATUS EFFECTS (data per form): only flagged moves inflict; chances 10–25%; legendaries' signature moves are
   // reliable (1.0). freeze ❄ (Ice: stops ~2 s) · paralyze ⚡ (Electric: move + attack speed halved ~4 s) · sleep 💤
@@ -90,6 +100,7 @@ window.BM = window.BM || {};
     pikachu: ['paralyze', 0.15], raichu: ['paralyze', 0.2], eevee_electric: ['paralyze', 0.1], voltorb: ['paralyze', 0.2], zapdos: ['paralyze', 1],
     jigglypuff: ['sleep', 0.2], wigglytuff: ['sleep', 0.25], venonat: ['sleep', 0.15], haunter: ['sleep', 0.1],
     oddish: ['poison', 0.2], koffing: ['poison', 0.25], weezing: ['poison', 0.25], tentacool: ['poison', 0.2], ekans: ['poison', 0.25], arbok: ['poison', 0.2],
+    gloom: ['poison', 0.2], tentacruel: ['poison', 0.2], crobat: ['poison', 0.15], electrode: ['paralyze', 0.25], butterfree: ['sleep', 0.15], clefable: ['sleep', 0.1],
     // Mewtwo's Psystrike freezes the whole cluster it hits — the showcase signature (design addendum K4)
     mewtwo: ['freeze', 1],
   };

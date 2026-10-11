@@ -25,7 +25,7 @@ BM.ITEM_INFO = {
   up_grade: { name: 'Up-Grade', kind: 'evo', emoji: '💾' },
   dubious_disc: { name: 'Dubious Disc', kind: 'evo', emoji: '💿' },
   poke_ball: { name: 'Poké Ball', kind: 'ball', emoji: '🔴', blurb: '1 = one pull · 9 = a 10-pull' },
-  master_ball: { name: 'Master Ball', kind: 'ball', emoji: '🟣', blurb: 'Opens the Legendary Gacha' },
+  master_ball: { name: 'Master Ball', kind: 'ball', emoji: '🟣', blurb: 'Opens the Legendary Safari Zone' },
   // battle items (Phase 5): armed before a battle, used up only when you WIN
   speed_up: { name: 'Speed Up', kind: 'battle', battle: true, emoji: '⏩', blurb: 'The battle runs 1.5× faster' },
   gen_lv8: { name: 'Generator Lv 8', kind: 'battle', battle: true, emoji: '🔋', blurb: 'Start with the AP Generator at Lv 8' },

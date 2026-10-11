@@ -30,7 +30,8 @@ window.BM = window.BM || {};
   const xpStages = BM.BONUS_TIERS.map((t) => ({
     id: 'bonus_xp_' + t.id, name: `${t.name} XP Stage`, bonus: 'xp', tier: t.id, kind: 'bonus', level: t.level, curveAt: t.curveAt,
     background: { regular: 'pallet_town', great: 'cerulean_city', ultra: 'celadon_city', master: 'saffron_city' }[t.id],
-    music: 'battle_trainer', townMusic: 'route', ball: t.ball, minLv: t.minLv, bonusXp: t.xp, candy: t.candy,
+    // FF3: Tower pre-battle = `tower`, Tower battles = `battle_tower`
+    music: 'battle_tower', townMusic: 'tower', ball: t.ball, minLv: t.minLv, bonusXp: t.xp, candy: t.candy,
     waves: XPW[t.id](t.level),
     burst: { pool: XPW[t.id](t.level).map((w) => w.form) },
     drops: [{ item: 'tickets', w: 30, n: 2 }, { item: 'xp_candy_s', w: 30, n: 1 }, { item: 'xp_candy_m', w: t.minLv >= 15 ? 20 : 6, n: 1 },
@@ -39,17 +40,17 @@ window.BM = window.BM || {};
   // Treasure stages: [id, name, headline item, enemies (form, level offsets), background, level, curveAt]
   const T = (id, name, item, foes, bg, level, curveAt, icon) => ({
     id: 'bonus_tr_' + id, name, bonus: 'treasure', kind: 'bonus', headline: item, icon, level, curveAt, background: bg,
-    music: 'battle_wild', townMusic: 'route',
+    music: 'battle_tower', townMusic: 'tower',
     waves: foes.map(([f, d, start, every], i) => W(f, level + d, start != null ? start : 3 + i * 7, every || 9 + i * 2)),
     drops: [{ item, w: 34, n: 1 }, { item: 'tickets', w: 22, n: 3 }, { item: 'xp_candy_s', w: 22, n: 1 }, { item: 'xp_candy_m', w: 10, n: 1 }, { item: 'poke_ball', w: 8, n: 1 }, { item: 'rare_candy', w: 2, n: 1 }, { item: 'dowsing_machine', w: 1, n: 1 }],
   });
   const treasure = [
     T('fire', 'Fire Stone Volcano', 'fire_stone', [['ponyta', -1], ['growlithe', 0], ['vulpix', 0], ['rapidash', 1, 40, 22]], 'cinnabar_island', 24, 8, '🔥'),
     T('water', 'Water Stone Lake', 'water_stone', [['staryu', -1], ['psyduck', 0], ['tentacool', 0], ['golduck', 1, 40, 22]], 'cerulean_city', 22, 7, '💧'),
-    T('thunder', 'Thunder Stone Plant', 'thunder_stone', [['voltorb', -1], ['pikachu', 0], ['voltorb', 1], ['raichu', 1, 40, 24]], 'vermilion_city', 24, 8, '⚡'),
-    T('leaf', 'Leaf Stone Garden', 'leaf_stone', [['oddish', -1], ['tangela', 0], ['oddish', 1], ['vileplume', 1, 40, 24]], 'viridian_forest', 20, 6, '🍃'),
-    T('moon', 'Moon Stone Cave', 'moon_stone', [['zubat', -1], ['clefairy', 0], ['geodude', 0], ['golbat', 1, 40, 22]], 'mt_moon', 18, 6, '🌙'),
-    T('ice', 'Ice Stone Cavern', 'ice_stone', [['tentacool', -1], ['dewgong', 0], ['cloyster', 0], ['lapras', 1, 45, 26]], 'cerulean_city', 30, 10, '❄️'),
+    T('thunder', 'Thunder Stone Plant', 'thunder_stone', [['voltorb', -1], ['pikachu', 0], ['electrode', 1, 30, 20], ['raichu', 1, 40, 24]], 'vermilion_city', 24, 8, '⚡'),
+    T('leaf', 'Leaf Stone Garden', 'leaf_stone', [['oddish', -1], ['tangela', -1, 20, 16], ['oddish', 0], ['vileplume', -1, 45, 30]], 'viridian_forest', 20, 6, '🍃'),
+    T('moon', 'Moon Stone Cave', 'moon_stone', [['zubat', -1], ['clefairy', 0], ['geodude', 0], ['golbat', 1, 40, 22], ['clefable', 1, 55, 28]], 'mt_moon', 18, 6, '🌙'),
+    T('ice', 'Ice Stone Cavern', 'ice_stone', [['tentacool', -1], ['dewgong', -1, 14, 15], ['cloyster', -1, 24, 18], ['lapras', -1, 50, 32]], 'cerulean_city', 30, 10, '❄️'),
     { ...T('ball', 'Poké Ball Factory', 'poke_ball', [['voltorb', -1], ['meowth', 0], ['porygon', 0], ['persian', 1, 40, 22]], 'celadon_city', 26, 9, '🔴'),
       drops: [{ item: 'poke_ball', w: 60, n: 2 }, { item: 'poke_ball', w: 12, n: 4 }, { item: 'tickets', w: 18, n: 3 }, { item: 'xp_candy_s', w: 10, n: 1 }] },
     { ...T('item', 'Treasure Tower', 'rare_candy', [['gastly', -1], ['haunter', 0], ['mr_mime', 0], ['gengar', 1, 45, 26]], 'lavender_town', 32, 11, '🍭'),
@@ -57,6 +58,14 @@ window.BM = window.BM || {};
   ];
   for (const st of treasure) st.burst = { pool: [...new Set(st.waves.map((w) => w.form))] };
   BM.BONUS_STAGES = [...xpStages, ...treasure];
+  // Y1 (Phase 7.5): the Tower's strongest wave form (the evolved headline foe / the tier's heavy) waits for a 35 s timer gate
+  for (const st of BM.BONUS_STAGES) {
+    let best = null, bv = -1;
+    for (const w of st.waves) { const f = BM.FORMS[w.form], v = f.bst + f.baseHP; if (v > bv) { bv = v; best = w.form; } }
+    st.gate = { by: 'time', at: 35, forms: [best] };
+    // …and a treasure vault's headline heavy stays in the trickle only (never a +2-level, HP ×1.8 wall-breaker) — Phase 7.5 sim
+    if (st.bonus === 'treasure') st.burst = { pool: [...new Set(st.waves.map((w) => w.form))].filter((f) => f !== best) };
+  }
   BM.BONUS_MEGA = { locked: true, text: 'Beat Johto to unlock 🔒', name: 'Mega Stone Stages' };
   BM.STAGES.push(...BM.BONUS_STAGES);
   BM.isBonus = (st) => !!(st && st.bonus);

@@ -27,6 +27,14 @@ BM.Battle = function (stage, profile, opts = {}) {
   const CAD = BM.waveCadence && stage.waves && stage.waves.length && !stage.noBursts ? BM.waveCadence(stage) : null;
   const rint = (lo, hi) => lo + Math.floor(rnd() * (hi - lo + 1));
   if (CAD) { S.cad = CAD; S.nextBurst = CAD.first; S.thrFired = CAD.thresholds.map(() => false); for (const w of S.waves) w.every *= CAD.trickle; }
+  // Y1 GATE (user, Phase 7.5): a stage's strongest enemy types never exist at second zero — they debut through ONE gate (stage
+  // data `gate`): TIMER (`by: 'time'`, start spawning `at` seconds in) or BASE HP (`by: 'hp'`, the moment the enemy base drops
+  // to `at` = 0.9, with an immediate reinforcement of each gated form). Until it opens, gated forms are held out of the trickle,
+  // the bursts, the wall-breaker and the ace. `S.firstSpawn` logs each form's first appearance (the sim's gate check).
+  const G = stage.gate ? { by: stage.gate.by, at: stage.gate.at, forms: new Set(stage.gate.forms), open: false, openT: null } : null;
+  S.gate = G; S.firstSpawn = {};
+  const gated = (formId) => !!(G && !G.open && G.forms.has(formId));
+  if (G && G.by === 'time') for (const w of S.waves) if (G.forms.has(w.form)) w.next = Math.max(w.next, G.at);
 
   // Battle items armed on the pre-battle screen (consumed only on a WIN — BM.Save.recordWin). In-battle effects here.
   const items = (opts.items || profile.armed || []).filter((id) => BM.ITEM_INFO[id] && BM.ITEM_INFO[id].battle);
@@ -42,6 +50,7 @@ BM.Battle = function (stage, profile, opts = {}) {
     // K4: a reliable status (legendaries' signature) is a SPECIAL move — it lands every C.SIG.every seconds, not every hit
     if (u.status && u.statusChance >= 1) { u.sig = { move: BM.combatOf(form).move, aoe: u.aoe, status: u.status }; u.status = null; u.statusChance = 0; }
     S.units.push(u);
+    if (side === -1 && S.firstSpawn[form.id] == null) S.firstSpawn[form.id] = Math.round(S.t * 100) / 100; // enemies only (Y1 check)
     S.events.push({ type: 'spawn', unit: u });
     return u;
   }
@@ -158,9 +167,11 @@ BM.Battle = function (stage, profile, opts = {}) {
   // HP ×2.5, knock-back proof) that ignores the side cap.
   function spawnBurst(kind, at) {
     const n = kind === 'timer' ? rint(CAD.size[0], CAD.size[1]) : CAD.counterSize;
+    const pool = CAD.pool.filter((w) => !gated(w.form)), carriers = CAD.carriers.filter((w) => !gated(w.form)); // Y1
+    if (!pool.length) return;
     const list = [];
-    for (let i = 0; i < n; i++) list.push(CAD.pool[Math.floor(rnd() * CAD.pool.length)]);
-    if (CAD.carriers.length) list[list.length - 1] = CAD.carriers[Math.floor(rnd() * CAD.carriers.length)];
+    for (let i = 0; i < n; i++) list.push(pool[Math.floor(rnd() * pool.length)]);
+    if (carriers.length) list[list.length - 1] = carriers[Math.floor(rnd() * carriers.length)];
     let made = 0;
     for (const w of list) {
       if (count(-1) >= C.MAX_PER_SIDE) break;
@@ -168,7 +179,10 @@ BM.Battle = function (stage, profile, opts = {}) {
     }
     let breaker = null;
     if (kind === 'threshold' && CAD.breaker.form) {
-      breaker = makeUnit(BM.FORMS[CAD.breaker.form], CAD.breaker.level, -1, C.ENEMY_BASE_FRONT - 6);
+      // Y1: a gated wall-breaker waits for its gate — until then the strongest UNgated form breaks the wall
+      let bf = CAD.breaker.form;
+      if (gated(bf)) { let bv = -1; for (const w of pool) { const f = BM.FORMS[w.form], v = f.bst + f.baseHP; if (v > bv) { bv = v; bf = w.form; } } }
+      breaker = makeUnit(BM.FORMS[bf], CAD.breaker.level, -1, C.ENEMY_BASE_FRONT - 6);
       breaker.breaker = true; breaker.kbResist = true; breaker.hp = breaker.maxHp = Math.round(breaker.hp * CAD.breakerHp); made++;
     }
     const rec = { kind, t: Math.round(S.t * 10) / 10, at, n: made, breaker: breaker ? breaker.form.id : null };
@@ -195,7 +209,18 @@ BM.Battle = function (stage, profile, opts = {}) {
     S.ap = Math.min(g.cap, S.ap + g.rate * dt);
     for (const c of S.team) if (c.cd > 0) c.cd = Math.max(0, c.cd - dt);
 
+    // Y1: open the gate (timer or base HP); a base-HP gate sends one of each gated form at once (an early reinforcement)
+    if (G && !G.open && ((G.by === 'time' && S.t >= G.at) || (G.by === 'hp' && S.enemyBase.hp <= S.enemyBase.max * G.at))) {
+      G.open = true; G.openT = Math.round(S.t * 100) / 100;
+      S.events.push({ type: 'gate', by: G.by });
+      if (G.by === 'hp') for (const w of S.waves) {
+        if (!G.forms.has(w.form)) continue;
+        if (count(-1) < C.MAX_PER_SIDE + 2) { makeUnit(BM.FORMS[w.form], w.level, -1, C.ENEMY_BASE_FRONT + 4 - rnd() * 12); w.spawned++; }
+        w.next = Math.max(w.next, S.t + w.every);
+      }
+    }
     for (const w of S.waves) {
+      if (gated(w.form)) continue;
       if (S.t < w.next || (w.count != null && w.spawned >= w.count)) continue;
       if (count(-1) >= C.MAX_PER_SIDE) { w.next = S.t + 1; continue; }
       makeUnit(BM.FORMS[w.form], w.level, -1, C.ENEMY_BASE_FRONT + 8 - rnd() * 16);
@@ -209,7 +234,7 @@ BM.Battle = function (stage, profile, opts = {}) {
     }
 
     const A = S.ace;
-    if (A && !A.out && (S.enemyBase.hp < S.enemyBase.max * C.ACE_BASE_FRAC || S.t >= C.ACE_TIME)) {
+    if (A && !A.out && !gated(A.form) && (S.enemyBase.hp < S.enemyBase.max * C.ACE_BASE_FRAC || S.t >= C.ACE_TIME)) {
       A.out = true; // the ace ignores the side cap: it always comes out (§4.4)
       const u = makeUnit(BM.FORMS[A.form], A.level, -1, C.ENEMY_BASE_FRONT - 4);
       u.ace = true;

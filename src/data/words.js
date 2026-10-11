@@ -1,13 +1,20 @@
-// Spelling challenge word lists (Phase 6 hear-and-spell). Grade-leveled from the Dolch / Fry sight-word lists and
-// standard grade spelling lists (concrete words picked where possible so the picture clue helps). Each entry:
-//   [word, picture clue, clue sentence that contains the word — SPOKEN only, never shown before it's answered]
-// P3 PICTURE AUDIT (playtest, 2026-10-11): the picture must depict the WORD itself, never an associate (the old ⚾ for
-// "caught"). Every entry is curated: an emoji only for unambiguous concrete nouns; `null` = NO picture (verbs, abstract
-// words, homophones, categories shown by an example) — the screen shows a neutral "listen" card and the spoken clue
-// sentence carries the meaning. Never derived automatically (tools/test/phase7.mjs words checks every entry).
-// Words never appear on screen before they are answered; that is why no entry may be a word the challenge screen's own
-// labels use (checked by tools/test/phase6.mjs). POKÉMON: a bonus list that mixes in at any grade (its picture clue is
-// the Pokémon's sprite; `id` = the line / form id).
+// Spelling challenge word lists (Phase 6 hear-and-spell; grown in Phase 7.5 per V2/V3 to ~300 words). Grade-leveled from the
+// Dolch / Fry sight-word lists (grades 2–3) and standard grade spelling lists (grades 4–7), about 50 words per grade,
+// concrete nouns and clear-action verbs favoured over adjectives / adverbs. Each entry:
+//   [word, picture-or-null, clue sentence that contains the word — SPOKEN only, never shown before it's answered]
+// V2 PICTURE = THE WORD EXACTLY (P3 audit, playtest 2026-10-11): an emoji must depict the WORD itself, never an
+// associate or an example (⚾ only for "baseball", never for "caught"; 🥦 is "broccoli", not "vegetable"). A clear
+// ACTION emoji is allowed for a verb only when unambiguous (🏃 "running", 🏊 "swimming").
+// V3 PIC-OR-NO-PIC FLAG PER ENTRY: every entry is curated by hand — the emoji, or an explicit `null` = NO picture
+// (abstract words, adjectives / adverbs, homophones, anything an emoji can only hint at); the screen then shows a neutral
+// card and the spoken clue sentence carries the meaning. Never derived automatically (tools/test/phase7.mjs words checks
+// every entry). No word appears twice across the lists.
+// NN1 (user, Phase 7.5 re-issue — supersedes P2/V1): spelling is VISUAL now — the word is SHOWN in writing with its picture
+// clue and copied with letter tiles; the clue sentence stays as data (no longer spoken). (The old "no word may be a screen
+// label" rule existed because words were hidden; phase6.mjs now only reports overlaps.)
+// POKÉMON: a bonus list that mixes in at any grade — every species name in the game a kid would spell (letters-only
+// names; Mr. Mime / Porygon2 / Porygon-Z and the duplicate typed Eevee / Galar Meowth / Kleavor-Scyther bases skipped).
+// Its picture clue is always the Pokémon's own sprite (`id` = the form id).
 window.BM = window.BM || {};
 BM.WORDS = {
   2: [
@@ -18,15 +25,27 @@ BM.WORDS = {
     ['boat', '⛵', 'We rowed the boat on the lake.'], ['star', '⭐', 'I made a wish on a star.'],
     ['king', null, 'The king wore a gold crown.'], ['nest', '🪺', 'The bird built a nest.'],
     ['sock', '🧦', 'I lost one sock in the wash.'], ['milk', '🥛', 'I drink milk with my cereal.'],
-    ['snow', '❄️', 'We built a snowman out of snow.'], ['road', '🛣️', 'The car drove down the road.'],
+    ['snow', null, 'We built a snowman out of snow.'], ['road', '🛣️', 'The car drove down the road.'],
     ['coat', '🧥', 'Wear your coat when it is cold.'], ['smile', '😊', 'Your smile makes me happy.'],
-    ['green', '🟢', 'Grass is green.'], ['black', '⬛', 'The cat has black fur.'],
+    ['green', null, 'Grass is green.'], ['black', null, 'The cat has black fur.'],
     ['sleep', null, 'I sleep in my bed at night.'], ['apple', '🍎', 'I ate a red apple.'],
     ['clock', '🕒', 'The clock says it is three.'], ['which', null, 'Which one do you want?'],
     ['would', null, 'Would you like to play?'], ['because', null, 'I wore a hat because it was sunny.'],
+    ['dog', '🐕', 'The dog wagged its tail.'], ['cat', '🐈', 'The cat sat on the mat.'],
+    ['pig', '🐖', 'The pig rolled in the mud.'], ['ant', '🐜', 'An ant carried a crumb.'],
+    ['bed', '🛏️', 'I make my bed every morning.'], ['bus', '🚌', 'We ride the bus to the park.'],
+    ['egg', '🥚', 'The hen laid an egg.'], ['car', '🚗', 'Dad washed the car.'],
+    ['book', '📖', 'Read me a book before bed.'], ['door', '🚪', 'Please shut the door.'],
+    ['key', '🔑', 'I used a key to open the lock.'], ['cow', '🐄', 'The cow eats grass all day.'],
+    ['hand', '✋', 'Raise your hand to ask.'], ['foot', '🦶', 'I hurt my foot on a rock.'],
+    ['bird', '🐦', 'A bird sang in the morning.'], ['corn', '🌽', 'We ate corn on the cob.'],
+    ['house', '🏠', 'Our house has a red roof.'], ['cookie', '🍪', 'Grandma baked a cookie for me.'],
+    ['banana', '🍌', 'The monkey peeled a banana.'], ['kite', '🪁', 'We flew a kite in the wind.'],
+    ['drum', '🥁', 'Bang the drum loudly.'], ['said', null, 'Mom said it was time for bed.'],
+    ['where', null, 'Where did you put my shoes?'], ['they', null, 'They went to the zoo.'],
   ],
   3: [
-    ['train', '🚂', 'The train goes choo choo.'], ['bridge', '🌉', 'We walked across the bridge.'],
+    ['train', '🚆', 'The train goes choo choo.'], ['bridge', '🌉', 'We walked across the bridge.'],
     ['cloud', '☁️', 'A white cloud floated by.'], ['horse', '🐴', 'The horse ran in the field.'],
     ['mouse', '🐭', 'A little mouse ate the cheese.'], ['juice', '🧃', 'I drink orange juice.'],
     ['pencil', '✏️', 'Write your name with a pencil.'], ['rabbit', '🐰', 'The rabbit hopped away.'],
@@ -34,11 +53,24 @@ BM.WORDS = {
     ['friend', null, 'My friend came over to play.'], ['lunch', null, 'We eat lunch at noon.'],
     ['beach', '🏖️', 'We built sandcastles at the beach.'], ['thumb', '👍', 'Hold up your thumb.'],
     ['knife', '🔪', 'Cut the bread with a knife.'], ['write', null, 'Please write a story.'],
-    ['light', '💡', 'Turn on the light.'], ['night', '🌃', 'Owls hunt at night.'],
+    ['light', null, 'Turn on the light.'], ['night', null, 'Owls hunt at night.'],
     ['dragon', '🐉', 'The dragon breathed fire.'], ['garden', null, 'Flowers grow in the garden.'],
     ['spider', '🕷️', 'A spider spun a web.'], ['money', '💰', 'I saved my money in a jar.'],
     ['happy', null, 'The puppy is happy to see me.'], ['circle', '⭕', 'Draw a circle.'],
     ['winter', null, 'It snows in winter.'], ['laugh', null, 'The joke made me laugh.'],
+    ['tiger', '🐅', 'The tiger has orange and black stripes.'], ['zebra', '🦓', 'A zebra has black and white stripes.'],
+    ['snake', '🐍', 'The snake slid through the grass.'], ['sheep', '🐑', 'The sheep has soft wool.'],
+    ['chicken', '🐔', 'The chicken pecked at the seeds.'], ['cheese', '🧀', 'I put cheese on my sandwich.'],
+    ['bread', '🍞', 'Mom baked a loaf of bread.'], ['carrot', '🥕', 'The rabbit ate a carrot.'],
+    ['crown', '👑', 'The queen wore a shiny crown.'], ['whale', '🐋', 'A whale is a huge sea animal.'],
+    ['tooth', '🦷', 'My loose tooth fell out.'], ['truck', '🚚', 'The truck carried heavy boxes.'],
+    ['shirt', '👕', 'I spilled juice on my shirt.'], ['dress', '👗', 'She wore a blue dress.'],
+    ['ghost', '👻', 'The ghost said boo.'], ['robot', '🤖', 'The robot can walk and talk.'],
+    ['candle', '🕯️', 'Blow out the candle.'], ['ladder', '🪜', 'Climb up the ladder carefully.'],
+    ['rainbow', '🌈', 'A rainbow came out after the storm.'], ['monkey', '🐒', 'The monkey swung from the branch.'],
+    ['swimming', '🏊', 'We went swimming in the pool.'], ['running', '🏃', 'He is running in the race.'],
+    ['hammer', '🔨', 'Hit the nail with a hammer.'], ['baseball', '⚾', 'I hit the baseball with a bat.'],
+    ['thought', null, 'I thought about my dog all day.'], ['children', null, 'The children played outside.'],
   ],
   4: [
     ['castle', '🏰', 'The princess lived in a castle.'], ['giraffe', '🦒', 'The giraffe has a very long neck.'],
@@ -54,6 +86,19 @@ BM.WORDS = {
     ['answer', null, 'Raise your hand to answer.'], ['believe', null, 'I believe you can do it.'],
     ['enough', null, 'Did you have enough to eat?'], ['caught', null, 'She caught the ball.'],
     ['through', null, 'We walked through the door.'], ['school', '🏫', 'We learn to read at school.'],
+    ['elephant', '🐘', 'The elephant sprayed water with its trunk.'], ['kangaroo', '🦘', 'A kangaroo carries its baby in a pouch.'],
+    ['flamingo', '🦩', 'The pink flamingo stood on one leg.'], ['peacock', '🦚', 'The peacock spread its colorful tail.'],
+    ['lobster', '🦞', 'A lobster has two big claws.'], ['hamburger', '🍔', 'I ate a hamburger with ketchup.'],
+    ['sandwich', '🥪', 'Dad packed a sandwich in my bag.'], ['popcorn', '🍿', 'We ate popcorn at the movies.'],
+    ['pineapple', '🍍', 'A pineapple is prickly on the outside.'], ['coconut', '🥥', 'The coconut fell from the palm tree.'],
+    ['avocado', '🥑', 'Mom sliced an avocado for lunch.'], ['umbrella', '☂️', 'Take an umbrella in case it rains.'],
+    ['compass', '🧭', 'The compass points north.'], ['trumpet', '🎺', 'He played a song on the trumpet.'],
+    ['violin', '🎻', 'She plays the violin in the band.'], ['magnet', '🧲', 'The magnet picked up the paper clips.'],
+    ['tractor', '🚜', 'The farmer drove the tractor.'], ['helicopter', '🚁', 'The helicopter landed on the roof.'],
+    ['skateboard', '🛹', 'He rode his skateboard down the path.'], ['snowman', '⛄', 'We put a carrot nose on the snowman.'],
+    ['bandage', '🩹', 'Put a bandage on your cut.'], ['pretzel', '🥨', 'I ate a salty pretzel.'],
+    ['basketball', '🏀', 'She threw the basketball into the hoop.'], ['wrench', '🔧', 'Dad fixed the sink with a wrench.'],
+    ['probably', null, 'It will probably rain tomorrow.'], ['although', null, 'We played outside although it was cold.'],
   ],
   5: [
     ['volcano', '🌋', 'Lava poured out of the volcano.'], ['skeleton', null, 'The skeleton has many bones.'],
@@ -62,12 +107,26 @@ BM.WORDS = {
     ['microphone', '🎤', 'She sang into the microphone.'], ['astronaut', '👩‍🚀', 'The astronaut floated in space.'],
     ['chocolate', '🍫', 'I love chocolate ice cream.'], ['butterfly', '🦋', 'The butterfly landed on a flower.'],
     ['mysterious', null, 'The mysterious box had no label.'], ['adventure', null, 'We went on an adventure.'],
-    ['furniture', '🛋️', 'We moved the furniture.'], ['neighbor', null, 'Our neighbor has a dog.'],
-    ['temperature', null, 'The temperature is very hot.'], ['vegetable', '🥦', 'Broccoli is a vegetable.'],
+    ['furniture', null, 'We moved the furniture.'], ['neighbor', null, 'Our neighbor has a dog.'],
+    ['temperature', null, 'The temperature is very hot.'], ['vegetable', null, 'Broccoli is a vegetable.'],
     ['calculator', null, 'Use a calculator to add.'], ['envelope', '✉️', 'Put the letter in the envelope.'],
     ['electricity', null, 'The lamp uses electricity.'], ['knowledge', null, 'Books give us knowledge.'],
     ['beautiful', null, 'What a beautiful flower.'], ['different', null, 'Each snowflake is different.'],
     ['surprise', null, 'We planned a surprise party.'], ['government', null, 'The government makes laws.'],
+    ['hedgehog', '🦔', 'The hedgehog rolled into a spiky ball.'], ['scorpion', '🦂', 'A scorpion has a stinger on its tail.'],
+    ['mosquito', '🦟', 'A mosquito bit my arm.'], ['tornado', '🌪️', 'The tornado spun across the field.'],
+    ['satellite', '🛰️', 'The satellite circles the Earth.'], ['motorcycle', '🏍️', 'The motorcycle roared down the street.'],
+    ['saxophone', '🎷', 'He played jazz on the saxophone.'], ['accordion', '🪗', 'Grandpa squeezed the accordion.'],
+    ['microscope', '🔬', 'We looked at a leaf under the microscope.'], ['battery', '🔋', 'The toy needs a new battery.'],
+    ['pancakes', '🥞', 'We had pancakes with syrup.'], ['spaghetti', '🍝', 'I twirled my spaghetti on a fork.'],
+    ['broccoli', '🥦', 'Broccoli looks like a tiny tree.'], ['strawberry', '🍓', 'The strawberry was sweet and red.'],
+    ['watermelon', '🍉', 'We spit watermelon seeds outside.'], ['cucumber', '🥒', 'Slice the cucumber for the salad.'],
+    ['mushroom', '🍄', 'A mushroom grew under the tree.'], ['snowflake', '❄️', 'A snowflake landed on my nose.'],
+    ['caterpillar', '🐛', 'The caterpillar munched on a leaf.'], ['dolphin', '🐬', 'The dolphin jumped out of the water.'],
+    ['gorilla', '🦍', 'The gorilla beat its chest.'], ['parrot', '🦜', 'The parrot can copy what you say.'],
+    ['toothbrush', '🪥', 'Put toothpaste on your toothbrush.'], ['volleyball', '🏐', 'We hit the volleyball over the net.'],
+    ['especially', null, 'I like fruit, especially grapes.'], ['separate', null, 'Keep the socks separate from the shirts.'],
+    ['recognize', null, 'I did not recognize you with a hat on.'],
   ],
   6: [
     ['hurricane', '🌀', 'The hurricane brought strong winds.'], ['crocodile', '🐊', 'The crocodile swam in the river.'],
@@ -80,7 +139,21 @@ BM.WORDS = {
     ['necessary', null, 'Water is necessary for life.'], ['exaggerate', null, 'Do not exaggerate the story.'],
     ['restaurant', null, 'We ate dinner at a restaurant.'], ['committee', null, 'The committee voted yes.'],
     ['environment', null, 'We must protect the environment.'], ['recommend', null, 'I recommend this book.'],
-    ['license', '🪪', 'You need a license to drive.'], ['camouflage', null, 'The lizard used camouflage to hide.'],
+    ['license', null, 'You need a license to drive.'], ['camouflage', null, 'The lizard used camouflage to hide.'],
+    ['stethoscope', '🩺', 'The doctor listened to my heart with a stethoscope.'], ['boomerang', '🪃', 'The boomerang flew back to me.'],
+    ['hourglass', '⌛', 'The sand ran out of the hourglass.'], ['mammoth', '🦣', 'The woolly mammoth lived in the ice age.'],
+    ['sloth', '🦥', 'The sloth hung slowly from a branch.'], ['otter', '🦦', 'The otter floated on its back.'],
+    ['raccoon', '🦝', 'A raccoon dug through the trash can.'], ['beaver', '🦫', 'The beaver built a dam of sticks.'],
+    ['bison', '🦬', 'A herd of bison crossed the plains.'], ['orangutan', '🦧', 'The orangutan has long orange hair.'],
+    ['croissant', '🥐', 'I ate a buttery croissant.'], ['burrito', '🌯', 'The burrito was filled with beans and rice.'],
+    ['dumpling', '🥟', 'Grandma made a dumpling for each of us.'], ['fireworks', '🎆', 'The fireworks lit up the night sky.'],
+    ['carousel', '🎠', 'We rode the carousel at the fair.'], ['anchor', '⚓', 'The sailors dropped the anchor.'],
+    ['trophy', '🏆', 'Our team won a gold trophy.'], ['shield', '🛡️', 'The knight raised his shield.'],
+    ['syringe', '💉', 'The nurse filled the syringe.'], ['microbe', '🦠', 'A microbe is too small to see.'],
+    ['abacus', '🧮', 'We counted beads on the abacus.'], ['thread', '🧵', 'Put the thread through the needle.'],
+    ['banjo', '🪕', 'He strummed the banjo by the fire.'], ['achievement', null, 'Finishing the race was a big achievement.'],
+    ['rehearsal', null, 'The play had a rehearsal on Friday.'], ['immediately', null, 'Come inside immediately.'],
+    ['disappoint', null, 'I promise I will not disappoint you.'], ['opportunity', null, 'This trip is a great opportunity.'],
   ],
   7: [
     ['conscience', null, 'Your conscience tells right from wrong.'], ['mischievous', null, 'The mischievous cat knocked over a cup.'],
@@ -94,9 +167,23 @@ BM.WORDS = {
     ['embarrass', null, 'Please do not embarrass me!'], ['definitely', null, 'I will definitely come.'],
     ['boulevard', null, 'We drove down the boulevard.'], ['cylinder', null, 'A can is shaped like a cylinder.'],
     ['quarantine', null, 'The sick dog stayed in quarantine.'], ['maneuver', null, 'The pilot made a sharp maneuver.'],
+    ['bouquet', '💐', 'She carried a bouquet of roses.'], ['chopsticks', '🥢', 'He ate noodles with chopsticks.'],
+    ['screwdriver', '🪛', 'Tighten the screw with a screwdriver.'], ['pickaxe', '⛏️', 'The miner swung his pickaxe.'],
+    ['headphones', '🎧', 'I listen to music with headphones.'], ['joystick', '🕹️', 'Move the joystick to steer the ship.'],
+    ['keyboard', '⌨️', 'Type your name on the keyboard.'], ['cartwheel', '🤸', 'She did a cartwheel on the grass.'],
+    ['juggling', '🤹', 'The clown was juggling three balls.'], ['stopwatch', '⏱️', 'The coach timed us with a stopwatch.'],
+    ['kimono', '👘', 'She wore a silk kimono to the festival.'], ['locomotive', '🚂', 'The steam locomotive pulled the cars.'],
+    ['conscientious', null, 'A conscientious student checks her work.'], ['exhilarate', null, 'Roller coasters exhilarate me.'],
+    ['liaison', null, 'The teacher is the liaison between parents and the school.'], ['occasionally', null, 'We occasionally eat pizza for dinner.'],
+    ['perseverance', null, 'Perseverance helped him finish the marathon.'], ['rendezvous', null, 'The explorers planned a rendezvous at the river.'],
+    ['vacuum', null, 'Please vacuum the carpet.'], ['ingenious', null, 'That was an ingenious idea.'],
+    ['hygiene', null, 'Brushing your teeth is good hygiene.'], ['colonel', null, 'The colonel led the soldiers.'],
+    ['lieutenant', null, 'The lieutenant gave an order.'], ['sergeant', null, 'The sergeant called roll.'],
+    ['parallel', null, 'The two lines are parallel.'], ['reminisce', null, 'Grandparents love to reminisce about the old days.'],
+    ['foreign', null, 'She speaks a foreign language.'], ['unanimous', null, 'The vote was unanimous.'],
   ],
 };
-// Bonus list: Pokémon names as spellable words (any grade). [word, line/form id for the sprite clue, clue sentence]
+// Bonus list: Pokémon names as spellable words (any grade). [word, form id for the sprite clue, clue sentence]
 BM.WORDS_POKEMON = [
   ['pikachu', 'pikachu', 'Pikachu is an Electric type Pokémon.'], ['charmander', 'charmander', 'Charmander has a flame on its tail.'],
   ['squirtle', 'squirtle', 'Squirtle shoots water from its mouth.'], ['bulbasaur', 'bulbasaur', 'Bulbasaur has a plant bulb on its back.'],
@@ -108,5 +195,52 @@ BM.WORDS_POKEMON = [
   ['dratini', 'dratini', 'Dratini is a baby dragon.'], ['vulpix', 'vulpix', 'Vulpix has six curly tails.'],
   ['growlithe', 'growlithe', 'Growlithe is a loyal fire puppy.'], ['machop', 'machop', 'Machop is very strong.'],
   ['cubone', 'cubone', 'Cubone wears a skull helmet.'], ['gyarados', 'gyarados', 'Gyarados is a fierce sea serpent.'],
+  // roster forms
+  ['ivysaur', 'ivysaur', 'Ivysaur has a bud on its back.'], ['venusaur', 'venusaur', 'Venusaur has a big flower on its back.'],
+  ['charmeleon', 'charmeleon', 'Charmeleon has sharp claws.'], ['charizard', 'charizard', 'Charizard flies high and breathes fire.'],
+  ['wartortle', 'wartortle', 'Wartortle has a fluffy tail.'], ['blastoise', 'blastoise', 'Blastoise has water cannons on its shell.'],
+  ['raichu', 'raichu', 'Raichu evolves from Pikachu.'], ['gastly', 'gastly', 'Gastly is made of purple gas.'],
+  ['haunter', 'haunter', 'Haunter likes to play tricks.'], ['kadabra', 'kadabra', 'Kadabra holds a silver spoon.'],
+  ['alakazam', 'alakazam', 'Alakazam is very smart.'], ['machoke', 'machoke', 'Machoke wears a power belt.'],
+  ['machamp', 'machamp', 'Machamp has four strong arms.'], ['ninetales', 'ninetales', 'Ninetales has nine beautiful tails.'],
+  ['wigglytuff', 'wigglytuff', 'Wigglytuff has soft, bouncy fur.'], ['marowak', 'marowak', 'Marowak swings a bone club.'],
+  ['vaporeon', 'vaporeon', 'Vaporeon can melt into water.'], ['dragonair', 'dragonair', 'Dragonair has crystal orbs on its tail.'],
+  ['dragonite', 'dragonite', 'Dragonite is a kind and gentle dragon.'], ['golduck', 'golduck', 'Golduck is a fast swimmer.'],
+  ['persian', 'persian', 'Persian has a jewel on its forehead.'], ['perrserker', 'perrserker', 'Perrserker has steel fur.'],
+  ['arcanine', 'arcanine', 'Arcanine runs as fast as the wind.'], ['ditto', 'ditto', 'Ditto can copy any Pokémon.'],
+  ['pinsir', 'pinsir', 'Pinsir has two huge pincers.'], ['scyther', 'scyther', 'Scyther has blades for arms.'],
+  ['scizor', 'scizor', 'Scizor has a steel body.'], ['kleavor', 'kleavor', 'Kleavor has axes made of stone.'],
+  ['porygon', 'porygon', 'Porygon was made by computer code.'], ['aerodactyl', 'aerodactyl', 'Aerodactyl is an ancient flying Pokémon.'],
+  ['mewtwo', 'mewtwo', 'Mewtwo has strong psychic powers.'], ['mew', 'mew', 'Mew is very rare and playful.'],
+  ['articuno', 'articuno', 'Articuno is a legendary ice bird.'], ['zapdos', 'zapdos', 'Zapdos is a legendary thunder bird.'],
+  ['moltres', 'moltres', 'Moltres is a legendary fire bird.'], ['jolteon', 'jolteon', 'Jolteon has spiky fur full of electricity.'],
+  ['flareon', 'flareon', 'Flareon has a fluffy fire mane.'], ['espeon', 'espeon', 'Espeon has a red gem on its forehead.'],
+  ['umbreon', 'umbreon', 'Umbreon has glowing yellow rings.'], ['leafeon', 'leafeon', 'Leafeon has leaves on its body.'],
+  ['glaceon', 'glaceon', 'Glaceon can freeze the air around it.'], ['sylveon', 'sylveon', 'Sylveon has pretty ribbon feelers.'],
+  // enemy species
+  ['pidgey', 'pidgey', 'Pidgey is a small brown bird.'], ['pidgeot', 'pidgeot', 'Pidgeot has a long colorful crest.'],
+  ['rattata', 'rattata', 'Rattata has big front teeth.'], ['caterpie', 'caterpie', 'Caterpie is a little green bug.'],
+  ['geodude', 'geodude', 'Geodude is a rock with arms.'], ['zubat', 'zubat', 'Zubat lives in dark caves.'],
+  ['golbat', 'golbat', 'Golbat has a very big mouth.'], ['clefairy', 'clefairy', 'Clefairy dances under the full moon.'],
+  ['oddish', 'oddish', 'Oddish has leaves on its head.'], ['staryu', 'staryu', 'Staryu is shaped like a star.'],
+  ['tentacool', 'tentacool', 'Tentacool floats in the ocean.'], ['voltorb', 'voltorb', 'Voltorb looks like a red and white ball.'],
+  ['ekans', 'ekans', 'Ekans is a purple snake.'], ['arbok', 'arbok', 'Arbok has a scary pattern on its hood.'],
+  ['koffing', 'koffing', 'Koffing is full of smelly gas.'], ['tangela', 'tangela', 'Tangela is covered in blue vines.'],
+  ['rhyhorn', 'rhyhorn', 'Rhyhorn charges straight ahead.'], ['venonat', 'venonat', 'Venonat has big red eyes.'],
+  ['venomoth', 'venomoth', 'Venomoth flaps dusty wings.'], ['ponyta', 'ponyta', 'Ponyta has a mane of fire.'],
+  ['rapidash', 'rapidash', 'Rapidash gallops very fast.'], ['dewgong', 'dewgong', 'Dewgong swims in icy water.'],
+  ['cloyster', 'cloyster', 'Cloyster hides inside a hard shell.'], ['hitmonlee', 'hitmonlee', 'Hitmonlee has super long legs for kicking.'],
+  ['dugtrio', 'dugtrio', 'Dugtrio is three heads in one hole.'], ['starmie', 'starmie', 'Starmie has a glowing red core.'],
+  ['vileplume', 'vileplume', 'Vileplume has a giant flower on its head.'], ['weezing', 'weezing', 'Weezing has two heads.'],
+  ['rhydon', 'rhydon', 'Rhydon has a drill on its horn.'],
+  // new enemy species (V2)
+  ['pidgeotto', 'pidgeotto', 'Pidgeotto has sharp talons.'], ['raticate', 'raticate', 'Raticate can chew through wood.'],
+  ['metapod', 'metapod', 'Metapod has a hard green shell.'], ['graveler', 'graveler', 'Graveler rolls down mountains.'],
+  ['butterfree', 'butterfree', 'Butterfree flutters from flower to flower.'], ['golem', 'golem', 'Golem is as heavy as a huge boulder.'],
+  ['clefable', 'clefable', 'Clefable has big pointy ears.'], ['gloom', 'gloom', 'Gloom has a very stinky smell.'],
+  ['tentacruel', 'tentacruel', 'Tentacruel has many long tentacles.'], ['electrode', 'electrode', 'Electrode is full of electricity.'],
+  ['crobat', 'crobat', 'Crobat flies with four wings.'], ['steelix', 'steelix', 'Steelix is a giant steel snake.'],
+  ['tangrowth', 'tangrowth', 'Tangrowth has long vine arms.'], ['rhyperior', 'rhyperior', 'Rhyperior can shoot rocks from its hands.'],
+  ['hitmonchan', 'hitmonchan', 'Hitmonchan throws very fast punches.'],
 ];
 BM.SPELL_POKEMON_SHARE = 0.15; // share of spelling words drawn from the Pokémon bonus list

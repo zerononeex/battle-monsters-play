@@ -85,7 +85,7 @@ BM.addLine({ id: 'cubone', name: 'Cubone', forms: [
   { id: 'marowak', name: 'Marowak', trait: 'sniper', types: ['ground'], bst: 425, baseHP: 60, baseSpe: 45, role: 'balanced', cost: 300, cd: 10, evo: { level: 28 } },
 ] });
 BM.addLine({ id: 'eevee_water', name: 'Water Eevee', branch: 'eevee', forms: [
-  { id: 'eevee_water', name: 'Water Eevee', cry: 'eevee', trait: 'rusher', types: ['water'], bst: 325, baseHP: 55, baseSpe: 55, role: 'ranged', cost: 80, cd: 4 },
+  { id: 'eevee_water', name: 'Water Eevee', cry: 'eevee', sprite: 'eevee_water', trait: 'rusher', types: ['water'], bst: 325, baseHP: 55, baseSpe: 55, role: 'ranged', cost: 80, cd: 4 },
   { id: 'vaporeon', name: 'Vaporeon', trait: 'dodger', dodge: 0.2, types: ['water'], bst: 525, baseHP: 130, baseSpe: 65, role: 'ranged', cost: 520, cd: 20, evo: { item: 'water_stone', minLevel: 20 } },
 ] });
 BM.addLine({ id: 'snorlax', name: 'Snorlax', forms: [
@@ -167,7 +167,9 @@ BM.addLine({ id: 'moltres', name: 'Moltres', legendary: true, gachaOnly: true, f
   ['ice', 'Ice', 'glaceon', 'Glaceon', 65, 65, 'ranged', { item: 'ice_stone', minLevel: 20 }],
   ['fairy', 'Fairy', 'sylveon', 'Sylveon', 95, 60, 'ranged', { level: 25, rule: 'friendship' }],
 ].forEach(([type, label, evoId, evoName, hp, spe, role, evo]) => BM.addLine({ id: 'eevee_' + type, name: label + ' Eevee', branch: 'eevee', forms: [
-  { id: 'eevee_' + type, name: label + ' Eevee', cry: 'eevee', types: [type], bst: 325, baseHP: 55, baseSpe: 55, role: 'ranged', cost: 80, cd: 4 },
+  // II1 (user 2026-10-11): every typed base Eevee renders from the ONE canonical Eevee sheet set (assets/units/eevee_water —
+  // brown fur, cream ruff + tail tip); the variants differ only in type and attack (combat.js). No per-variant recolours.
+  { id: 'eevee_' + type, name: label + ' Eevee', cry: 'eevee', sprite: 'eevee_water', types: [type], bst: 325, baseHP: 55, baseSpe: 55, role: 'ranged', cost: 80, cd: 4 },
   { id: evoId, name: evoName, types: [type], bst: 525, baseHP: hp, baseSpe: spe, role, cost: 520, cd: 20, evo },
 ] }));
 

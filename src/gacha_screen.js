@@ -1,4 +1,4 @@
-// Gacha screen (Phase 5): banner tabs, banner card (its two legendaries + pool + pity counter), currency picker (tickets
+// Safari Zone screen (R1, Phase 7.5 — internal name stays "gacha") (Phase 5): banner tabs, banner card (its two legendaries + pool + pity counter), currency picker (tickets
 // or Poké Balls, both balances shown), Pull ×1 / ×10, Master Ball trade, Legendary Gacha, and the reveal. Rules: gacha.js.
 window.BM = window.BM || {};
 BM.GachaScreen = function (ui) {
@@ -7,7 +7,7 @@ BM.GachaScreen = function (ui) {
   const prof = () => BM.Save.profile();
   let bannerId = BM.BANNERS[0].id, currency = 'tickets';
   const icon = (key, emo) => { const s = BM.Sprites.artSrc('icons/' + key); return s ? `<img src="${s}" alt="">` : emo; };
-  const TK = () => icon('battle_ticket', '🎫'), PB = () => icon('poke_ball', '🔴'), MB = () => icon('master_ball', '🟣');
+  const TK = () => BM.ticketIcon(), PB = () => icon('poke_ball', '🔴'), MB = () => icon('master_ball', '🟣');
   const legendNames = (b) => b.legendaries.map((id) => BM.LINES[id].name).join(' or ');
 
   function render() {
@@ -21,18 +21,29 @@ BM.GachaScreen = function (ui) {
       tap(t, () => { bannerId = bb.id; BM.Audio.sfx('tap'); render(); });
       tabs.appendChild(t);
     }
-    // banner card: the two legendaries big, the pool as a strip (silhouettes = not met yet), the pity counter
+    // banner card (R2, Phase 7.5): a dedicated 2:1 ART STAGE on top — the #250/#251 key art shown UNCROPPED (the art is
+    // composed 2:1) — and ALL the UI below it: the legendaries' names + type/role chips, the pity counter, the pool strip
+    // (H3b) and the odds. Without key art the stage shows the two legendaries' sprites on the banner gradient.
     const card = $('banner-card'); card.innerHTML = ''; card.dataset.banner = b.id;
-    // H3: the banner's generated key art (assets/ui/banners/<id>.png, ASSET_PROMPTS #250–#251) takes over the panel when DONE
     const key = BM.Sprites.artSrc('ui/banner_' + b.id);
-    card.style.backgroundImage = key ? `linear-gradient(rgba(0,0,0,.05), rgba(0,0,0,.35)), url("${key}")` : '';
     card.classList.toggle('has-art', !!key);
-    const legs = document.createElement('div'); legs.className = 'bc-legs';
+    // OO1: the Safari Zone screen sits on its themed savanna backdrop (assets/ui/safari_zone.png, #272) — orange gradient until then
+    const bd = BM.Sprites.artSrc('ui/safari_zone');
+    $('scr-gacha').style.backgroundImage = bd ? `url("${bd}")` : '';
+    const stage = document.createElement('div'); stage.className = 'bc-art'; stage.id = 'bc-art';
+    if (key) { const im = document.createElement('img'); im.src = key; im.alt = b.name; im.className = 'bc-art-img'; stage.appendChild(im); }
+    else {
+      const legs = document.createElement('div'); legs.className = 'bc-legs';
+      for (const id of b.legendaries) { const d = document.createElement('div'); d.className = 'bc-leg'; d.appendChild(ui.thumb(BM.LINES[id].forms[0], 170, false)); legs.appendChild(d); }
+      stage.appendChild(legs);
+    }
+    card.appendChild(stage);
+    const info = document.createElement('div'); info.className = 'bc-info'; info.id = 'bc-info';
+    const names = document.createElement('div'); names.className = 'bc-names';
     for (const id of b.legendaries) {
-      const d = document.createElement('div'); d.className = 'bc-leg';
-      d.appendChild(ui.thumb(BM.LINES[id].forms[0], 170, false));
+      const d = document.createElement('div'); d.className = 'bc-leg-info'; d.dataset.line = id;
       const n = document.createElement('span'); n.className = 'bc-name'; n.textContent = BM.LINES[id].name + (p.lines[id] ? ' ✓' : ''); d.appendChild(n);
-      // H3: TYPE icons + ROLE label as chips under each legendary
+      // H3: TYPE icons + ROLE label as chips beside each legendary
       const f = BM.LINES[id].forms[0], chips = document.createElement('div'); chips.className = 'bc-chips'; chips.dataset.line = id;
       for (const t of f.types) {
         const ic = BM.Sprites.artSrc('icons/type_' + t), c = document.createElement('span');
@@ -41,23 +52,25 @@ BM.GachaScreen = function (ui) {
       }
       const rl = BM.roleLabel(f), rc = document.createElement('span'); rc.className = 'bc-chip role'; rc.textContent = `${rl.icon} ${rl.text}`; chips.appendChild(rc);
       d.appendChild(chips);
-      legs.appendChild(d);
+      names.appendChild(d);
     }
-    card.appendChild(legs);
+    info.appendChild(names);
     const pity = document.createElement('div'); pity.className = 'bc-pity'; pity.id = 'pity-text';
     const left = Ga.pityLeft(b.id);
     pity.innerHTML = `<b>${legendNames(b)}</b> guaranteed in <b class="pity-n">${left}</b> pull${left === 1 ? '' : 's'}!`;
-    card.appendChild(pity);
-    const bar = document.createElement('div'); bar.className = 'bc-bar'; bar.innerHTML = `<i style="width:${Math.round((G.PITY - left) / G.PITY * 100)}%"></i>`; card.appendChild(bar);
+    info.appendChild(pity);
+    const bar = document.createElement('div'); bar.className = 'bc-bar'; bar.innerHTML = `<i style="width:${Math.round((G.PITY - left) / G.PITY * 100)}%"></i>`; info.appendChild(bar);
     const pool = document.createElement('div'); pool.className = 'bc-pool';
     for (const id of Ga.commons(b)) {
       const owned = !!p.lines[id], c = ui.thumb(BM.LINES[id].forms[0], 56, !owned);
       c.title = owned ? BM.LINES[id].name : '???'; c.dataset.line = id; pool.appendChild(c);
     }
-    card.appendChild(pool);
+    info.appendChild(pool);
     const odds = document.createElement('div'); odds.className = 'bc-odds';
     odds.textContent = `Legendary 2% · Pokémon 30% · XP candy 45% · battle item 17% · evolution item 8% · new friends first!`;
-    card.appendChild(odds);
+    info.appendChild(odds);
+    card.appendChild(info);
+    sizeStage();
     // currency picker + pull buttons
     $('cur-tickets').innerHTML = `${TK()} Tickets <b>${p.tickets}</b>`;
     $('cur-balls').innerHTML = `${PB()} Poké Balls <b>${p.items.poke_ball || 0}</b>`;
@@ -70,9 +83,23 @@ BM.GachaScreen = function (ui) {
     const balls = p.items.poke_ball || 0, mbs = p.items.master_ball || 0;
     $('btn-master-trade').innerHTML = `Trade ${G.MASTER_TRADE} ${PB()} → ${MB()} Master Ball <small>(you have ${balls})</small>`;
     $('btn-master-trade').disabled = balls < G.MASTER_TRADE;
-    $('btn-legend').innerHTML = `${MB()} Legendary Gacha <small>${mbs ? `×${mbs} Master Ball${mbs > 1 ? 's' : ''}` : '🔒 needs a Master Ball'}</small>`;
+    $('btn-legend').innerHTML = `${MB()} Legendary Safari Zone <small>${mbs ? `×${mbs} Master Ball${mbs > 1 ? 's' : ''}` : '🔒 needs a Master Ball'}</small>`;
     $('btn-legend').disabled = !mbs;
+    // KK1 + MM1: earning is as visible as spending — a pull-sized, full-width button with the Poké Ball art (no 🧠): every right
+    // answer pays one Poké Ball = one free Safari Zone spin
+    $('btn-earn').innerHTML = `<span class="pb-t">${BM.ballHtml('poke_ball', 'earn-ball')} Answer &amp; Earn</span><span class="pb-c">Poké Balls — 1 for every right answer!</span>`;
   }
+  // R2: the art stage is exactly 2:1 and as big as the card allows once the info block below has its room — the art is
+  // never cropped or stretched. Re-measured on every render and on resize.
+  function sizeStage() {
+    const card = $('banner-card'), st = $('bc-art'), info = $('bc-info');
+    if (!st || !info || !card.clientHeight) return;
+    const cs = getComputedStyle(card), padV = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom), padH = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight);
+    const availH = card.clientHeight - padV - info.offsetHeight - 6, availW = card.clientWidth - padH;
+    const w = Math.max(80, Math.floor(Math.min(availW, availH * 2)));
+    st.style.width = w + 'px'; st.style.height = Math.floor(w / 2) + 'px';
+  }
+  window.addEventListener('resize', () => { if (!$('scr-gacha').classList.contains('hidden')) sizeStage(); });
   for (const id of ['cur-tickets', 'cur-balls']) tap($(id), () => { currency = $(id).dataset.cur; BM.Audio.sfx('tap'); render(); });
   function doPull(n) {
     const r = Ga.pull(bannerId, n, currency);
@@ -83,7 +110,7 @@ BM.GachaScreen = function (ui) {
   tap($('btn-pull10'), () => doPull(G.MULTI));
   tap($('btn-master-trade'), () => {
     if (Ga.tradeMasterBall() !== 'ok') { BM.Audio.sfx('deny'); toast(`A Master Ball costs ${G.MASTER_TRADE} Poké Balls — you have ${prof().items.poke_ball || 0}.`); return; }
-    BM.Audio.sfx('upgrade'); toast('You got a Master Ball! The Legendary Gacha is open.'); render();
+    BM.Audio.sfx('upgrade'); toast('You got a Master Ball! The Legendary Safari Zone is open.'); render();
   });
   tap($('btn-legend'), () => { if (!(prof().items.master_ball > 0)) { BM.Audio.sfx('deny'); toast('Trade 30 Poké Balls for a Master Ball first!'); return; } BM.Audio.sfx('tap'); openLegend(); });
   tap($('btn-gacha-back'), () => { BM.Audio.sfx('tap'); ui.go('title'); });

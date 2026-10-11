@@ -30,9 +30,9 @@ BM.SPRITE_FILES = {
  "aerodactyl": {
   "attack": {
    "src": "sprites/aerodactyl.attack.png",
-   "cellW": 181,
+   "cellW": 191,
    "cellH": 130,
-   "anchorX": 90,
+   "anchorX": 95,
    "anchorY": 129,
    "frames": [
     0,
@@ -56,9 +56,9 @@ BM.SPRITE_FILES = {
  "alakazam": {
   "attack": {
    "src": "sprites/alakazam.attack.png",
-   "cellW": 144,
+   "cellW": 151,
    "cellH": 130,
-   "anchorX": 72,
+   "anchorX": 75,
    "anchorY": 129,
    "frames": [
     0,
@@ -67,9 +67,9 @@ BM.SPRITE_FILES = {
   },
   "run": {
    "src": "sprites/alakazam.run.png",
-   "cellW": 137,
+   "cellW": 82,
    "cellH": 130,
-   "anchorX": 68,
+   "anchorX": 41,
    "anchorY": 129,
    "frames": [
     0,
@@ -198,12 +198,27 @@ BM.SPRITE_FILES = {
    ]
   }
  },
+ "butterfree": {
+  "run": {
+   "src": "sprites/butterfree.run.png",
+   "cellW": 104,
+   "cellH": 130,
+   "anchorX": 52,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1,
+    2,
+    3
+   ]
+  }
+ },
  "caterpie": {
   "run": {
    "src": "sprites/caterpie.run.png",
-   "cellW": 134,
+   "cellW": 194,
    "cellH": 130,
-   "anchorX": 67,
+   "anchorX": 97,
    "anchorY": 129,
    "frames": [
     0,
@@ -291,6 +306,21 @@ BM.SPRITE_FILES = {
    ]
   }
  },
+ "clefable": {
+  "run": {
+   "src": "sprites/clefable.run.png",
+   "cellW": 89,
+   "cellH": 130,
+   "anchorX": 44,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1,
+    2,
+    3
+   ]
+  }
+ },
  "clefairy": {
   "run": {
    "src": "sprites/clefairy.run.png",
@@ -309,9 +339,24 @@ BM.SPRITE_FILES = {
  "cloyster": {
   "run": {
    "src": "sprites/cloyster.run.png",
-   "cellW": 126,
+   "cellW": 134,
    "cellH": 130,
-   "anchorX": 63,
+   "anchorX": 67,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1,
+    2,
+    3
+   ]
+  }
+ },
+ "crobat": {
+  "run": {
+   "src": "sprites/crobat.run.png",
+   "cellW": 112,
+   "cellH": 130,
+   "anchorX": 56,
    "anchorY": 129,
    "frames": [
     0,
@@ -362,12 +407,38 @@ BM.SPRITE_FILES = {
    ]
   }
  },
+ "ditto": {
+  "attack": {
+   "src": "sprites/ditto.attack.png",
+   "cellW": 212,
+   "cellH": 130,
+   "anchorX": 106,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1
+   ]
+  },
+  "run": {
+   "src": "sprites/ditto.run.png",
+   "cellW": 139,
+   "cellH": 130,
+   "anchorX": 69,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1,
+    2,
+    3
+   ]
+  }
+ },
  "dragonair": {
   "attack": {
    "src": "sprites/dragonair.attack.png",
-   "cellW": 144,
+   "cellW": 155,
    "cellH": 130,
-   "anchorX": 72,
+   "anchorX": 77,
    "anchorY": 129,
    "frames": [
     0,
@@ -376,9 +447,9 @@ BM.SPRITE_FILES = {
   },
   "run": {
    "src": "sprites/dragonair.run.png",
-   "cellW": 60,
+   "cellW": 144,
    "cellH": 130,
-   "anchorX": 30,
+   "anchorX": 72,
    "anchorY": 129,
    "frames": [
     0,
@@ -496,6 +567,73 @@ BM.SPRITE_FILES = {
    ]
   }
  },
+ "electrode": {
+  "run": {
+   "src": "sprites/electrode.run.png",
+   "cellW": 112,
+   "cellH": 130,
+   "anchorX": 56,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1,
+    2,
+    3
+   ]
+  }
+ },
+ "espeon": {
+  "attack": {
+   "src": "sprites/espeon.attack.png",
+   "cellW": 139,
+   "cellH": 130,
+   "anchorX": 69,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1
+   ]
+  },
+  "run": {
+   "src": "sprites/espeon.run.png",
+   "cellW": 121,
+   "cellH": 130,
+   "anchorX": 60,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1,
+    2,
+    3
+   ]
+  }
+ },
+ "flareon": {
+  "attack": {
+   "src": "sprites/flareon.attack.png",
+   "cellW": 208,
+   "cellH": 130,
+   "anchorX": 104,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1
+   ]
+  },
+  "run": {
+   "src": "sprites/flareon.run.png",
+   "cellW": 155,
+   "cellH": 130,
+   "anchorX": 77,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1,
+    2,
+    3
+   ]
+  }
+ },
  "gastly": {
   "attack": {
    "src": "sprites/gastly.attack.png",
@@ -536,7 +674,7 @@ BM.SPRITE_FILES = {
   },
   "run": {
    "src": "sprites/gengar.run.png",
-   "cellW": 117,
+   "cellW": 116,
    "cellH": 130,
    "anchorX": 58,
    "anchorY": 129,
@@ -563,7 +701,59 @@ BM.SPRITE_FILES = {
    ]
   }
  },
+ "glaceon": {
+  "attack": {
+   "src": "sprites/glaceon.attack.png",
+   "cellW": 187,
+   "cellH": 130,
+   "anchorX": 93,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1
+   ]
+  },
+  "run": {
+   "src": "sprites/glaceon.run.png",
+   "cellW": 139,
+   "cellH": 130,
+   "anchorX": 69,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1,
+    2,
+    3
+   ]
+  }
+ },
+ "gloom": {
+  "run": {
+   "src": "sprites/gloom.run.png",
+   "cellW": 88,
+   "cellH": 130,
+   "anchorX": 44,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1,
+    2,
+    3
+   ]
+  }
+ },
  "golbat": {
+  "attack": {
+   "src": "sprites/golbat.attack.png",
+   "cellW": 212,
+   "cellH": 130,
+   "anchorX": 106,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1
+   ]
+  },
   "run": {
    "src": "sprites/golbat.run.png",
    "cellW": 103,
@@ -595,6 +785,36 @@ BM.SPRITE_FILES = {
    "cellW": 94,
    "cellH": 130,
    "anchorX": 47,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1,
+    2,
+    3
+   ]
+  }
+ },
+ "golem": {
+  "run": {
+   "src": "sprites/golem.run.png",
+   "cellW": 116,
+   "cellH": 130,
+   "anchorX": 58,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1,
+    2,
+    3
+   ]
+  }
+ },
+ "graveler": {
+  "run": {
+   "src": "sprites/graveler.run.png",
+   "cellW": 179,
+   "cellH": 130,
+   "anchorX": 89,
    "anchorY": 129,
    "frames": [
     0,
@@ -682,7 +902,44 @@ BM.SPRITE_FILES = {
    ]
   }
  },
+ "hitmonchan": {
+  "attack": {
+   "src": "sprites/hitmonchan.attack.png",
+   "cellW": 153,
+   "cellH": 130,
+   "anchorX": 76,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1
+   ]
+  },
+  "run": {
+   "src": "sprites/hitmonchan.run.png",
+   "cellW": 106,
+   "cellH": 130,
+   "anchorX": 53,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1,
+    2,
+    3
+   ]
+  }
+ },
  "hitmonlee": {
+  "attack": {
+   "src": "sprites/hitmonlee.attack.png",
+   "cellW": 182,
+   "cellH": 130,
+   "anchorX": 91,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1
+   ]
+  },
   "run": {
    "src": "sprites/hitmonlee.run.png",
    "cellW": 137,
@@ -749,6 +1006,32 @@ BM.SPRITE_FILES = {
    ]
   }
  },
+ "jolteon": {
+  "attack": {
+   "src": "sprites/jolteon.attack.png",
+   "cellW": 164,
+   "cellH": 130,
+   "anchorX": 82,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1
+   ]
+  },
+  "run": {
+   "src": "sprites/jolteon.run.png",
+   "cellW": 152,
+   "cellH": 130,
+   "anchorX": 76,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1,
+    2,
+    3
+   ]
+  }
+ },
  "kadabra": {
   "attack": {
    "src": "sprites/kadabra.attack.png",
@@ -775,7 +1058,44 @@ BM.SPRITE_FILES = {
    ]
   }
  },
+ "kleavor": {
+  "attack": {
+   "src": "sprites/kleavor.attack.png",
+   "cellW": 147,
+   "cellH": 130,
+   "anchorX": 73,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1
+   ]
+  },
+  "run": {
+   "src": "sprites/kleavor.run.png",
+   "cellW": 106,
+   "cellH": 130,
+   "anchorX": 53,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1,
+    2,
+    3
+   ]
+  }
+ },
  "koffing": {
+  "attack": {
+   "src": "sprites/koffing.attack.png",
+   "cellW": 132,
+   "cellH": 130,
+   "anchorX": 66,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1
+   ]
+  },
   "run": {
    "src": "sprites/koffing.run.png",
    "cellW": 153,
@@ -816,12 +1136,38 @@ BM.SPRITE_FILES = {
    ]
   }
  },
+ "leafeon": {
+  "attack": {
+   "src": "sprites/leafeon.attack.png",
+   "cellW": 172,
+   "cellH": 130,
+   "anchorX": 86,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1
+   ]
+  },
+  "run": {
+   "src": "sprites/leafeon.run.png",
+   "cellW": 85,
+   "cellH": 130,
+   "anchorX": 42,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1,
+    2,
+    3
+   ]
+  }
+ },
  "machamp": {
   "attack": {
    "src": "sprites/machamp.attack.png",
-   "cellW": 177,
+   "cellW": 220,
    "cellH": 130,
-   "anchorX": 88,
+   "anchorX": 110,
    "anchorY": 129,
    "frames": [
     0,
@@ -830,9 +1176,9 @@ BM.SPRITE_FILES = {
   },
   "run": {
    "src": "sprites/machamp.run.png",
-   "cellW": 108,
+   "cellW": 121,
    "cellH": 130,
-   "anchorX": 54,
+   "anchorX": 60,
    "anchorY": 129,
    "frames": [
     0,
@@ -871,9 +1217,9 @@ BM.SPRITE_FILES = {
  "machop": {
   "attack": {
    "src": "sprites/machop.attack.png",
-   "cellW": 157,
+   "cellW": 178,
    "cellH": 130,
-   "anchorX": 78,
+   "anchorX": 89,
    "anchorY": 129,
    "frames": [
     0,
@@ -923,9 +1269,9 @@ BM.SPRITE_FILES = {
  "marowak": {
   "attack": {
    "src": "sprites/marowak.attack.png",
-   "cellW": 146,
+   "cellW": 137,
    "cellH": 130,
-   "anchorX": 73,
+   "anchorX": 68,
    "anchorY": 129,
    "frames": [
     0,
@@ -934,9 +1280,9 @@ BM.SPRITE_FILES = {
   },
   "run": {
    "src": "sprites/marowak.run.png",
-   "cellW": 115,
+   "cellW": 101,
    "cellH": 130,
-   "anchorX": 57,
+   "anchorX": 50,
    "anchorY": 129,
    "frames": [
     0,
@@ -972,10 +1318,10 @@ BM.SPRITE_FILES = {
    ]
   }
  },
- "mew": {
+ "meowth_galar": {
   "attack": {
-   "src": "sprites/mew.attack.png",
-   "cellW": 164,
+   "src": "sprites/meowth_galar.attack.png",
+   "cellW": 165,
    "cellH": 130,
    "anchorX": 82,
    "anchorY": 129,
@@ -985,10 +1331,51 @@ BM.SPRITE_FILES = {
    ]
   },
   "run": {
-   "src": "sprites/mew.run.png",
-   "cellW": 80,
+   "src": "sprites/meowth_galar.run.png",
+   "cellW": 126,
    "cellH": 130,
-   "anchorX": 40,
+   "anchorX": 63,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1,
+    2,
+    3
+   ]
+  }
+ },
+ "metapod": {
+  "run": {
+   "src": "sprites/metapod.run.png",
+   "cellW": 72,
+   "cellH": 130,
+   "anchorX": 36,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1,
+    2,
+    3
+   ]
+  }
+ },
+ "mew": {
+  "attack": {
+   "src": "sprites/mew.attack.png",
+   "cellW": 157,
+   "cellH": 130,
+   "anchorX": 78,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1
+   ]
+  },
+  "run": {
+   "src": "sprites/mew.run.png",
+   "cellW": 69,
+   "cellH": 130,
+   "anchorX": 34,
    "anchorY": 129,
    "frames": [
     0,
@@ -1051,6 +1438,17 @@ BM.SPRITE_FILES = {
   }
  },
  "mr_mime": {
+  "attack": {
+   "src": "sprites/mr_mime.attack.png",
+   "cellW": 155,
+   "cellH": 130,
+   "anchorX": 77,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1
+   ]
+  },
   "run": {
    "src": "sprites/mr_mime.run.png",
    "cellW": 80,
@@ -1092,6 +1490,17 @@ BM.SPRITE_FILES = {
   }
  },
  "oddish": {
+  "attack": {
+   "src": "sprites/oddish.attack.png",
+   "cellW": 127,
+   "cellH": 130,
+   "anchorX": 63,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1
+   ]
+  },
   "run": {
    "src": "sprites/oddish.run.png",
    "cellW": 87,
@@ -1132,12 +1541,38 @@ BM.SPRITE_FILES = {
    ]
   }
  },
+ "perrserker": {
+  "attack": {
+   "src": "sprites/perrserker.attack.png",
+   "cellW": 157,
+   "cellH": 130,
+   "anchorX": 78,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1
+   ]
+  },
+  "run": {
+   "src": "sprites/perrserker.run.png",
+   "cellW": 151,
+   "cellH": 130,
+   "anchorX": 75,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1,
+    2,
+    3
+   ]
+  }
+ },
  "persian": {
   "attack": {
    "src": "sprites/persian.attack.png",
-   "cellW": 153,
+   "cellW": 176,
    "cellH": 130,
-   "anchorX": 76,
+   "anchorX": 88,
    "anchorY": 129,
    "frames": [
     0,
@@ -1159,6 +1594,17 @@ BM.SPRITE_FILES = {
   }
  },
  "pidgeot": {
+  "attack": {
+   "src": "sprites/pidgeot.attack.png",
+   "cellW": 110,
+   "cellH": 130,
+   "anchorX": 55,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1
+   ]
+  },
   "run": {
    "src": "sprites/pidgeot.run.png",
    "cellW": 112,
@@ -1173,7 +1619,33 @@ BM.SPRITE_FILES = {
    ]
   }
  },
+ "pidgeotto": {
+  "run": {
+   "src": "sprites/pidgeotto.run.png",
+   "cellW": 92,
+   "cellH": 130,
+   "anchorX": 46,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1,
+    2,
+    3
+   ]
+  }
+ },
  "pidgey": {
+  "attack": {
+   "src": "sprites/pidgey.attack.png",
+   "cellW": 100,
+   "cellH": 130,
+   "anchorX": 50,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1
+   ]
+  },
   "run": {
    "src": "sprites/pidgey.run.png",
    "cellW": 96,
@@ -1217,9 +1689,9 @@ BM.SPRITE_FILES = {
  "pinsir": {
   "attack": {
    "src": "sprites/pinsir.attack.png",
-   "cellW": 150,
+   "cellW": 149,
    "cellH": 130,
-   "anchorX": 75,
+   "anchorX": 74,
    "anchorY": 129,
    "frames": [
     0,
@@ -1228,7 +1700,59 @@ BM.SPRITE_FILES = {
   },
   "run": {
    "src": "sprites/pinsir.run.png",
-   "cellW": 116,
+   "cellW": 102,
+   "cellH": 130,
+   "anchorX": 51,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1,
+    2,
+    3
+   ]
+  }
+ },
+ "ponyta": {
+  "attack": {
+   "src": "sprites/ponyta.attack.png",
+   "cellW": 179,
+   "cellH": 130,
+   "anchorX": 89,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1
+   ]
+  },
+  "run": {
+   "src": "sprites/ponyta.run.png",
+   "cellW": 140,
+   "cellH": 130,
+   "anchorX": 70,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1,
+    2,
+    3
+   ]
+  }
+ },
+ "porygon": {
+  "attack": {
+   "src": "sprites/porygon.attack.png",
+   "cellW": 152,
+   "cellH": 130,
+   "anchorX": 76,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1
+   ]
+  },
+  "run": {
+   "src": "sprites/porygon.run.png",
+   "cellW": 117,
    "cellH": 130,
    "anchorX": 58,
    "anchorY": 129,
@@ -1240,12 +1764,49 @@ BM.SPRITE_FILES = {
    ]
   }
  },
- "ponyta": {
+ "porygon2": {
+  "attack": {
+   "src": "sprites/porygon2.attack.png",
+   "cellW": 167,
+   "cellH": 130,
+   "anchorX": 83,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1
+   ]
+  },
   "run": {
-   "src": "sprites/ponyta.run.png",
-   "cellW": 140,
+   "src": "sprites/porygon2.run.png",
+   "cellW": 135,
+   "cellH": 130,
+   "anchorX": 67,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1,
+    2,
+    3
+   ]
+  }
+ },
+ "porygon_z": {
+  "attack": {
+   "src": "sprites/porygon_z.attack.png",
+   "cellW": 141,
    "cellH": 130,
    "anchorX": 70,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1
+   ]
+  },
+  "run": {
+   "src": "sprites/porygon_z.run.png",
+   "cellW": 75,
+   "cellH": 130,
+   "anchorX": 37,
    "anchorY": 129,
    "frames": [
     0,
@@ -1308,11 +1869,37 @@ BM.SPRITE_FILES = {
   }
  },
  "rapidash": {
+  "attack": {
+   "src": "sprites/rapidash.attack.png",
+   "cellW": 168,
+   "cellH": 130,
+   "anchorX": 84,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1
+   ]
+  },
   "run": {
    "src": "sprites/rapidash.run.png",
-   "cellW": 117,
+   "cellW": 109,
    "cellH": 130,
-   "anchorX": 58,
+   "anchorX": 54,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1,
+    2,
+    3
+   ]
+  }
+ },
+ "raticate": {
+  "run": {
+   "src": "sprites/raticate.run.png",
+   "cellW": 191,
+   "cellH": 130,
+   "anchorX": 95,
    "anchorY": 129,
    "frames": [
     0,
@@ -1323,6 +1910,17 @@ BM.SPRITE_FILES = {
   }
  },
  "rattata": {
+  "attack": {
+   "src": "sprites/rattata.attack.png",
+   "cellW": 102,
+   "cellH": 130,
+   "anchorX": 51,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1
+   ]
+  },
   "run": {
    "src": "sprites/rattata.run.png",
    "cellW": 81,
@@ -1364,11 +1962,37 @@ BM.SPRITE_FILES = {
   }
  },
  "rhyhorn": {
+  "attack": {
+   "src": "sprites/rhyhorn.attack.png",
+   "cellW": 153,
+   "cellH": 130,
+   "anchorX": 76,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1
+   ]
+  },
   "run": {
    "src": "sprites/rhyhorn.run.png",
    "cellW": 151,
    "cellH": 130,
    "anchorX": 75,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1,
+    2,
+    3
+   ]
+  }
+ },
+ "rhyperior": {
+  "run": {
+   "src": "sprites/rhyperior.run.png",
+   "cellW": 149,
+   "cellH": 130,
+   "anchorX": 74,
    "anchorY": 129,
    "frames": [
     0,
@@ -1418,9 +2042,35 @@ BM.SPRITE_FILES = {
   },
   "run": {
    "src": "sprites/scyther.run.png",
-   "cellW": 116,
+   "cellW": 83,
    "cellH": 130,
-   "anchorX": 58,
+   "anchorX": 41,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1,
+    2,
+    3
+   ]
+  }
+ },
+ "scyther_kleavor": {
+  "attack": {
+   "src": "sprites/scyther_kleavor.attack.png",
+   "cellW": 157,
+   "cellH": 130,
+   "anchorX": 78,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1
+   ]
+  },
+  "run": {
+   "src": "sprites/scyther_kleavor.run.png",
+   "cellW": 113,
+   "cellH": 130,
+   "anchorX": 56,
    "anchorY": 129,
    "frames": [
     0,
@@ -1509,11 +2159,63 @@ BM.SPRITE_FILES = {
   }
  },
  "staryu": {
+  "attack": {
+   "src": "sprites/staryu.attack.png",
+   "cellW": 122,
+   "cellH": 130,
+   "anchorX": 61,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1
+   ]
+  },
   "run": {
    "src": "sprites/staryu.run.png",
-   "cellW": 124,
+   "cellW": 128,
    "cellH": 130,
-   "anchorX": 62,
+   "anchorX": 64,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1,
+    2,
+    3
+   ]
+  }
+ },
+ "steelix": {
+  "run": {
+   "src": "sprites/steelix.run.png",
+   "cellW": 229,
+   "cellH": 130,
+   "anchorX": 114,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1,
+    2,
+    3
+   ]
+  }
+ },
+ "sylveon": {
+  "attack": {
+   "src": "sprites/sylveon.attack.png",
+   "cellW": 147,
+   "cellH": 130,
+   "anchorX": 73,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1
+   ]
+  },
+  "run": {
+   "src": "sprites/sylveon.run.png",
+   "cellW": 95,
+   "cellH": 130,
+   "anchorX": 47,
    "anchorY": 129,
    "frames": [
     0,
@@ -1524,6 +2226,17 @@ BM.SPRITE_FILES = {
   }
  },
  "tangela": {
+  "attack": {
+   "src": "sprites/tangela.attack.png",
+   "cellW": 127,
+   "cellH": 130,
+   "anchorX": 63,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1
+   ]
+  },
   "run": {
    "src": "sprites/tangela.run.png",
    "cellW": 125,
@@ -1538,12 +2251,53 @@ BM.SPRITE_FILES = {
    ]
   }
  },
+ "tangrowth": {
+  "run": {
+   "src": "sprites/tangrowth.run.png",
+   "cellW": 114,
+   "cellH": 130,
+   "anchorX": 57,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1,
+    2,
+    3
+   ]
+  }
+ },
  "tentacool": {
+  "attack": {
+   "src": "sprites/tentacool.attack.png",
+   "cellW": 180,
+   "cellH": 130,
+   "anchorX": 90,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1
+   ]
+  },
   "run": {
    "src": "sprites/tentacool.run.png",
-   "cellW": 87,
+   "cellW": 94,
    "cellH": 130,
-   "anchorX": 43,
+   "anchorX": 47,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1,
+    2,
+    3
+   ]
+  }
+ },
+ "tentacruel": {
+  "run": {
+   "src": "sprites/tentacruel.run.png",
+   "cellW": 105,
+   "cellH": 130,
+   "anchorX": 52,
    "anchorY": 129,
    "frames": [
     0,
@@ -1559,6 +2313,32 @@ BM.SPRITE_FILES = {
    "cellW": 102,
    "cellH": 130,
    "anchorX": 51,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1,
+    2,
+    3
+   ]
+  }
+ },
+ "umbreon": {
+  "attack": {
+   "src": "sprites/umbreon.attack.png",
+   "cellW": 163,
+   "cellH": 130,
+   "anchorX": 81,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1
+   ]
+  },
+  "run": {
+   "src": "sprites/umbreon.run.png",
+   "cellW": 130,
+   "cellH": 130,
+   "anchorX": 65,
    "anchorY": 129,
    "frames": [
     0,
@@ -1595,11 +2375,22 @@ BM.SPRITE_FILES = {
   }
  },
  "venomoth": {
+  "attack": {
+   "src": "sprites/venomoth.attack.png",
+   "cellW": 153,
+   "cellH": 130,
+   "anchorX": 76,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1
+   ]
+  },
   "run": {
    "src": "sprites/venomoth.run.png",
-   "cellW": 96,
+   "cellW": 116,
    "cellH": 130,
-   "anchorX": 48,
+   "anchorX": 58,
    "anchorY": 129,
    "frames": [
     0,
@@ -1610,11 +2401,22 @@ BM.SPRITE_FILES = {
   }
  },
  "venonat": {
+  "attack": {
+   "src": "sprites/venonat.attack.png",
+   "cellW": 123,
+   "cellH": 130,
+   "anchorX": 61,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1
+   ]
+  },
   "run": {
    "src": "sprites/venonat.run.png",
-   "cellW": 96,
+   "cellW": 80,
    "cellH": 130,
-   "anchorX": 48,
+   "anchorX": 40,
    "anchorY": 129,
    "frames": [
     0,
@@ -1638,9 +2440,9 @@ BM.SPRITE_FILES = {
   },
   "run": {
    "src": "sprites/venusaur.run.png",
-   "cellW": 135,
+   "cellW": 138,
    "cellH": 130,
-   "anchorX": 67,
+   "anchorX": 69,
    "anchorY": 129,
    "frames": [
     0,
@@ -1677,11 +2479,22 @@ BM.SPRITE_FILES = {
   }
  },
  "voltorb": {
+  "attack": {
+   "src": "sprites/voltorb.attack.png",
+   "cellW": 171,
+   "cellH": 130,
+   "anchorX": 85,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1
+   ]
+  },
   "run": {
    "src": "sprites/voltorb.run.png",
-   "cellW": 110,
+   "cellW": 132,
    "cellH": 130,
-   "anchorX": 55,
+   "anchorX": 66,
    "anchorY": 129,
    "frames": [
     0,
@@ -1694,9 +2507,9 @@ BM.SPRITE_FILES = {
  "vulpix": {
   "attack": {
    "src": "sprites/vulpix.attack.png",
-   "cellW": 183,
+   "cellW": 171,
    "cellH": 130,
-   "anchorX": 91,
+   "anchorX": 85,
    "anchorY": 129,
    "frames": [
     0,
@@ -1822,11 +2635,22 @@ BM.SPRITE_FILES = {
   }
  },
  "zubat": {
+  "attack": {
+   "src": "sprites/zubat.attack.png",
+   "cellW": 134,
+   "cellH": 130,
+   "anchorX": 67,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1
+   ]
+  },
   "run": {
    "src": "sprites/zubat.run.png",
-   "cellW": 113,
+   "cellW": 104,
    "cellH": 130,
-   "anchorX": 56,
+   "anchorX": 52,
    "anchorY": 129,
    "frames": [
     0,
@@ -2404,7 +3228,17 @@ BM.BG_FILES = {
  "viridian_forest": "art/bg/viridian_forest.png"
 };
 BM.ART = {
+ "bases/champion": "art/bases/champion.png",
+ "bases/e4": "art/bases/e4.png",
  "bases/enemy_wild_den": "art/bases/enemy_wild_den.png",
+ "bases/gym_blaine": "art/bases/gym_blaine.png",
+ "bases/gym_brock": "art/bases/gym_brock.png",
+ "bases/gym_erika": "art/bases/gym_erika.png",
+ "bases/gym_giovanni": "art/bases/gym_giovanni.png",
+ "bases/gym_koga": "art/bases/gym_koga.png",
+ "bases/gym_misty": "art/bases/gym_misty.png",
+ "bases/gym_sabrina": "art/bases/gym_sabrina.png",
+ "bases/gym_surge": "art/bases/gym_surge.png",
  "bases/player_base": "art/bases/player_base.png",
  "bg/celadon_city": "art/bg/celadon_city.png",
  "bg/cerulean_city": "art/bg/cerulean_city.png",
@@ -2454,6 +3288,7 @@ BM.ART = {
  "icons/mega_stone": "art/icons/mega_stone.png",
  "icons/metal_coat": "art/icons/metal_coat.png",
  "icons/moon_stone": "art/icons/moon_stone.png",
+ "icons/pc_box": "art/icons/pc_box.png",
  "icons/poke_ball": "art/icons/poke_ball.png",
  "icons/premier_ball": "art/icons/premier_ball.png",
  "icons/quick_ball": "art/icons/quick_ball.png",

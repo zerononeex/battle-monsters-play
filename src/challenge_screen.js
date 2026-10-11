@@ -1,68 +1,30 @@
-// Challenge screen (Phase 6): opened from a stage's pre-battle screen (🧠 Challenge → Clear this stage / Earn tickets).
-// One mixed stream (rules: challenge.js): math = a big question + 8 option buttons; spelling = hear-and-spell — the device
-// SPEAKS the word inside a clue sentence (speechSynthesis; 🔊 replays, unlimited), a picture clue, empty slots and
-// shuffled letter tiles. The word's text is NEVER on screen until it is answered or discarded — then it is shown spelled
-// out with a little celebration (the learning moment). No speech engine → the clue sentence is shown with the word's
-// letters blanked (tiles still work). The current screen's music keeps playing; correct / wrong are WebAudio SFX.
+// Question screen (Phase 6; Phase 7.5 PP1/MM1/NN1). Player-facing names: "Clear Stage" (opened from a stage's pre-battle
+// screen — 6 right in a row at grade + 2 clears it) and "Answer & Earn Poké Balls" (opened from the Safari Zone — 1 Poké Ball
+// per right answer). The word "Challenge" is internal only. One mixed stream (rules: challenge.js): math = a big question +
+// 8 option buttons; spelling = NN1 VISUAL spelling — the word is SHOWN in writing with its picture clue (V2: only where the
+// picture is the word itself), empty slots and shuffled letter tiles; nothing is spoken (hear-and-spell was removed: speech
+// never worked on the user's iPad). The current screen's music keeps playing; correct / wrong are WebAudio SFX.
 window.BM = window.BM || {};
-// Text-to-speech wrapper (tests read `log`; `available` false → the blanked-clue fallback + the visible notice).
-// P2 (playtest: the word could not be heard): cancel() + resume() before every utterance (Safari can stall the queue), an
-// explicitly chosen English voice, volume 1, rate 0.85; the music is near-muted while the word is spoken and returns to the
-// run's duck level after; `prime()` speaks a silent utterance from the run-start tap so iOS lets later words through; any
-// failure / error event calls `onFail` (the screen shows "🔊 Turn sound on?") — a spelling run is never silently wordless.
-BM.Speech = (function () {
-  const log = [];
-  let onFail = null, voice = null;
-  const available = () => typeof window.speechSynthesis !== 'undefined' && typeof window.SpeechSynthesisUtterance !== 'undefined';
-  function pickVoice() {
-    if (voice) return voice;
-    try { const vs = window.speechSynthesis.getVoices() || []; voice = vs.find((v) => /^en[-_]US/i.test(v.lang) && v.localService) || vs.find((v) => /^en[-_]US/i.test(v.lang)) || vs.find((v) => /^en/i.test(v.lang)) || null; } catch (e) { voice = null; }
-    return voice;
-  }
-  function utter(text, vol) {
-    const s = window.speechSynthesis;
-    s.cancel(); if (s.resume) s.resume();
-    const u = new SpeechSynthesisUtterance(text); u.lang = 'en-US'; u.rate = 0.85; u.pitch = 1.05; u.volume = vol;
-    const v = pickVoice(); if (v) { try { u.voice = v; } catch (e) { voice = null; } } // a bad voice must never cost the word
-    return u;
-  }
-  function speak(text) {
-    log.push(text);
-    if (!available()) { if (onFail) onFail('missing'); return false; }
-    try {
-      const u = utter(text, 1);
-      BM.Audio.duck(BM.CHALLENGE.DUCK_SPEAK);
-      const back = () => { if (BM.Speech.active) BM.Audio.duck(BM.CHALLENGE.DUCK_RUN); };
-      u.onend = back; u.onerror = (e) => { back(); if (e && e.error !== 'interrupted' && e.error !== 'canceled' && onFail) onFail('error'); };
-      setTimeout(back, 6000); // safety: never leave the music near-muted
-      window.speechSynthesis.speak(u); return true;
-    } catch (e) { if (onFail) onFail('error'); return false; }
-  }
-  function prime() { if (!available()) return; try { window.speechSynthesis.speak(utter(' ', 0)); } catch (e) { /* ignore */ } }
-  const stop = () => { try { if (available()) window.speechSynthesis.cancel(); } catch (e) { /* ignore */ } };
-  return { speak, stop, prime, available, log, active: false, set onFail(f) { onFail = f; } };
-})();
-
 BM.ChallengeScreen = function (ui) {
   const { $, tap, toast, show } = ui;
   const CH = BM.CHALLENGE;
   const prof = () => BM.Save.profile();
   let run = null, stageId = null, timer = 0, lastOut = null;
-  const MODE_TXT = { clear: '⭐ Clear the stage', tickets: '🎫 Earn tickets' };
+  const MODE_TXT = { clear: '⭐ Clear Stage', earn: 'Answer & Earn Poké Balls' };
 
-  // ---------- mode chooser (pre-battle → 🧠 Challenge) ----------
+  // ---------- Clear Stage panel (pre-battle → Clear Stage) ----------
   function choose(id) {
     stageId = id;
-    const p = prof(), st = BM.stageById(id), gc = BM.Challenge.gradeFor(p, 'clear'), gt = BM.Challenge.gradeFor(p, 'tickets');
+    const p = prof(), st = BM.stageById(id), gc = BM.Challenge.gradeFor(p, 'clear');
     const wins = p.cleared[id] || 0;
-    $('btn-ch-clear').innerHTML = `<span class="cp-t">⭐ Clear this stage</span><small>${CH.GOAL} right in a row · Grade ${gc}<br>${wins ? 'replay' : 'first-clear'} rewards, no battle</small>`;
-    // P1: the pre-battle Challenge is AUTO-CLEAR only; tickets are earned on the Gacha screen
-    $('btn-ch-tickets').innerHTML = `<span class="cp-t">🎫 Want tickets?</span><small>Earn them on the Gacha screen</small>`;
+    $('btn-ch-clear').innerHTML = `<span class="cp-t">⭐ Clear this stage</span><small>Answer ${CH.GOAL} in a row · Grade ${gc}<br>${wins ? 'replay' : 'first-clear'} rewards, no battle</small>`;
+    // P1/MM1: the pre-battle button is Clear Stage only; Poké Balls are earned in the Safari Zone
+    $('btn-ch-tickets').innerHTML = `<span class="cp-t">${BM.ballHtml('poke_ball', 'cp-ball')} Want Poké Balls?</span><small>Answer & earn them in the Safari Zone</small>`;
     $('chmode-help').textContent = `${st.name}: math and spelling, all mixed up!`;
     show('scr-chmode', true); ui.fit($('scr-chmode'));
   }
   tap($('btn-ch-clear'), () => { BM.Audio.sfx('tap'); show('scr-chmode', false); open('clear'); });
-  tap($('btn-ch-tickets'), () => { BM.Audio.sfx('deny'); toast('Tickets are earned on the 🎰 Gacha screen!'); });
+  tap($('btn-ch-tickets'), () => { BM.Audio.sfx('deny'); toast('Poké Balls are earned in the 🎰 Safari Zone!'); });
   const closeChooser = () => show('scr-chmode', false);
   tap($('btn-chmode-x'), closeChooser);
   $('scr-chmode').addEventListener('pointerdown', (e) => { if (e.target.id === 'scr-chmode') { e.preventDefault(); closeChooser(); } });
@@ -70,20 +32,17 @@ BM.ChallengeScreen = function (ui) {
   // ---------- run ----------
   function open(mode, rnd) {
     clearTimeout(timer);
-    run = BM.Challenge.start({ mode, stageId: mode === 'tickets' ? null : stageId, rnd });
-    ui.go('challenge'); // no music change: the screen's theme keeps playing — but DUCKED for the whole run (P2)
-    BM.Speech.active = true; BM.Audio.duck(CH.DUCK_RUN); BM.Speech.prime(); // inside the start tap: iOS unlocks speech
-    show('ch-sound', !BM.Speech.available());
+    run = BM.Challenge.start({ mode, stageId: mode === 'earn' ? null : stageId, rnd });
+    ui.go('challenge'); // no music change: the screen's theme keeps playing (NN1: nothing is spoken, so no ducking)
     renderTop(); renderQ();
   }
-  // P1 (playtest): ticket mode is launched from the GACHA screen ("Answer & Earn Tickets") — earn where you spend.
-  function openTickets(from) { ticketsFrom = from || 'gacha'; stageId = null; open('tickets'); }
-  let ticketsFrom = null;
-  BM.Speech.onFail = () => show('ch-sound', true);
+  // P1/MM1: the earn mode is launched from the SAFARI ZONE ("Answer & Earn Poké Balls") — earn where you spend.
+  function openEarn(from) { earnFrom = from || 'gacha'; stageId = null; open('earn'); }
+  let earnFrom = null;
   function renderTop() {
     const st = run.stageId && BM.stageById(run.stageId);
     $('ch-mode').textContent = `${MODE_TXT[run.mode]} · Grade ${run.grade}`;
-    $('ch-stage').textContent = st ? st.name : '🎫 Ticket challenge';
+    $('ch-stage').innerHTML = st ? '' : `${BM.ballHtml('poke_ball', 'ch-ball')} Safari Zone`; if (st) $('ch-stage').textContent = st.name;
     const m = $('ch-meter'); m.innerHTML = '';
     if (run.mode === 'clear') {
       for (let i = 0; i < CH.GOAL; i++) { const d = document.createElement('i'); d.className = i < run.streak ? 'on' : ''; m.appendChild(d); }
@@ -91,8 +50,7 @@ BM.ChallengeScreen = function (ui) {
       $('ch-earned').textContent = '';
     } else {
       const n = document.createElement('b'); n.id = 'ch-progress'; n.textContent = `🔥 ${run.streak} in a row`; m.appendChild(n);
-      const tk = BM.Sprites.artSrc('icons/battle_ticket');
-      $('ch-earned').innerHTML = `${tk ? `<img src="${tk}" alt="">` : '🎫'} +<b id="ch-tickets">${run.tickets}</b> <small>this run</small>`;
+      $('ch-earned').innerHTML = `${BM.ballHtml('poke_ball', 'ch-ball')} +<b id="ch-balls">${run.balls}</b> <small>this run</small>`;
     }
   }
   function renderQ() {
@@ -111,31 +69,26 @@ BM.ChallengeScreen = function (ui) {
       renderTries();
       return;
     }
-    // spelling: picture + 🔊 on the left; slots + tiles on the right
+    // NN1 spelling: the word SHOWN in writing + its picture clue (V2: only where the picture IS the word) on the left;
+    // slots + letter tiles on the right — copy the word with the tiles. Nothing is spoken.
     const pic = document.createElement('div'); pic.className = 'ch-pic';
     if (q.form && BM.FORMS[q.form]) pic.appendChild(ui.thumb(BM.FORMS[q.form], 180, false));
     else if (q.pic) pic.textContent = q.pic;
-    else { pic.classList.add('no-pic'); pic.innerHTML = '<span>👂</span><small>Listen!</small>'; } // P3: no picture for this word
-    left.appendChild(pic);
-    const speech = BM.Speech.available();
-    if (speech) {
-      const say = document.createElement('button'); say.className = 'ch-say'; say.id = 'btn-ch-say'; say.setAttribute('aria-label', 'Hear it again'); say.textContent = '🔊';
-      tap(say, () => { BM.Audio.sfx('tap'); speak(); }); left.appendChild(say);
-    }
+    if (q.form || q.pic) left.appendChild(pic);
+    else left.classList.add('word-only'); // V2: no picture for this word — the written word carries it, shown big
+    const word = document.createElement('div'); word.className = 'ch-word'; word.id = 'ch-word'; word.textContent = q.word;
+    word.style.fontSize = `min(${q.form || q.pic ? 8 : 11}vh, ${(27 / q.word.length).toFixed(2)}vw)`; // long words shrink to fit the column
+    left.appendChild(word);
     card.appendChild(left);
     const right = document.createElement('div'); right.className = 'ch-right';
-    if (!speech) { // fallback: the clue with the word's letters blanked
-      const c = document.createElement('div'); c.className = 'ch-clue'; c.id = 'ch-clue';
-      c.textContent = q.sentence.replace(new RegExp(q.word, 'ig'), '＿'.repeat(q.word.length));
-      right.appendChild(c);
-    }
+    const c = document.createElement('div'); c.className = 'ch-clue'; c.id = 'ch-clue'; c.textContent = 'Spell it with the letters!';
+    right.appendChild(c);
     const slots = document.createElement('div'); slots.className = 'ch-slots'; slots.id = 'ch-slots';
     right.appendChild(slots);
     const tiles = document.createElement('div'); tiles.className = 'ch-tiles'; tiles.id = 'ch-tiles';
     right.appendChild(tiles);
     card.appendChild(right);
     renderSpell();
-    if (speech) speak();
   }
   // slots + tiles (re-rendered after every tap)
   function renderSpell() {
@@ -164,7 +117,7 @@ BM.ChallengeScreen = function (ui) {
     el.innerHTML = '';
     for (let i = 0; i < q.allow; i++) { const h = document.createElement('i'); h.textContent = i < q.allow - q.mistakes ? '❤️' : '🤍'; el.appendChild(h); }
   }
-  function speak() { const q = run.q; if (q && q.kind === 'spell') BM.Speech.speak(`${q.word}. ${q.sentence} ${q.word}.`); }
+  // V1: short utterances — the word alone, then the clue sentence (which contains it)
 
   function onMath(o, btn) {
     const r = run.tapOption(o);
@@ -187,17 +140,16 @@ BM.ChallengeScreen = function (ui) {
   // correct / discard: feedback (the word spelled out for spelling), then the next question — or the end of the run
   function after(r) {
     const q = run.q, fb = $('ch-feedback');
-    BM.Audio.sfx(r.result === 'correct' ? (r.bonus ? 'streak' : 'correct') : 'wrong');
+    BM.Audio.sfx(r.result === 'correct' ? (r.cleared ? 'streak' : 'correct') : 'wrong');
     fb.className = 'ch-feedback ' + r.result + ' ' + q.kind;
     let html = '';
     if (q.kind === 'spell') {
       html = `<div class="fb-word">${q.word.split('').map((c) => `<span>${c}</span>`).join('')}</div>`;
       html += `<div class="fb-msg">${r.result === 'correct' ? '🎉 You spelled it! 🎉' : 'That one is spelled like this — keep going!'}</div>`;
     } else html = `<div class="fb-msg">${r.result === 'correct' ? '✨ Correct! ✨' : `It was <b>${q.answer}</b> — keep going!`}</div>`;
-    if (r.paid) html += `<div class="fb-pay">+${r.paid} 🎫${r.bonus ? ` (${CH.BONUS_EVERY} in a row bonus!)` : ''}</div>`;
+    if (r.paid) html += `<div class="fb-pay">+${r.paid} ${BM.ballHtml('poke_ball', 'fb-ball')} Poké Ball${r.paid > 1 ? 's' : ''}!</div>`; // MM1
     fb.innerHTML = html; show('ch-feedback', true);
     renderTop();
-    if (q.kind === 'spell' && r.result === 'correct') BM.Speech.speak(q.word);
     const wait = q.kind === 'spell' ? 2200 : r.result === 'correct' ? 800 : 1800;
     clearTimeout(timer);
     timer = setTimeout(advance, wait);
@@ -222,12 +174,12 @@ BM.ChallengeScreen = function (ui) {
   tap($('btn-chover-again'), () => { BM.Audio.sfx('tap'); show('scr-chover', false); open('clear'); });
   tap($('btn-chover-back'), () => { BM.Audio.sfx('tap'); show('scr-chover', false); leave(); });
   function leave() {
-    clearTimeout(timer); BM.Speech.stop(); BM.Speech.active = false; BM.Audio.duck(1);
-    if (run && run.mode === 'tickets' && run.tickets) toast(`+${run.tickets} tickets this run — great work!`);
-    if (run && run.mode === 'tickets' && ticketsFrom) { const f = ticketsFrom; ticketsFrom = null; ui.go(f); return; } // back to the gacha: live totals
+    clearTimeout(timer);
+    if (run && run.mode === 'earn' && run.balls) toast(`+${run.balls} Poké Ball${run.balls > 1 ? 's' : ''} this run — great work!`);
+    if (run && run.mode === 'earn' && earnFrom) { const f = earnFrom; earnFrom = null; ui.go(f); return; } // back to the Safari Zone: live totals
     ui.back();
   }
   tap($('btn-ch-stop'), () => { BM.Audio.sfx('tap'); leave(); });
 
-  return { choose, open, openTickets, leave, advance, speak, rerender: () => { renderTop(); renderQ(); }, get run() { return run; }, get last() { return lastOut; }, get stageId() { return stageId; }, set stageId(v) { stageId = v; } };
+  return { choose, open, openEarn, leave, advance, rerender: () => { renderTop(); renderQ(); }, get run() { return run; }, get last() { return lastOut; }, get stageId() { return stageId; }, set stageId(v) { stageId = v; } };
 };

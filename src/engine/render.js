@@ -125,12 +125,13 @@ BM.Render = function (canvas) {
   }
 
   // ---------- bases ----------
-  function drawBase(side, hpFrac) {
+  function drawBase(side, hpFrac, stage) {
     const bw = L.baseW(), gy = L.ground() + fieldH * 0.04, bh = bw * 1.25;
     const x = side === 1 ? bw * 0.05 : W - bw * 1.05;
     ctx.save();
     ctx.lineWidth = 4; ctx.strokeStyle = '#1c1c28';
-    const img = BM.Sprites.art(side === 1 ? 'bases/player_base' : 'bases/enemy_wild_den');
+    // Z1: gym / Elite Four / Champion stages draw their own base art (`stage.baseArt`) once DONE — same box, anchor and HP bar
+    const img = BM.Sprites.art(side === 1 ? 'bases/player_base' : (stage && stage.baseArt && BM.Sprites.art('bases/' + stage.baseArt) ? 'bases/' + stage.baseArt : 'bases/enemy_wild_den'));
     if (img) {
       const s = Math.min(bw * 1.15 / img.width, bh * 1.05 / img.height), w = img.width * s, h = img.height * s;
       ctx.drawImage(img, x + bw / 2 - w / 2, gy - h, w, h);
@@ -256,10 +257,12 @@ BM.Render = function (canvas) {
       if (ev.mult === 0) addText(0, L.sx(t.x), ty - L.unitH(t.form) * 0.6, now);
     } else if (ev.type === 'hit') {
       const a = ev.attacker, t = ev.target, cb = BM.combatOf(a.form), dt = (ev.k || 0) * 0.11; // multi-hit: staggered
-      const color = BM.TYPE_COLORS[a.form.attackType] || '#fff';
+      // CC1 flair: Hitmonchan's punches flash fire → ice → electric in turn (visual only — the damage stays Fighting)
+      const flair = BM.COMBAT_FLAIR && BM.COMBAT_FLAIR[a.form.id], fl = flair ? flair[(a.flairN = (a.flairN || 0) + 1) % flair.length] : null;
+      const color = BM.TYPE_COLORS[fl || a.form.attackType] || '#fff';
       const ty = L.ground() + L.depth(t) - L.unitH(t.form) * 0.5;
       const ay = L.ground() + L.depth(a) - L.unitH(a.form) * 0.55;
-      moveFx(cb, a, L.sx(a.x), ay, L.sx(t.x), ty, color, now + dt);
+      moveFx(cb, a, L.sx(a.x), ay, L.sx(t.x), ty, color, now + dt, fl);
       if (ev.mult !== 1) addText(ev.mult, L.sx(t.x), ty - L.unitH(t.form) * 0.6, now);
     } else if (ev.type === 'baseHit') {
       const bw = L.baseW(), a = ev.attacker;
@@ -270,6 +273,8 @@ BM.Render = function (canvas) {
       texts.push({ text: `${ev.leader || 'The leader'} sends out ${ev.giant ? 'GIANT ' : ''}${ev.unit.form.name}!`, x: W * 0.5, y: fieldH * 0.32, t0: now, dur: 2.2, size: ev.giant ? 42 : 36, color: '#ffb347' });
     } else if (ev.type === 'burst') { // K2: a burst group / counter-burst pushes out
       texts.push({ text: ev.kind === 'threshold' ? 'The den fights back!' : 'Here they come!', x: W * 0.62, y: fieldH * 0.4, t0: now, dur: 1.4, size: ev.kind === 'threshold' ? 34 : 26, color: ev.kind === 'threshold' ? '#ff7a59' : '#ffd84a' });
+    } else if (ev.type === 'gate') { // Y1: the stage's strongest Pokémon join in
+      texts.push({ text: 'Strong Pokémon are coming!', x: W * 0.6, y: fieldH * 0.26, t0: now, dur: 1.8, size: 32, color: '#ff9a3a' });
     } else if (ev.type === 'aoe') { // K3: a ring over the hit zone
       const t = ev.target, cx = L.sx(t.x), cy = L.ground() + L.depth(t) - L.unitH(t.form) * 0.4, r = Math.abs(L.sx(ev.radius) - L.sx(0));
       fx.push({ kind: 'ring', x: cx, y: cy, r, color: BM.TYPE_COLORS[ev.attacker.form.attackType] || '#fff', t0: now + 0.1, dur: 0.4 });
@@ -290,9 +295,9 @@ BM.Render = function (canvas) {
   // BM.FX_FILES['move_<fx>']) is used when DONE; until then a procedural visual by kind — projectile (Razor Leaf, Bonemerang,
   // Shadow Ball…), stream (Ember breath, Water Gun, Thunder Shock, beams) or melee (Fury Swipes, punches, bites…). The
   // per-type effect sprite plays as the impact burst.
-  function moveFx(cb, a, x0, y0, x1, y1, color, t0) {
+  function moveFx(cb, a, x0, y0, x1, y1, color, t0, impactType) {
     if (fx.length > 90) fx.splice(0, fx.length - 90);
-    const art = BM.Sprites.fx('move_' + cb.fx), impact = BM.Sprites.fx(a.form.attackType), dir = a.side;
+    const art = BM.Sprites.fx('move_' + cb.fx), impact = BM.Sprites.fx(impactType || a.form.attackType), dir = a.side;
     const fly = cb.kind === 'projectile' ? Math.min(0.3, 0.12 + Math.abs(x1 - x0) / 2500) : cb.kind === 'stream' ? 0.16 : 0;
     if (art) fx.push({ kind: cb.kind === 'melee' ? 'burst' : 'shot', x0, y0, x1, y1, x: x1, y: y1, color, art, dir, t0, dur: fly || 0.3 });
     else if (cb.kind !== 'melee') fx.push({ kind: cb.kind, fxn: cb.fx, x0, y0, x1, y1, color, dir, t0, dur: fly + (cb.kind === 'stream' ? 0.12 : 0), seed: Math.random() });
@@ -427,7 +432,7 @@ BM.Render = function (canvas) {
     if (!bgCanvas || bgKey !== key) { bgCanvas = drawBg(key); bgKey = key; }
     ctx.drawImage(bgCanvas, 0, 0, W, fieldH);
     drawBase(1, S.playerBase.hp / S.playerBase.max);
-    drawBase(-1, S.enemyBase.hp / S.enemyBase.max);
+    drawBase(-1, S.enemyBase.hp / S.enemyBase.max, S.stage);
     labels = [];
     const order = S.units.slice().sort((a, b) => a.yOff - b.yOff);
     for (const u of order) drawUnit(u);

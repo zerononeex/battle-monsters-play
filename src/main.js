@@ -26,14 +26,13 @@
     show('scr-challenge', name === 'challenge');
     show('scr-bonus', name === 'bonus'); // Phase 6: no music change — the screen you came from keeps playing
     show('scr-chmode', false); show('scr-chover', false);
-    if (name !== 'challenge') { BM.Speech.stop(); if (BM.Speech.active) { BM.Speech.active = false; BM.Audio.duck(1); } } // P2: un-duck after a run
     show('scr-result', false); show('scr-ending', false); show('scr-pause', false); show('scr-bag', false); show('scr-line', false); show('scr-filter', false); show('scr-peek', false); show('scr-rename', false); show('scr-reveal', false); show('scr-legend', false);
     canvas.style.visibility = name === 'battle' ? 'visible' : 'hidden';
     if (name === 'profiles') { BM.Audio.playMusic('title'); renderProfiles(); }
-    if (name === 'title') { BM.Audio.playMusic('title'); renderChip(); renderRegions(); }
+    if (name === 'title') { BM.Audio.playMusic('title'); renderChip(); renderRegions(); renderHomeTower(); }
     // music by screen: map = map_kanto, pre-battle = the stage's town key, battle = its category key (startBattle)
     if (name === 'map') { BM.Audio.playMusic('map_kanto'); show('btn-map-dev', devMode); KMap.render(); renderBonusBtn(); }
-    if (name === 'bonus') { BM.Audio.playMusic('map_kanto'); Bonus.render(); }
+    if (name === 'bonus') { BM.Audio.playMusic('tower'); Bonus.render(); } // FF3: the Tower's own theme
     if (name === 'prebattle') renderPrebattle();
     if (name === 'collection') { BM.Audio.playMusic('team'); Scr.renderCollection(); }
     if (name === 'team') { BM.Audio.playMusic('team'); Scr.renderTeam(); }
@@ -214,16 +213,26 @@
   const Gacha = BM.GachaScreen({ $, tap, toast, show, fit, go: (n) => go(n), thumb: (...a) => Scr.thumb(...a), itemIcon: (id) => Scr.itemIcon(id), renderWallet: () => renderWallet() });
   const Chal = BM.ChallengeScreen({ $, tap, toast, show, fit, go: (n) => go(n), thumb: (...a) => Scr.thumb(...a), screen: () => screen,
     back: () => go('prebattle'), cleared: (run) => showChallengeResult(run) });
-  const Bonus = BM.BonusScreen({ $, tap, toast, fit, go: (n) => go(n), itemIcon: (id) => Scr.itemIcon(id), openPrebattle: (id) => { preStage = id; go('prebattle'); } });
+  let towerFrom = 'title'; // HH1: the Tower is entered from the pinned home slot (primary) or the map banner — back returns there
+  const Bonus = BM.BonusScreen({ $, tap, toast, fit, go: (n) => go(n), from: () => towerFrom, itemIcon: (id) => Scr.itemIcon(id), openPrebattle: (id) => { preStage = id; go('prebattle'); } });
   // the map's ⭐ BONUS banner: opens after Brock
   function renderBonusBtn() { const p = prof(); $('btn-bonus').classList.toggle('locked', !(p && p.cleared[BM.BONUS_OPEN_AFTER] > 0)); }
-  tap($('btn-bonus'), () => {
+  function openTower(from) {
     const p = prof();
-    if (!(p.cleared[BM.BONUS_OPEN_AFTER] > 0)) { BM.Audio.sfx('deny'); toast('Beat Brock to open the Bonus Zone!'); return; }
-    BM.Audio.sfx('tap'); go('bonus');
-  });
-  // P1: ticket mode lives on the gacha screen (own grade, mixed math + spelling, endless until stopped)
-  tap($('btn-earn'), () => { BM.Audio.sfx('tap'); Chal.openTickets('gacha'); });
+    if (!(p.cleared[BM.BONUS_OPEN_AFTER] > 0)) { BM.Audio.sfx('deny'); toast('Beat Brock to open the Prism Tower!'); return; }
+    towerFrom = from; BM.Audio.sfx('tap'); go('bonus');
+  }
+  tap($('btn-bonus'), () => openTower('map'));
+  tap($('btn-home-tower'), () => openTower('title'));
+  // HH1 pinned home slot: the tower art (the regenerated #260 backdrop) + its state
+  function renderHomeTower() {
+    const p = prof(), open = !!(p && p.cleared[BM.BONUS_OPEN_AFTER] > 0), art = BM.Sprites.artSrc('ui/bonus_zone'), el = $('btn-home-tower');
+    el.querySelector('.ht-art').style.backgroundImage = art ? `url("${art}")` : '';
+    el.querySelector('.ht-art').textContent = ''; el.classList.toggle('locked', !open);
+    el.querySelector('.ht-sub').textContent = open ? 'XP + treasure · tap!' : '🔒 Beat Brock';
+  }
+  // P1/MM1: the earn mode lives on the Safari Zone screen (own grade, mixed math + spelling, 1 Poké Ball per right answer)
+  tap($('btn-earn'), () => { BM.Audio.sfx('tap'); Chal.openEarn('gacha'); });
   const KMap = BM.MapScreen({ $, tap, toast, go: (n) => go(n), openPrebattle: (id) => { preStage = id; go('prebattle'); } });
 
   // ---------- home (F5): region tiles replace PLAY; Teams · All Characters · Items below ----------
@@ -235,7 +244,7 @@
   ];
   const titleSpriteEl = $('title-sprite'); // (addendum: the region card shows the REGION — no Pokémon pasted on top)
   // H2 Region Carousel: ONE big region card (its map art), ◀ ▶ arrows + dots flip regions; tap the card = its map.
-  let regionAt = 0;
+  let regionAt = 0, swiped = false;
   function renderRegions() {
     const box = $('regions'); box.innerHTML = '';
     const p = prof(), cleared = BM.KANTO_STAGES.filter((s) => p && p.cleared[s.id] > 0).length;
@@ -251,7 +260,10 @@
     b.innerHTML = (art ? '' : `<span class="rt-emoji">${r.emoji}</span>`) + `<span class="rt-name">${r.name}</span>` +
       `<span class="rt-sub">${r.open ? (p && p.regionsDone && p.regionsDone[r.id] ? `🏆 ${r.name} complete! · ${cleared} / ${BM.KANTO_STAGES.length} stages ✓` : `${cleared} / ${BM.KANTO_STAGES.length} stages ✓ · tap to play!`) : r.id === 'johto' ? '🔒 Coming in a future adventure' : '🔒 Coming later'}</span>`;
     b.classList.toggle('complete', !!(p && p.regionsDone && p.regionsDone[r.id]));
-    tap(b, () => {
+    // opens on RELEASE (pointerup) so a sideways swipe flips the region instead of opening it
+    b.addEventListener('pointerdown', (e) => { e.preventDefault(); BM.Audio.unlock(); });
+    b.addEventListener('pointerup', () => {
+      if (swiped) return;
       if (!r.open) { BM.Audio.sfx('deny'); toast(r.id === 'johto' ? 'Johto is coming in a future adventure!' : `${r.name} opens in a later update!`); return; }
       BM.Audio.sfx('tap'); go('map');
     });
@@ -262,13 +274,20 @@
   }
   function flipRegion(k) { regionAt = (regionAt + k + REGIONS.length) % REGIONS.length; BM.Audio.sfx('tap'); renderRegions(); }
   tap($('btn-reg-prev'), () => flipRegion(-1));
+  // the carousel still SWIPES: a horizontal drag of ≥ 40 px on the card flips region (a short tap still opens it)
+  (function () {
+    let x0 = null, y0 = 0;
+    $('regions').addEventListener('pointerdown', (e) => { x0 = e.clientX; y0 = e.clientY; swiped = false; }, true);
+    $('regions').addEventListener('pointerup', (e) => { if (x0 == null) return; const dx = e.clientX - x0, dy = e.clientY - y0; x0 = null;
+      if (Math.abs(dx) >= 40 && Math.abs(dx) > Math.abs(dy)) { swiped = true; setTimeout(() => flipRegion(dx < 0 ? 1 : -1), 0); } }, true);
+  })();
   tap($('btn-reg-next'), () => flipRegion(1));
   // Ticket wallet (home + gacha): tickets and Poké Balls (+ Master Balls when held)
   function walletHtml() {
     const p = prof(); if (!p) return '';
-    const tk = BM.Sprites.artSrc('icons/battle_ticket'), pb = BM.Sprites.artSrc('icons/poke_ball'), mb = BM.Sprites.artSrc('icons/master_ball');
+    const pb = BM.Sprites.artSrc('icons/poke_ball'), mb = BM.Sprites.artSrc('icons/master_ball');
     const i = (src, emo) => (src ? `<img src="${src}" alt="">` : emo);
-    return `<span class="w-tk">${i(tk, '🎫')}<b>${p.tickets}</b></span><span class="w-pb">${i(pb, '🔴')}<b>${p.items.poke_ball || 0}</b></span>` +
+    return `<span class="w-tk">${BM.ticketIcon()}<b>${p.tickets}</b></span><span class="w-pb">${i(pb, '🔴')}<b>${p.items.poke_ball || 0}</b></span>` +
       (p.items.master_ball ? `<span class="w-mb">${i(mb, '🟣')}<b>${p.items.master_ball}</b></span>` : '');
   }
   function renderWallet() { for (const el of document.querySelectorAll('.wallet')) el.innerHTML = walletHtml(); }
@@ -297,18 +316,20 @@
   function rewardChips(r, el) {
     el.innerHTML = '';
     const add = (html, cls) => { const d = document.createElement('span'); d.className = 'reward' + (cls ? ' ' + cls : ''); d.innerHTML = html; el.appendChild(d); return d; };
-    const tk = BM.Sprites.artSrc('icons/battle_ticket'), xp = BM.Sprites.artSrc('icons/xp_candy_s');
-    const tkHtml = tk ? `<img src="${tk}" alt="">` : '🎫';
+    const xp = BM.Sprites.artSrc('icons/xp_candy_s');
+    const tkHtml = BM.ticketIcon();
     if (r.tickets) add(`${tkHtml} +${r.tickets} tickets`);
     if (r.xp) add(`${xp ? `<img src="${xp}" alt="">` : '⭐'} +${r.xp.toLocaleString()} XP${r.xpLines ? ` × ${r.xpLines.length}` : ' each'}`);
     if (r.item) add(`${itemIconHtml(r.item)} ${BM.ITEMS[r.item]}`, 'new');
     if (r.candy) for (const [id, n] of Object.entries(r.candy)) add(`${itemIconHtml(id)} ${n > 1 ? n + '× ' : ''}${BM.ITEMS[id]}`, 'new');
+    // T1 (pre-battle preview): the guaranteed win candy's size range
+    if (r.preview && BM.winCandy(r.preview)) add(`${BM.winCandyBand(r.preview).table.map(([id]) => itemIconHtml(id)).join('')} + an XP candy every win`, 'new');
     // stage drop table rolls (Phase 4): stored in the bag / ticket wallet
     for (const d of r.drops || []) {
       if (d.item === 'tickets') add(`${tkHtml} +${d.n} bonus tickets`, 'drop');
       else add(`${itemIconHtml(d.item)} ${d.n > 1 ? d.n + '× ' : ''}${BM.ITEMS[d.item]}`, 'drop new');
     }
-    if (r.masterBall) add(`${itemIconHtml('master_ball')} Master Ball! (the Legendary Gacha)`, 'new legend');
+    if (r.masterBall) add(`${itemIconHtml('master_ball')} Master Ball! (the Legendary Safari Zone)`, 'new legend');
     if (r.gift && r.giftNew !== false) add(`🎁 New character: ${BM.LINES[r.gift].name}!`, 'new');
   }
   function renderPrebattle() {
@@ -316,16 +337,17 @@
     BM.Audio.playMusic(st.townMusic);
     const bg = (st.bgArt && BM.Sprites.artSrc('bg/' + st.bgArt)) || BM.Sprites.artSrc('bg/' + st.background);
     $('scr-prebattle').style.backgroundImage = bg ? `url("${bg}")` : '';
-    $('pre-kicker').textContent = st.dev ? 'DEV' : st.bonus ? `⭐ Bonus Zone · ${st.bonus === 'xp' ? 'XP stage' : 'Treasure stage'}` : `Stage ${st.num} · ${KIND[st.kind]}`;
-    show('btn-pre-challenge', !st.bonus); // challenge auto-clear does NOT apply to the Bonus Zone
-    $('btn-pre-back').textContent = st.bonus ? '◀ Bonus' : '◀ Map';
+    $('pre-kicker').textContent = st.dev ? 'DEV' : st.bonus ? `🗼 Prism Tower · ${st.bonus === 'xp' ? 'XP floor' : 'Treasure vault'}` : `Stage ${st.num} · ${KIND[st.kind]}`;
+    show('btn-pre-challenge', !st.bonus); // Clear Stage (auto-clear) does NOT apply to the Prism Tower
+    $('btn-pre-challenge').querySelector('.cb-s').textContent = `Answer ${BM.CHALLENGE.GOAL} in a row`; // PP1 subtext
+    $('btn-pre-back').textContent = st.bonus ? '◀ Tower' : '◀ Map';
     $('pre-name').textContent = st.name;
     $('pre-sub').textContent = st.leader ? `Leader ${st.leader}` : st.place ? `at the ${st.place}` : '';
     const foes = $('pre-foes'); foes.innerHTML = '';
-    // J1 HIDDEN ENEMY INTEL: before the profile's first attempt at this stage the preview is black silhouettes + "?"
-    // (count visible, species/types hidden); afterwards the enemies show fully with their type icons.
-    const known = st.dev || BM.Save.attempted(st.id);
-    $('pre-foes-h').textContent = known ? "Who you'll meet" : "Who's that Pokémon? Battle once to find out!";
+    // X1 HIDDEN ENEMY INTEL (amends J1): until the profile has DEFEATED this stage once (a challenge auto-clear counts) the
+    // preview is black silhouettes + "?" (count visible, species/types hidden); a loss reveals nothing.
+    const known = st.dev || BM.Save.revealed(st.id);
+    $('pre-foes-h').textContent = known ? "Who you'll meet" : "Who's that Pokémon? Win once to find out!";
     for (const e of BM.stagePreview(st)) {
       const f = BM.FORMS[e.form], d = document.createElement('div');
       d.className = 'foe' + (e.ace ? ' ace' : '') + (known ? '' : ' hidden-foe'); d.dataset.form = known ? e.form : '';
@@ -342,10 +364,10 @@
     }
     const wins = p.cleared[st.id] || 0;
     $('pre-rew-h').textContent = wins ? `Cleared ×${wins} — replay rewards` : 'First-clear rewards';
-    rewardChips(BM.stageRewards(st, !wins), $('pre-rewards'));
+    rewardChips({ ...BM.stageRewards(st, !wins), preview: st }, $('pre-rewards'));
     // what this stage's drop table can give (icons only; the roll happens on a win)
     const finds = BM.dropPreview(st);
-    if (finds.length) { const d = document.createElement('span'); d.className = 'reward finds'; d.innerHTML = 'May find: ' + finds.map((id) => id === 'tickets' ? '🎫' : itemIconHtml(id)).join(''); $('pre-rewards').appendChild(d); }
+    if (finds.length) { const d = document.createElement('span'); d.className = 'reward finds'; d.innerHTML = 'May find: ' + finds.map((id) => id === 'tickets' ? BM.ticketIcon() : itemIconHtml(id)).join(''); $('pre-rewards').appendChild(d); }
     renderPreItems();
     fit($('scr-prebattle'));
   }
@@ -359,7 +381,7 @@
       b.innerHTML = `<span class="pi-icon">${itemIconHtml(id)}</span><span class="pi-n">×${n}</span><span class="pi-name">${it.name}</span>` + (on ? '<span class="pi-on">✓</span>' : '');
       tap(b, () => {
         const r = BM.Save.toggleArmed(id);
-        if (r === 'none') { BM.Audio.sfx('deny'); toast(`No ${it.name} yet — find them in the Gacha${id === 'dowsing_machine' ? ' or on stages' : ''}!`); return; }
+        if (r === 'none') { BM.Audio.sfx('deny'); toast(`No ${it.name} yet — find them in the Safari Zone${id === 'dowsing_machine' ? ' or on stages' : ''}!`); return; }
         BM.Audio.sfx(r === 'on' ? 'upgrade' : 'tap'); if (r === 'on') toast(`${it.name}: ${it.blurb}`);
         renderPreItems(); fit($('scr-prebattle'));
       });
@@ -424,7 +446,6 @@
     preStage = stageId; genShown = 0;
     layout();
     R.clearFx();
-    BM.Save.markAttempted(st.id); // J1: starting a battle reveals this stage's enemies from now on
     B = BM.Battle(st, prof(), { items: prof().armed.filter((id) => prof().items[id] > 0) });
     $('armed-icons').innerHTML = B.S.items.map((id) => `<span class="armed" data-item="${id}" title="${BM.ITEM_INFO[id].name}">${itemIconHtml(id)}</span>`).join('');
     window.__battle = B; // test hook
@@ -499,11 +520,11 @@
     resultMode = m;
     show('btn-retry', m === 'battle'); show('result-art', m === 'challenge');
   }
-  function showResult(result) {
+  function showResult(result, opts = {}) {
     if (!B) return;
     setResultMode('battle');
     const st = B.S.stage;
-    $('btn-map').textContent = st.bonus ? '⭐ Bonus Zone' : 'Map';
+    $('btn-map').textContent = st.bonus ? '🗼 Prism Tower' : 'Map';
     if (result === 'win') {
       // Bonus XP stages pay the WHOLE team you brought; everything else pays the lines that battled (§4.3)
       const r = BM.Save.recordWin(st.id, st.bonus === 'xp' ? B.S.team.map((c) => c.line) : B.S.battled, Math.random, B.S.items);
@@ -518,15 +539,17 @@
       celebrate(r);
       BM.Audio.playMusic(st.kind === 'gym' ? 'victory_gym' : 'victory'); // gym wins: victory_gym INSTEAD of victory
     } else {
-      // M1 LOSS XP: effort counts — the team that battled earns 30% of the win XP (+1% per 2% of the den destroyed, max 50%)
+      // M1 LOSS XP, DD1 unmissable (Phase 7.5): effort counts — EVERY Pokémon you brought (all team slots, fought or not)
+      // earns 30% of the win XP (+1% per 2% of the den destroyed, max 50%); the defeat screen ALWAYS shows it, per Pokémon.
+      // A forfeit (Quit from pause) lands here too and pays the same way.
       const destroyed = 1 - B.S.enemyBase.hp / B.S.enemyBase.max;
-      const r = st.dev ? null : BM.Save.recordLoss(st.id, B.S.battled, destroyed);
+      const r = st.dev ? null : BM.Save.recordLoss(st.id, B.S.team.map((c) => c.line), destroyed);
       lastRewards = r;
-      $('result-title').textContent = 'Oh no!'; $('result-title').classList.add('lose');
-      $('result-sub').textContent = r && r.xp && r.xpLines.length ? `Good try! Your team earned ${r.xp.toLocaleString()} XP` : 'Your base fell — nothing lost. Try again?';
-      $('result-rewards').innerHTML = (r && r.xpLines.length ? `<span class="reward loss-xp">⭐ ${Math.round(r.pct * 100)}% of the win XP · you knocked ${Math.round(destroyed * 100)}% off the den</span>` : '') +
+      $('result-title').textContent = opts.forfeit ? 'Battle ended' : 'Oh no!'; $('result-title').classList.add('lose');
+      $('result-sub').textContent = r ? `Good try! Your whole team earned ${r.xp.toLocaleString()} XP each` : 'Your base fell — nothing lost. Try again?';
+      $('result-rewards').innerHTML = (r ? `<span class="reward loss-xp">⭐ +${r.xp.toLocaleString()} XP × ${r.xpLines.length} · ${Math.round(r.pct * 100)}% of the win XP · you knocked ${Math.round(destroyed * 100)}% off the den</span>` : '') +
         (B.S.items.length ? `<span class="reward kept">🎒 Your battle items are safe — they're only used up when you win.</span>` : '');
-      if (r && r.xpLines.length) renderXpRows(r); else $('result-xp').innerHTML = '';
+      if (r) renderXpRows(r); else $('result-xp').innerHTML = '';
       BM.Audio.playMusic('defeat');
     }
     show('hint', false);
@@ -538,15 +561,14 @@
   // victory key, and Map walks the token on exactly like a win.
   function showChallengeResult(run) {
     const st = BM.stageById(run.stageId), r = run.rewards;
-    BM.Speech.stop(); BM.Speech.active = false; BM.Audio.duck(1); // the run is over: the victory song plays at full volume
     B = null; lastRewards = r;
     setResultMode('challenge'); $('btn-map').textContent = 'Map';
     if (r.first && !st.dev) KMap.queueWalk(st.id);
     const bg = BM.Sprites.artSrc('bg/' + st.background);
     $('result-art').style.backgroundImage = bg ? `url("${bg}")` : 'linear-gradient(160deg, #7ec8f5, #b6e3a0)';
-    $('result-art').innerHTML = `<span class="ra-tag">🧠 ${BM.CHALLENGE.GOAL} in a row!</span>`;
+    $('result-art').innerHTML = `<span class="ra-tag">⭐ ${BM.CHALLENGE.GOAL} in a row!</span>`;
     $('result-title').textContent = 'STAGE CLEAR!'; $('result-title').classList.remove('lose');
-    $('result-sub').textContent = r.first ? `${st.name} cleared by Challenge! First-clear rewards:` : `${st.name} cleared again by Challenge!`;
+    $('result-sub').textContent = r.first ? `${st.name} cleared by answering! First-clear rewards:` : `${st.name} cleared again by answering!`;
     rewardChips(r, $('result-rewards'));
     if (r.giftNew) { const d = document.createElement('span'); d.className = 'reward'; d.textContent = r.giftOnTeam ? 'Added to your team!' : 'Add them on the Team screen!'; $('result-rewards').appendChild(d); }
     renderXpRows(r);
@@ -656,7 +678,12 @@
   tap($('btn-pause'), () => { if (B && !B.S.result) openSettings('battle'); });
   tap($('btn-resume'), closeSettings);
   tap($('btn-close-settings'), () => { BM.Audio.sfx('tap'); closeSettings(); });
-  tap($('btn-quit'), () => { show('scr-pause', false); paused = false; BM.Audio.resume(); B = null; go('map'); });
+  // DD1: quitting a started battle is a FORFEIT — it counts as a loss for XP (the defeat screen shows what the team earned)
+  tap($('btn-quit'), () => {
+    show('scr-pause', false); paused = false; BM.Audio.resume();
+    if (B && !B.S.result && !B.S.stage.dev) { B.S.result = 'lose'; B.S.forfeit = true; showResult('lose', { forfeit: true }); return; }
+    const bonus = B && BM.isBonus(B.S.stage); B = null; go(bonus ? 'bonus' : 'map');
+  });
   document.addEventListener('visibilitychange', () => {
     if (document.hidden && screen === 'battle' && B && !B.S.result && !paused) openSettings('battle');
   });
@@ -697,6 +724,8 @@
     if (logo) for (const id of ['logo', 'logo-pick']) { $(id).innerHTML = `<img src="${logo}" alt="Battle Monsters">`; $(id).classList.add('img'); }
     // N1: AP = a Poké Ball everywhere (the old ⚡ AP icon art is no longer used); the generator face = its level's ball
     document.querySelector('.ap-icon').innerHTML = BM.apIcon('ap-pill-ball');
+    // S1: every PC Box spot shows the Pokémon Center PC terminal (📦 until ASSET_PROMPTS #317 lands)
+    for (const el of document.querySelectorAll('.pc-ico')) el.innerHTML = BM.pcIcon();
   }
 
   // ---------- boot ----------

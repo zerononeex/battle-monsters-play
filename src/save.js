@@ -4,7 +4,7 @@
 window.BM = window.BM || {};
 BM.Save = (function () {
   const KEY = 'battle-monsters.save';
-  const VERSION = 7;
+  const VERSION = 8;
   const SLOTS = 3;
   const GRADES = [2, 3, 4, 5, 6, 7]; // grade drives the Phase 6 math difficulty; set at creation only
   // MIGRATIONS[n] upgrades a WHOLE save from version n to n+1. Never edit a shipped step; append.
@@ -98,6 +98,13 @@ BM.Save = (function () {
       }
       return d;
     },
+    // v8 (Phase 7.5): X1 — enemy intel is revealed by the first CLEAR (known = cleared(stage)), not the first attempt. The v7
+    // `attempted` flags are dropped: a cleared stage stays revealed through `cleared`, an attempted-but-uncleared one hides
+    // again. Nothing else changes (lossless).
+    7: (d) => {
+      for (const p of d.profiles) if (p) delete p.attempted;
+      return d;
+    },
   };
   const MISTAKES = { mathMistakes: { def: 2, min: 2, max: 10 }, spellMistakes: { def: 3, min: 3, max: 10 } }; // = BM.CHALLENGE.SLIDERS
   const START_TICKETS = 30; // §4.5: a new profile starts with 3 pulls
@@ -121,7 +128,6 @@ BM.Save = (function () {
       pulls: {},                 // bannerId -> total pulls
       armed: [],                 // battle items armed for the next battle (consumed only on a WIN)
       regionsDone: {},           // Phase 7: regions fully beaten (the Champion's first clear: Mewtwo + Master Ball + ending)
-      attempted: {},             // J1: stageId -> 1 once a battle there started (or a challenge cleared it): enemies revealed
     };
     for (const id of BM.DEFAULT_TEAM) giveLine(p, id);
     p.loadouts[0] = { team: p.team.slice(), forms: Object.fromEntries(p.team.map((id) => [id, p.lines[id].form])) };
@@ -187,7 +193,7 @@ BM.Save = (function () {
     const counts = (o) => Object.fromEntries(Object.entries(o && typeof o === 'object' ? o : {}).filter(([k, v]) => BM.BANNERS && BM.BANNERS.some((b) => b.id === k) && v >= 0).map(([k, v]) => [k, Math.floor(v)]));
     p.pity = counts(p.pity); p.pulls = counts(p.pulls);
     p.regionsDone = Object.fromEntries(Object.keys(p.regionsDone && typeof p.regionsDone === 'object' ? p.regionsDone : {}).map((k) => [k, 1]));
-    p.attempted = Object.fromEntries(Object.keys(p.attempted && typeof p.attempted === 'object' ? p.attempted : {}).filter((k) => BM.stageById(k)).map((k) => [k, 1]));
+    delete p.attempted; // X1 (v8): intel follows `cleared`
     p.armed = [...new Set(Array.isArray(p.armed) ? p.armed : [])].filter((id) => BM.ITEM_INFO[id] && BM.ITEM_INFO[id].battle && p.items[id] > 0);
     return p;
   }
@@ -357,7 +363,6 @@ BM.Save = (function () {
     if (!p || !st) return null;
     const first = !(p.cleared[stageId] > 0);
     p.cleared[stageId] = (p.cleared[stageId] || 0) + 1;
-    p.attempted[stageId] = 1; // J1: a win (incl. a challenge auto-clear) always counts as an attempt
     const r = BM.stageRewards(st, first);
     if (st.dev) { r.tickets = 0; r.xp = 0; }
     r.used = (used || []).filter((id) => BM.ITEM_INFO[id] && BM.ITEM_INFO[id].battle && p.items[id] > 0);
@@ -374,13 +379,16 @@ BM.Save = (function () {
       if (!pend && pendingEvolution(id, p)) r.evolve.push(id);
     }
     if (r.item) give(p, r.item);
-    if (r.candy) for (const [id, n] of Object.entries(r.candy)) give(p, id, n); // Bonus Zone XP stage: an XP candy every win
     r.drops = st.dev ? [] : BM.rollDrops(st, first, rnd);
     if (r.used.includes('dowsing_machine') && !st.dev) {
       const rare = BM.rarestDrop(st);
       if (rare) { const o = r.drops.find((d) => d.item === rare); if (o) o.n++; else r.drops.push({ item: rare, n: 1 }); r.dowsed = rare; }
     }
     for (const d of r.drops) { if (d.item === 'tickets') p.tickets += d.n; else give(p, d.item, d.n); }
+    // T1: every win adds a guaranteed XP candy on top of the drop roll (rolled after it, so seeded drop tests are unchanged) (the Tower's XP floors keep their own tier candy)
+    const wc = BM.winCandy(st, rnd);
+    if (wc) { r.candy = { ...(r.candy || {}) }; r.candy[wc] = (r.candy[wc] || 0) + 1; r.winCandy = wc; }
+    if (r.candy) for (const [id, n] of Object.entries(r.candy)) give(p, id, n); // Tower XP floor candy + the T1 win candy
     // REGION COMPLETE (Phase 7): the region's final stage (the Champion) on its FIRST clear grants the region's Master Ball
     // (§4 economy: 1 per region fully beaten) — the Mewtwo line comes as the stage gift below (rewardOnly, joins at Lv 1).
     // A replay never re-grants (first only); the ending screen plays from the result screen.
@@ -394,8 +402,9 @@ BM.Save = (function () {
   }
 
   // M1 LOSS XP (user 2026-10-11, "it's a kids game"): a LOST battle still pays the team — 30% of the XP a win would pay
-  // now, + 1% for every 2% of the enemy base's HP destroyed, capped at 50%. Only lines that battled; no tickets, no drops,
-  // no clear (armed items were never touched). Campaign + Bonus Zone battles; challenge runs never call this.
+  // now, + 1% for every 2% of the enemy base's HP destroyed, capped at 50%. Every line the caller passes; no tickets, no drops,
+  // no clear (armed items were never touched). Campaign + Prism Tower battles; challenge runs never call this. DD1 (Phase 7.5):
+  // the caller passes the WHOLE brought team (all slots, fought or not); a forfeit is a loss too.
   BM.LOSS_XP = { base: 0.3, per2: 0.01, cap: 0.5 };
   function recordLoss(stageId, battled, destroyedFrac) {
     const p = profile(), st = BM.stageById(stageId);
@@ -404,7 +413,6 @@ BM.Save = (function () {
     const pct = Math.min(BM.LOSS_XP.cap, BM.LOSS_XP.base + Math.floor(Math.max(0, Math.min(1, destroyedFrac)) * 100 / 2 + 1e-9) * BM.LOSS_XP.per2);
     const xp = Math.round(win * pct);
     const r = { loss: true, pct, xp, winXp: win, xpLines: [], evolve: [] };
-    p.attempted[stageId] = 1;
     for (const id of new Set(battled || [])) {
       if (!p.lines[id] || !xp) continue;
       const pend = pendingEvolution(id, p);
@@ -497,10 +505,9 @@ BM.Save = (function () {
     persist(); return true;
   }
   const loadoutName = (i, p = profile()) => (p.loadouts[i] && p.loadouts[i].name) || `Team ${i + 1}`;
-  // J1: the profile has now ATTEMPTED this stage (a battle started; a challenge auto-clear also counts) -> its enemies
-  // show fully on the pre-battle screen from now on.
-  function markAttempted(stageId) { const p = profile(); if (p && !p.attempted[stageId]) { p.attempted[stageId] = 1; persist(); } }
-  const attempted = (stageId, p = profile()) => !!(p && p.attempted && p.attempted[stageId]);
+  // X1 (Phase 7.5, amends J1): a stage's enemies are KNOWN once the profile has DEFEATED it (a challenge auto-clear counts — it
+  // goes through recordWin); a loss reveals nothing. Per stage, per profile; Prism Tower floors too.
+  const revealed = (stageId, p = profile()) => !!(p && p.cleared && p.cleared[stageId] > 0);
   function setMapAt(stageId) { const p = profile(); if (p && p.mapAt !== stageId) { p.mapAt = stageId; persist(); } }
 
   // Dev/test only (hidden dev mode): own every Kanto line, unlock every form, set levels.
@@ -520,5 +527,5 @@ BM.Save = (function () {
 
   return { load, persist, profile, list, select, create, finishSetup, eraseProfile, exportCode, decodeCode, importCode,
     setForm, devUnlockAll, devGrantItems, giveLine, recordWin, setMapAt, addXpTo: (p, id, n) => addXp(p, id, n), addXp: (id, n) => { const r = addXp(profile(), id, n); persist(); return r; },
-    pendingEvolution, evolve, useItem, saveLoadout, loadLoadout, buyLoadoutSlot, saveTeam, switchLoadout, placeInTeam, removeFromTeam, toggleArmed, setMistakes, recordLoss, winXp, renameLoadout, loadoutName, markAttempted, attempted, MISTAKES, LOADOUT, START_TICKETS, VERSION, SLOTS, GRADES, KEY, get memoryOnly() { return memoryOnly; } };
+    pendingEvolution, evolve, useItem, saveLoadout, loadLoadout, buyLoadoutSlot, saveTeam, switchLoadout, placeInTeam, removeFromTeam, toggleArmed, setMistakes, recordLoss, winXp, renameLoadout, loadoutName, revealed, MISTAKES, LOADOUT, START_TICKETS, VERSION, SLOTS, GRADES, KEY, get memoryOnly() { return memoryOnly; } };
 })();

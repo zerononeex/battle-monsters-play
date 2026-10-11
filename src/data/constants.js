@@ -7,10 +7,12 @@ BM.C = {
   ENEMY_BASE_FRONT: 960,
   START_AP: 100,
   MAX_PER_SIDE: 15,         // 30 on screen total (BUG_REGISTRY BR-002)
-  // AP generator: [AP per second, AP cap, cost to reach next level]
+  // AP generator: [AP per second, AP cap, cost to reach next level]. Phase 7.5 (user): AA1 upgrade costs 50 · 75 · 100 ·
+  // 130 · 160 · 190 · 220 (total 925; was 120…600 = 2,520) and AA2 caps 400 · 550 · 700 · 900 · 1100 · 1300 · 1550 · 1800
+  // (was 300…1200). Rates unchanged. Pacing is balanced with waves (Q1 rule), never by re-raising these.
   GEN: [null,
-    [15, 300, 120], [20, 400, 200], [25, 500, 280], [30, 600, 360],
-    [36, 750, 440], [42, 900, 520], [49, 1050, 600], [56, 1200, null]],
+    [15, 400, 50], [20, 550, 75], [25, 700, 100], [30, 900, 130],
+    [36, 1100, 160], [42, 1300, 190], [49, 1550, 220], [56, 1800, null]],
   GEN_MAX: 8,
   LEVEL_CAP: 60,
   baseHP: (stageLevel) => 1000 + 300 * stageLevel,

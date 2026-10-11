@@ -246,7 +246,7 @@ BM.Audio = (function () {
   function resume() { if (ac && ac.state === 'suspended') ac.resume(); if (current && current.el && musicOn) current.el.play().catch(() => {}); }
 
   return { unlock, sfx, cry, preloadCries, playMusic, stopMusic, setMusic, setSound, suspend, resume, duck,
-    get duckLevel() { return duckLevel; }, get ctx() { return ac; },
+    get duckLevel() { return duckLevel; }, get ctx() { return ac; }, get masterBus() { ensure(); return master; }, // tests: GG1 synth audibility
     get currentKey() { return current && current.key; },
     get soundOn() { return soundOn; }, get musicOn() { return musicOn; }, stats,
     // what is playing now: 'mp3' (a supplied art-src/music file) or 'synth' (the WebAudio fallback) — tests + dev

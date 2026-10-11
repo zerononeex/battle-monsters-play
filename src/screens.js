@@ -47,12 +47,12 @@ BM.Screens = function (ui) {
   const ownedLines = () => BM.KANTO_LINES.filter((id) => prof().lines[id]);
   // How a not-yet-owned line is met, in kid words.
   function meetText(line) {
-    if (line.rewardOnly) return '??? Beat the Kanto Champion to meet this legend!';
+    if (line.rewardOnly) return 'Beat the Kanto Champion to meet this legend!';
     const gift = BM.KANTO_STAGES.find((s) => s.gift === line.id && !line.legendary);
-    if (gift) return `🎁 A gift at ${gift.name}`;
+    if (gift) return `A gift at ${gift.name}`;
     const banner = BM.BANNERS.find((b) => BM.bannerPool(b).includes(line.id));
-    if (line.legendary && banner) return `✨ Legendary — Gacha ${banner.name.replace('Kanto ', '')} (or the Legendary Gacha)`;
-    return banner ? `🎟 Gacha ${banner.name.replace('Kanto ', '')}` : '🎟 Gacha';
+    if (line.legendary && banner) return `Legendary — Safari Zone ${banner.name.replace('Kanto ', '')} (or the Legendary Safari Zone)`;
+    return banner ? `Safari Zone ${banner.name.replace('Kanto ', '')}` : 'Safari Zone';
   }
   // Sizes a grid's cards so `n` of them fit the element's box without scrolling (F2). aspect = card height / width.
   function fitGrid(el, n, aspect, gap, maxCols) {
@@ -192,7 +192,7 @@ BM.Screens = function (ui) {
     const card = document.createElement('button'); card.className = 'coll-card unowned'; card.dataset.line = line.id;
     card.appendChild(thumb(line.forms[0], ts, true));
     const n = document.createElement('span'); n.className = 'coll-name'; n.textContent = '???'; card.appendChild(n);
-    const h = document.createElement('span'); h.className = 'coll-hint'; h.textContent = meetText(line).split(' ')[0]; card.appendChild(h);
+    const h = document.createElement('span'); h.className = 'coll-hint'; const how = meetText(line); h.innerHTML = line.rewardOnly ? '🏆' : how.startsWith('A gift') ? '🎁' : line.legendary ? '✨' : BM.ticketIcon(); card.appendChild(h);
     card.title = meetText(line);
     tap(card, () => { BM.Audio.sfx('deny'); toast(meetText(line)); });
     return card;
@@ -308,14 +308,13 @@ BM.Screens = function (ui) {
   function openBag() {
     const p = prof(), grid = $('bag-grid');
     grid.innerHTML = '';
-    const tk = BM.Sprites.artSrc('icons/battle_ticket');
     const cell = (icon, name, n, blurb, soon) => {
       const d = document.createElement('div'); d.className = 'bag-item' + (n ? '' : ' empty');
       d.innerHTML = `<span class="bi-icon">${icon}</span><span class="bi-n">×${n}</span><span class="bi-name"></span><span class="bi-blurb"></span>` + (soon ? '<span class="soon">coming soon</span>' : '');
       d.querySelector('.bi-name').textContent = name; d.querySelector('.bi-blurb').textContent = blurb;
       grid.appendChild(d);
     };
-    cell(tk ? `<img src="${tk}" alt="">` : '🎫', 'Battle Tickets', p.tickets, '10 = one Gacha pull', false);
+    cell(BM.ticketIcon(), 'Battle Tickets', p.tickets, '10 = one Safari Zone pull', false);
     for (const id of BM.BAG_ORDER) {
       const it = BM.ITEM_INFO[id], n = p.items[id] || 0;
       if (!n && it.kind === 'evo' && !['thunder_stone', 'fire_stone', 'water_stone', 'moon_stone', 'leaf_stone', 'ice_stone', 'metal_coat'].includes(id)) continue;
@@ -383,8 +382,8 @@ BM.Screens = function (ui) {
     }
     const total = p.team.reduce((a, id) => a + BM.effCost(BM.FORMS[p.lines[id].form], p.lines[id].level), 0);
     $('team-sum').innerHTML = `${p.team.length} Pokémon · ${BM.apIcon()} ${total.toLocaleString()} AP to field everyone once`;
-    const L = BM.Save.LOADOUT, tk = BM.Sprites.artSrc('icons/battle_ticket');
-    $('btn-buy-preset').innerHTML = p.loadoutSlots < L.MAX ? `＋ Team slot ${tk ? `<img src="${tk}" alt="">` : '🎫'}${L.PRICE}` : 'All 20 slots';
+    const L = BM.Save.LOADOUT;
+    $('btn-buy-preset').innerHTML = p.loadoutSlots < L.MAX ? `＋ Team slot ${BM.ticketIcon()}${L.PRICE}` : 'All 20 slots';
     $('btn-buy-preset').classList.toggle('maxed', p.loadoutSlots >= L.MAX);
     renderStrip();
   }

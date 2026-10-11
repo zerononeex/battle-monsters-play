@@ -449,24 +449,32 @@ button { font: inherit; color: inherit; border: 0; cursor: pointer; touch-action
 .bt-name { font-size: clamp(14px, 3vh, 22px); font-weight: 900; }
 .bt-leg { font-size: clamp(10px, 2vh, 14px); font-weight: 800; }
 .banner-card { flex: 1; min-width: 0; min-height: 0; border-radius: 24px; border: 5px solid var(--ink); background: linear-gradient(160deg, #2a3c8f, #6a3fb0);
-  color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: space-evenly; padding: 6px 10px; box-shadow: 0 6px 0 rgba(0,0,0,.3); overflow: hidden; }
+  color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; padding: 6px 8px; box-shadow: 0 6px 0 rgba(0,0,0,.3); overflow: hidden; }
+/* R2 (Phase 7.5): the key art lives in its own 2:1 stage (sized by gacha_screen.js sizeStage), uncropped; all UI is below it */
+.bc-art { flex: 0 0 auto; aspect-ratio: 2 / 1; border-radius: 14px; border: 3px solid var(--ink); overflow: hidden; background: rgba(0,0,0,.18);
+  display: flex; align-items: flex-end; justify-content: center; }
+.bc-art-img { display: block; width: 100%; height: 100%; object-fit: contain; image-rendering: auto; }
+.bc-info { flex: 0 0 auto; width: 100%; display: flex; flex-direction: column; align-items: center; gap: 3px; }
+.bc-names { display: flex; gap: clamp(6px, 2vw, 22px); justify-content: center; flex-wrap: wrap; }
+.bc-leg-info { display: flex; align-items: center; gap: 5px; }
 .banner-card[data-banner="kanto_b"] { background: linear-gradient(160deg, #b8452a, #6a3fb0); }
 .bc-legs { display: flex; gap: clamp(8px, 3vw, 40px); min-height: 0; flex: 1 1 auto; align-items: flex-end; }
 .bc-leg { display: flex; flex-direction: column; align-items: center; min-height: 0; }
-.bc-leg canvas { height: clamp(60px, 22vh, 190px); width: auto; filter: drop-shadow(0 0 12px rgba(255,230,120,.8)); }
-.banner-card.has-art { background-size: cover; background-position: center; }
+.bc-leg canvas { height: 80%; max-height: 190px; width: auto; filter: drop-shadow(0 0 12px rgba(255,230,120,.8)); }
+.bc-art .bc-legs { height: 100%; align-items: center; }
+.bc-art .bc-leg { height: 100%; justify-content: center; }
 .bc-chips { display: flex; gap: 4px; flex-wrap: wrap; justify-content: center; margin-top: 2px; }
-.bc-leg .bc-chip { font-size: clamp(10px, 1.9vh, 15px); font-weight: 900; -webkit-text-stroke: 0; color: #fff; text-transform: capitalize; border: 2px solid var(--ink);
+.bc-leg-info .bc-chip { font-size: clamp(10px, 1.9vh, 15px); font-weight: 900; -webkit-text-stroke: 0; color: #fff; text-transform: capitalize; border: 2px solid var(--ink);
   border-radius: 10px; padding: 1px 7px; display: inline-flex; align-items: center; gap: 3px; text-shadow: 0 1px 0 rgba(0,0,0,.5); }
 .bc-chip img { height: 1.2em; }
-.bc-leg .bc-chip.role { background: rgba(20,28,50,.85); color: var(--accent); }
-.bc-leg .bc-name { font-weight: 900; font-size: clamp(14px, 3vh, 24px); -webkit-text-stroke: 3px var(--ink); paint-order: stroke fill; }
-.bc-pity { font-size: clamp(14px, 3vh, 24px); font-weight: 900; text-align: center; background: rgba(20,28,50,.75); border-radius: 14px; padding: 2px 14px; }
+.bc-leg-info .bc-chip.role { background: rgba(20,28,50,.85); color: var(--accent); }
+.bc-leg-info .bc-name { font-weight: 900; font-size: clamp(13px, 2.8vh, 22px); -webkit-text-stroke: 3px var(--ink); paint-order: stroke fill; }
+.bc-pity { font-size: clamp(12px, 2.6vh, 22px); font-weight: 900; text-align: center; background: rgba(20,28,50,.75); border-radius: 14px; padding: 2px 14px; }
 .bc-pity .pity-n { color: var(--accent); font-size: 1.25em; }
 .bc-bar { width: 70%; height: 10px; border-radius: 5px; background: rgba(255,255,255,.3); border: 2px solid var(--ink); overflow: hidden; }
 .bc-bar i { display: block; height: 100%; background: var(--accent); }
 .bc-pool { display: flex; flex-wrap: wrap; justify-content: center; gap: 2px; max-width: 100%; }
-.bc-pool canvas { width: clamp(24px, 5.6vh, 48px); height: clamp(24px, 5.6vh, 48px); background: rgba(255,255,255,.18); border-radius: 8px; }
+.bc-pool canvas { width: clamp(22px, 5vh, 44px); height: clamp(22px, 5vh, 44px); background: rgba(255,255,255,.18); border-radius: 8px; }
 .bc-odds { font-size: clamp(9px, 1.7vh, 13px); font-weight: 800; opacity: .85; text-align: center; }
 .gacha-side { flex: 0 0 clamp(170px, 24vw, 280px); display: flex; flex-direction: column; gap: clamp(4px, 1.2vh, 10px); justify-content: center; }
 .cur-pick { display: flex; flex-direction: column; gap: 4px; background: rgba(255,255,255,.55); border-radius: 16px; padding: 4px 6px; }
@@ -562,9 +570,6 @@ button { font: inherit; color: inherit; border: 0; cursor: pointer; touch-action
 .ch-pic { font-size: clamp(56px, 20vh, 150px); line-height: 1; width: 100%; aspect-ratio: 1; max-height: 45vh; display: flex; align-items: center; justify-content: center;
   background: #fff; border: 4px solid var(--ink); border-radius: 24px; }
 .ch-pic canvas { width: 88%; height: 88%; }
-.ch-say { width: 100%; min-height: clamp(52px, 15vh, 120px); border-radius: 24px; border: 5px solid var(--ink); background: var(--accent2); color: #fff;
-  font-size: clamp(32px, 9vh, 72px); box-shadow: 0 6px 0 #1f4f95; }
-.ch-say:active { transform: translateY(4px); box-shadow: 0 2px 0 #1f4f95; }
 .ch-right { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: space-evenly; gap: clamp(6px, 1.6vh, 16px); }
 .ch-clue { font-size: clamp(16px, 3.6vh, 30px); font-weight: 800; text-align: center; background: #fff; border: 3px dashed var(--ink); border-radius: 16px; padding: 6px 12px; }
 .ch-slots, .ch-tiles { display: flex; flex-wrap: wrap; justify-content: center; gap: clamp(4px, 1vh, 10px); }
@@ -763,8 +768,55 @@ button { font: inherit; color: inherit; border: 0; cursor: pointer; touch-action
 .bz-lock { position: absolute; top: 2px; right: 6px; }
 .bz-card.mega { grid-column: 1 / -1; flex-direction: row; justify-content: center; gap: 12px; background: repeating-linear-gradient(45deg, #e6e0f0 0 12px, #d6cfe6 12px 24px); }
 /* Phase 7 batch P: ticket mode on the gacha screen, the "turn sound on" notice, the neutral no-picture card */
-.side-btn.earn { background: linear-gradient(#c9f7c9, #6fd36f); font-weight: 900; }
-.ch-sound { position: absolute; top: 4px; left: 50%; transform: translateX(-50%); z-index: 5; background: #fff3b0; border: 3px solid var(--ink); border-radius: 14px;
-  padding: 6px 14px; font-weight: 900; font-size: clamp(13px, 2.4vh, 18px); max-width: 92%; text-align: center; }
+.pull-btn.earn { background: linear-gradient(#3fb0ff, #1f6fd1); box-shadow: 0 5px 0 #154a8f; }
+.pull-btn.earn .pb-t { display: inline-flex; align-items: center; gap: 6px; font-size: clamp(15px, 3.4vh, 26px); }
+.pull-btn.earn .pb-t img { height: 1.35em; -webkit-text-stroke: 0; }
+.pull-btn.earn .pb-c { font-size: clamp(9px, 1.8vh, 14px); }
 .ch-pic.no-pic { display: flex; flex-direction: column; align-items: center; justify-content: center; background: repeating-linear-gradient(45deg, #eef2fa 0 10px, #e2e8f4 10px 20px); }
 .ch-pic.no-pic small { font-size: .3em; font-weight: 900; }
+
+/* ---------- Phase 7.5 FF1/HH1/HH2: Prism Tower (was the Bonus Zone) ---------- */
+/* home: the carousel shifts left; the Tower has a FIXED slot pinned right (never part of the carousel) */
+.home-mid { flex: 1 1 auto; min-height: 0; width: 100%; display: flex; gap: clamp(8px, 1.4vw, 16px); }
+.home-car { flex: 1 1 auto; min-width: 0; min-height: 0; display: flex; flex-direction: column; gap: clamp(4px, 1vh, 10px); }
+.home-tower { flex: 0 0 clamp(120px, 19vw, 230px); position: relative; border-radius: 22px; border: 5px solid var(--ink); overflow: hidden; color: #fff;
+  background: linear-gradient(180deg, #2a1f5c, #5a3fb0 55%, #c79bff); background-size: cover; background-position: center;
+  box-shadow: 0 6px 0 rgba(0,0,0,.3), 0 0 18px rgba(170,120,255,.6); display: flex; flex-direction: column; align-items: center; justify-content: flex-end; padding: 8px 6px; gap: 3px; }
+.home-tower > * { pointer-events: none; }
+.home-tower:active { transform: translateY(4px); }
+.home-tower .ht-art { position: absolute; inset: 0; background-size: cover; background-position: center; }
+.home-tower .ht-art:empty::before { content: '🗼'; position: absolute; top: 18%; left: 50%; transform: translateX(-50%); font-size: clamp(40px, 13vh, 100px); }
+.home-tower .ht-name { position: relative; font-size: clamp(16px, 3.6vh, 28px); font-weight: 900; -webkit-text-stroke: 4px var(--ink); paint-order: stroke fill; text-align: center; line-height: 1; }
+.home-tower .ht-sub { position: relative; font-size: clamp(10px, 1.9vh, 14px); font-weight: 900; background: rgba(20,28,50,.82); border-radius: 9px; padding: 1px 8px; text-align: center; }
+.home-tower.locked { filter: grayscale(.7) brightness(.85); }
+/* inside: the stages as tower FLOORS — Mega locked at the top, the XP training floors, the treasure vaults at the bottom */
+.tower { display: flex; flex-direction: column; gap: 0; border: 5px solid var(--ink); border-radius: 22px 22px 10px 10px; overflow: hidden;
+  background: linear-gradient(90deg, rgba(40,25,90,.82), rgba(80,55,160,.78), rgba(40,25,90,.82)); box-shadow: 0 6px 0 rgba(0,0,0,.35); }
+.floor { display: flex; align-items: stretch; gap: 8px; padding: 6px 8px; border-top: 4px solid rgba(20,12,45,.9); }
+.floor.top { border-top: 0; background: rgba(255,255,255,.06); }
+.floor.ground { background: rgba(0,0,0,.18); }
+.fl-plate { flex: 0 0 clamp(78px, 11vw, 140px); display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; color: #fff;
+  font-weight: 900; font-size: clamp(11px, 2.1vh, 16px); line-height: 1.05; background: rgba(20,12,45,.7); border: 3px solid #ffd84a; border-radius: 12px; padding: 4px; }
+.fl-plate b { font-size: 1.5em; color: #ffd84a; }
+.fl-plate small { font-size: .7em; font-weight: 700; opacity: .85; margin-top: 2px; }
+.floor .bz-row { flex: 1; min-width: 0; }
+.bz-fl { position: absolute; top: 2px; left: 6px; font-size: 11px; font-weight: 900; color: #6a4fc0; }
+/* HH1: the ◀ ▶ arrows float over the region card's edges so the card keeps its big size beside the Tower slot */
+.home-car .carousel { position: relative; gap: 0; }
+.home-car .car-arrow { position: absolute; top: 50%; transform: translateY(-50%); z-index: 2; height: clamp(54px, 22%, 120px); width: clamp(36px, 4.4vw, 56px); background: rgba(255,255,255,.88); }
+.home-car .car-arrow:active { transform: translateY(calc(-50% + 3px)); }
+.home-car #btn-reg-prev { left: 8px; } .home-car #btn-reg-next { right: 8px; }
+/* S1: the PC terminal icon wherever PC Box appears */
+.pc-ico { display: inline-flex; align-items: center; } .pc-ico img { height: 1.25em; width: auto; vertical-align: middle; }
+.ta-box-head .pc-ico { margin-right: 4px; }
+
+/* Phase 7.5 re-issue: OO1 Safari Zone backdrop · PP1 Clear Stage button · NN1 visual spelling · MM1 ball counters */
+#scr-gacha { background-size: cover; background-position: center; }
+.ch-btn { display: inline-flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.05; }
+.ch-btn .cb-s { font-size: .55em; font-weight: 800; opacity: .9; }
+.ch-word { font-size: clamp(30px, 8vh, 64px); font-weight: 900; letter-spacing: .12em; text-align: center; background: #fff; border: 4px solid var(--ink);
+  border-radius: 18px; padding: 2px 14px; margin-top: 6px; color: var(--ink); }
+.ch-ball, .fb-ball, .cp-ball, .earn-ball { height: 1.3em; width: 1.3em; vertical-align: middle; }
+.ch-earned .ball, .fb-pay .ball, .cp-t .ball, .pb-t .ball { width: 1.2em; height: 1.2em; display: inline-block; }
+.ch-left.word-only { justify-content: center; } .ch-left.word-only .ch-word { font-size: clamp(36px, 11vh, 92px); padding: 8px 18px; }
+.ch-word { max-width: 100%; white-space: nowrap; }
