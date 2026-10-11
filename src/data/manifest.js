@@ -56,7 +56,7 @@ BM.SPRITE_FILES = {
  "alakazam": {
   "attack": {
    "src": "sprites/alakazam.attack.png",
-   "cellW": 151,
+   "cellW": 150,
    "cellH": 130,
    "anchorX": 75,
    "anchorY": 129,
@@ -67,9 +67,9 @@ BM.SPRITE_FILES = {
   },
   "run": {
    "src": "sprites/alakazam.run.png",
-   "cellW": 82,
+   "cellW": 91,
    "cellH": 130,
-   "anchorX": 41,
+   "anchorX": 45,
    "anchorY": 129,
    "frames": [
     0,
@@ -80,6 +80,17 @@ BM.SPRITE_FILES = {
   }
  },
  "arbok": {
+  "attack": {
+   "src": "sprites/arbok.attack.png",
+   "cellW": 106,
+   "cellH": 130,
+   "anchorX": 53,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1
+   ]
+  },
   "run": {
    "src": "sprites/arbok.run.png",
    "cellW": 97,
@@ -199,6 +210,17 @@ BM.SPRITE_FILES = {
   }
  },
  "butterfree": {
+  "attack": {
+   "src": "sprites/butterfree.attack.png",
+   "cellW": 124,
+   "cellH": 130,
+   "anchorX": 62,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1
+   ]
+  },
   "run": {
    "src": "sprites/butterfree.run.png",
    "cellW": 104,
@@ -214,11 +236,22 @@ BM.SPRITE_FILES = {
   }
  },
  "caterpie": {
+  "attack": {
+   "src": "sprites/caterpie.attack.png",
+   "cellW": 197,
+   "cellH": 130,
+   "anchorX": 98,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1
+   ]
+  },
   "run": {
    "src": "sprites/caterpie.run.png",
-   "cellW": 194,
+   "cellW": 186,
    "cellH": 130,
-   "anchorX": 97,
+   "anchorX": 93,
    "anchorY": 129,
    "frames": [
     0,
@@ -307,6 +340,17 @@ BM.SPRITE_FILES = {
   }
  },
  "clefable": {
+  "attack": {
+   "src": "sprites/clefable.attack.png",
+   "cellW": 97,
+   "cellH": 130,
+   "anchorX": 48,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1
+   ]
+  },
   "run": {
    "src": "sprites/clefable.run.png",
    "cellW": 89,
@@ -322,6 +366,17 @@ BM.SPRITE_FILES = {
   }
  },
  "clefairy": {
+  "attack": {
+   "src": "sprites/clefairy.attack.png",
+   "cellW": 146,
+   "cellH": 130,
+   "anchorX": 73,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1
+   ]
+  },
   "run": {
    "src": "sprites/clefairy.run.png",
    "cellW": 122,
@@ -337,6 +392,17 @@ BM.SPRITE_FILES = {
   }
  },
  "cloyster": {
+  "attack": {
+   "src": "sprites/cloyster.attack.png",
+   "cellW": 138,
+   "cellH": 130,
+   "anchorX": 69,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1
+   ]
+  },
   "run": {
    "src": "sprites/cloyster.run.png",
    "cellW": 134,
@@ -352,6 +418,17 @@ BM.SPRITE_FILES = {
   }
  },
  "crobat": {
+  "attack": {
+   "src": "sprites/crobat.attack.png",
+   "cellW": 103,
+   "cellH": 130,
+   "anchorX": 51,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1
+   ]
+  },
   "run": {
    "src": "sprites/crobat.run.png",
    "cellW": 112,
@@ -395,9 +472,35 @@ BM.SPRITE_FILES = {
  "dewgong": {
   "run": {
    "src": "sprites/dewgong.run.png",
-   "cellW": 116,
+   "cellW": 122,
    "cellH": 130,
-   "anchorX": 58,
+   "anchorX": 61,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1,
+    2,
+    3
+   ]
+  }
+ },
+ "diglett": {
+  "attack": {
+   "src": "sprites/diglett.attack.png",
+   "cellW": 188,
+   "cellH": 130,
+   "anchorX": 94,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1
+   ]
+  },
+  "run": {
+   "src": "sprites/diglett.run.png",
+   "cellW": 134,
+   "cellH": 130,
+   "anchorX": 67,
    "anchorY": 129,
    "frames": [
     0,
@@ -512,6 +615,17 @@ BM.SPRITE_FILES = {
   }
  },
  "dugtrio": {
+  "attack": {
+   "src": "sprites/dugtrio.attack.png",
+   "cellW": 216,
+   "cellH": 130,
+   "anchorX": 108,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1
+   ]
+  },
   "run": {
    "src": "sprites/dugtrio.run.png",
    "cellW": 240,
@@ -553,6 +667,17 @@ BM.SPRITE_FILES = {
   }
  },
  "ekans": {
+  "attack": {
+   "src": "sprites/ekans.attack.png",
+   "cellW": 146,
+   "cellH": 130,
+   "anchorX": 73,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1
+   ]
+  },
   "run": {
    "src": "sprites/ekans.run.png",
    "cellW": 73,
@@ -568,6 +693,17 @@ BM.SPRITE_FILES = {
   }
  },
  "electrode": {
+  "attack": {
+   "src": "sprites/electrode.attack.png",
+   "cellW": 132,
+   "cellH": 130,
+   "anchorX": 66,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1
+   ]
+  },
   "run": {
    "src": "sprites/electrode.run.png",
    "cellW": 112,
@@ -687,6 +823,17 @@ BM.SPRITE_FILES = {
   }
  },
  "geodude": {
+  "attack": {
+   "src": "sprites/geodude.attack.png",
+   "cellW": 160,
+   "cellH": 130,
+   "anchorX": 80,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1
+   ]
+  },
   "run": {
    "src": "sprites/geodude.run.png",
    "cellW": 127,
@@ -728,6 +875,17 @@ BM.SPRITE_FILES = {
   }
  },
  "gloom": {
+  "attack": {
+   "src": "sprites/gloom.attack.png",
+   "cellW": 129,
+   "cellH": 130,
+   "anchorX": 64,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1
+   ]
+  },
   "run": {
    "src": "sprites/gloom.run.png",
    "cellW": 88,
@@ -795,6 +953,17 @@ BM.SPRITE_FILES = {
   }
  },
  "golem": {
+  "attack": {
+   "src": "sprites/golem.attack.png",
+   "cellW": 137,
+   "cellH": 130,
+   "anchorX": 68,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1
+   ]
+  },
   "run": {
    "src": "sprites/golem.run.png",
    "cellW": 116,
@@ -810,6 +979,17 @@ BM.SPRITE_FILES = {
   }
  },
  "graveler": {
+  "attack": {
+   "src": "sprites/graveler.attack.png",
+   "cellW": 151,
+   "cellH": 130,
+   "anchorX": 75,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1
+   ]
+  },
   "run": {
    "src": "sprites/graveler.run.png",
    "cellW": 179,
@@ -1061,9 +1241,9 @@ BM.SPRITE_FILES = {
  "kleavor": {
   "attack": {
    "src": "sprites/kleavor.attack.png",
-   "cellW": 147,
+   "cellW": 161,
    "cellH": 130,
-   "anchorX": 73,
+   "anchorX": 80,
    "anchorY": 129,
    "frames": [
     0,
@@ -1345,6 +1525,17 @@ BM.SPRITE_FILES = {
   }
  },
  "metapod": {
+  "attack": {
+   "src": "sprites/metapod.attack.png",
+   "cellW": 134,
+   "cellH": 130,
+   "anchorX": 67,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1
+   ]
+  },
   "run": {
    "src": "sprites/metapod.run.png",
    "cellW": 72,
@@ -1620,6 +1811,17 @@ BM.SPRITE_FILES = {
   }
  },
  "pidgeotto": {
+  "attack": {
+   "src": "sprites/pidgeotto.attack.png",
+   "cellW": 151,
+   "cellH": 130,
+   "anchorX": 75,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1
+   ]
+  },
   "run": {
    "src": "sprites/pidgeotto.run.png",
    "cellW": 92,
@@ -1741,9 +1943,9 @@ BM.SPRITE_FILES = {
  "porygon": {
   "attack": {
    "src": "sprites/porygon.attack.png",
-   "cellW": 152,
+   "cellW": 222,
    "cellH": 130,
-   "anchorX": 76,
+   "anchorX": 111,
    "anchorY": 129,
    "frames": [
     0,
@@ -1752,9 +1954,9 @@ BM.SPRITE_FILES = {
   },
   "run": {
    "src": "sprites/porygon.run.png",
-   "cellW": 117,
+   "cellW": 216,
    "cellH": 130,
-   "anchorX": 58,
+   "anchorX": 108,
    "anchorY": 129,
    "frames": [
     0,
@@ -1895,6 +2097,17 @@ BM.SPRITE_FILES = {
   }
  },
  "raticate": {
+  "attack": {
+   "src": "sprites/raticate.attack.png",
+   "cellW": 239,
+   "cellH": 130,
+   "anchorX": 119,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1
+   ]
+  },
   "run": {
    "src": "sprites/raticate.run.png",
    "cellW": 191,
@@ -1988,6 +2201,17 @@ BM.SPRITE_FILES = {
   }
  },
  "rhyperior": {
+  "attack": {
+   "src": "sprites/rhyperior.attack.png",
+   "cellW": 143,
+   "cellH": 130,
+   "anchorX": 71,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1
+   ]
+  },
   "run": {
    "src": "sprites/rhyperior.run.png",
    "cellW": 149,
@@ -2042,9 +2266,9 @@ BM.SPRITE_FILES = {
   },
   "run": {
    "src": "sprites/scyther.run.png",
-   "cellW": 83,
+   "cellW": 116,
    "cellH": 130,
-   "anchorX": 41,
+   "anchorX": 58,
    "anchorY": 129,
    "frames": [
     0,
@@ -2057,9 +2281,9 @@ BM.SPRITE_FILES = {
  "scyther_kleavor": {
   "attack": {
    "src": "sprites/scyther_kleavor.attack.png",
-   "cellW": 157,
+   "cellW": 161,
    "cellH": 130,
-   "anchorX": 78,
+   "anchorX": 80,
    "anchorY": 129,
    "frames": [
     0,
@@ -2185,6 +2409,17 @@ BM.SPRITE_FILES = {
   }
  },
  "steelix": {
+  "attack": {
+   "src": "sprites/steelix.attack.png",
+   "cellW": 187,
+   "cellH": 130,
+   "anchorX": 93,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1
+   ]
+  },
   "run": {
    "src": "sprites/steelix.run.png",
    "cellW": 229,
@@ -2252,6 +2487,17 @@ BM.SPRITE_FILES = {
   }
  },
  "tangrowth": {
+  "attack": {
+   "src": "sprites/tangrowth.attack.png",
+   "cellW": 224,
+   "cellH": 130,
+   "anchorX": 112,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1
+   ]
+  },
   "run": {
    "src": "sprites/tangrowth.run.png",
    "cellW": 114,
@@ -2293,6 +2539,17 @@ BM.SPRITE_FILES = {
   }
  },
  "tentacruel": {
+  "attack": {
+   "src": "sprites/tentacruel.attack.png",
+   "cellW": 165,
+   "cellH": 130,
+   "anchorX": 82,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1
+   ]
+  },
   "run": {
    "src": "sprites/tentacruel.run.png",
    "cellW": 105,
