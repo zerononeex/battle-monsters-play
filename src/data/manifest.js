@@ -1176,9 +1176,9 @@ BM.SPRITE_FILES = {
   },
   "run": {
    "src": "sprites/machamp.run.png",
-   "cellW": 121,
+   "cellW": 83,
    "cellH": 130,
-   "anchorX": 60,
+   "anchorX": 41,
    "anchorY": 129,
    "frames": [
     0,
