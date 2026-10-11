@@ -23,7 +23,7 @@
 </section>
 
 <!-- Home (H2 Region Carousel, Phase 5 layout pass): slim top bar (player chip · wallet · settings), ONE big region card
-     with arrows + dots, compact Teams · All Characters · Items · Gacha buttons below -->
+     with arrows + dots, compact Teams · PC Box · Items · Gacha buttons below -->
 <section id="scr-title" class="screen hidden">
   <div class="home-top">
     <button id="btn-switch" class="player-chip" aria-label="Switch player"><span id="chip-name">Player</span><span id="chip-grade" class="chip-grade"></span><span class="chip-sw">⇄</span></button>
@@ -39,7 +39,7 @@
   <div id="reg-dots" class="reg-dots"></div>
   <div class="home-btns">
     <button id="btn-team" class="home-btn"><span class="hb-i">🎴</span>Teams</button>
-    <button id="btn-collection" class="home-btn"><span class="hb-i">📖</span>All Characters</button>
+    <button id="btn-collection" class="home-btn"><span class="hb-i">📦</span>PC Box</button>
     <button id="btn-items" class="home-btn"><span class="hb-i">🎒</span>Items</button>
     <button id="btn-gacha" class="home-btn gacha"><span class="hb-i">🎰</span>Gacha</button>
   </div>
@@ -75,6 +75,7 @@
     <div class="row-btns">
       <button id="btn-pre-back" class="big-btn alt mid">◀ Map</button>
       <button id="btn-pre-team" class="big-btn alt mid">🎴 Team</button>
+      <button id="btn-pre-challenge" class="big-btn mid ch-btn">🧠 Challenge</button>
       <button id="btn-pre-go" class="big-btn">⚔ Battle!</button>
     </div>
   </div>
@@ -84,7 +85,7 @@
 <section id="scr-collection" class="screen hidden">
   <div class="sub-head">
     <button id="btn-coll-back" class="icon-btn" aria-label="Back">◀</button>
-    <h2>All Characters <span id="coll-count" class="head-count"></span></h2>
+    <h2>PC Box <span id="coll-count" class="head-count"></span></h2>
     <button id="btn-coll-filter" class="pill-btn filter-btn">⚙ Filter<span class="fcount"></span></button>
     <button id="btn-coll-bag" class="pill-btn">🎒 Items</button>
     <button id="btn-dev-unlock" class="dev-btn hidden">DEV: unlock all</button>
@@ -135,6 +136,22 @@
   </div>
 </section>
 
+<!-- Challenge (Phase 6): one mixed stream of math questions + hear-and-spell words. Top bar = stop · mode + grade ·
+     streak meter ("7 / 10" or "🔥 7 in a row") · tickets this run. The card is a math question with 8 options, or a
+     spelling word: picture clue + 🔊 (the word is SPOKEN, never written) + slots + letter tiles. Fits with no scrolling. -->
+<section id="scr-challenge" class="screen hidden">
+  <div class="ch-top">
+    <button id="btn-ch-stop" class="icon-btn" aria-label="Leave">◀</button>
+    <div class="ch-title"><span id="ch-mode" class="ch-mode"></span><span id="ch-stage" class="ch-stage"></span></div>
+    <div id="ch-meter" class="ch-meter"></div>
+    <span id="ch-earned" class="ch-earned"></span>
+  </div>
+  <div class="ch-stagebox">
+    <div id="ch-card" class="ch-card"></div>
+    <div id="ch-feedback" class="ch-feedback hidden"></div>
+  </div>
+</section>
+
 <!-- Battle HUD -->
 <section id="scr-battle" class="screen hidden">
   <button id="btn-pause" class="icon-btn corner-tl" aria-label="Pause">❚❚</button>
@@ -153,7 +170,7 @@
 
 <!-- Pause / settings (minimal on purpose: pause, music, sound, erase profile) -->
 <section id="scr-pause" class="overlay hidden">
-  <div class="panel">
+  <div class="panel pause-panel fit">
     <h2 id="pause-title">Paused</h2>
     <div class="row-btns" id="pause-battle-btns">
       <button id="btn-resume" class="big-btn">Resume</button>
@@ -163,6 +180,10 @@
       <button id="tg-music" class="toggle">🎵 Music: <b>ON</b></button>
       <button id="tg-sound" class="toggle">🔊 Sound: <b>ON</b></button>
     </div>
+    <div class="sliders" id="mistake-sliders">
+      <label class="slider"><span>🧮 Math mistakes allowed: <b id="sl-math-v">2</b></span><input id="sl-math" type="range" min="2" max="10" step="1" value="2"></label>
+      <label class="slider"><span>🔤 Spelling mistakes allowed: <b id="sl-spell-v">3</b></span><input id="sl-spell" type="range" min="3" max="10" step="1" value="3"></label>
+    </div>
     <button id="btn-export" class="toggle share-btn">📤 Share my save code</button>
     <button id="btn-dev-music" class="dev-btn hidden">DEV: play next music key</button>
     <button id="btn-erase" class="erase-btn"><span class="erase-fill"></span><span class="erase-label">Hold 3 s to erase this profile</span></button>
@@ -170,9 +191,36 @@
   </div>
 </section>
 
+<!-- Challenge mode chooser (pre-battle → 🧠 Challenge) -->
+<section id="scr-chmode" class="overlay hidden">
+  <div class="panel chmode-panel fit">
+    <button id="btn-chmode-x" class="panel-x" aria-label="Close">✕</button>
+    <h2>🧠 Challenge</h2>
+    <p id="chmode-help"></p>
+    <div class="row-btns">
+      <button id="btn-ch-clear" class="ch-pick clear"></button>
+      <button id="btn-ch-tickets" class="ch-pick tickets"></button>
+    </div>
+  </div>
+</section>
+
+<!-- Auto-clear run ended (a discarded question resets the streak): "7 / 10" -->
+<section id="scr-chover" class="overlay hidden">
+  <div class="panel chover-panel fit">
+    <h2>Run over</h2>
+    <div id="chover-n" class="chover-n"></div>
+    <p id="chover-sub"></p>
+    <div class="row-btns">
+      <button id="btn-chover-back" class="big-btn alt mid">◀ Back</button>
+      <button id="btn-chover-again" class="big-btn mid">↻ Go again</button>
+    </div>
+  </div>
+</section>
+
 <!-- Result -->
 <section id="scr-result" class="overlay hidden">
   <div class="panel result-panel fit">
+    <div id="result-art" class="result-art hidden"></div>
     <h2 id="result-title" class="result-title">VICTORY!</h2>
     <p id="result-sub"></p>
     <div id="result-rewards" class="rewards"></div>
@@ -296,7 +344,7 @@
     <button id="btn-bag-x" class="panel-x" aria-label="Close">✕</button>
     <h2>🎒 Items</h2>
     <div id="bag-grid" class="bag-grid"></div>
-    <p class="bag-help">Use candies and stones on a character: All Characters → tap one.</p>
+    <p class="bag-help">Use candies and stones on a character: PC Box → tap one.</p>
   </div>
 </section>
 
@@ -321,12 +369,15 @@
 <script src="src/data/stages.js"></script>
 <script src="src/data/kanto_map.js"></script>
 <script src="src/data/banners.js"></script>
+<script src="src/data/math_gen.js"></script>
+<script src="src/data/words.js"></script>
 <script src="src/data/manifest.js"></script>
 <script src="src/audio/music_keys.js"></script>
 <script src="src/audio/songs.js"></script>
 <script src="src/audio/audio.js"></script>
 <script src="src/save.js"></script>
 <script src="src/gacha.js"></script>
+<script src="src/challenge.js"></script>
 <script src="src/engine/sprites.js"></script>
 <script src="src/engine/battle.js"></script>
 <script src="src/engine/render.js"></script>
@@ -334,6 +385,7 @@
 <script src="src/evolution.js"></script>
 <script src="src/map.js"></script>
 <script src="src/gacha_screen.js"></script>
+<script src="src/challenge_screen.js"></script>
 <script src="src/main.js"></script>
 <!-- /BM:SCRIPTS -->
 </body>

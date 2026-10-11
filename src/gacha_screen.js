@@ -23,11 +23,24 @@ BM.GachaScreen = function (ui) {
     }
     // banner card: the two legendaries big, the pool as a strip (silhouettes = not met yet), the pity counter
     const card = $('banner-card'); card.innerHTML = ''; card.dataset.banner = b.id;
+    // H3: the banner's generated key art (assets/ui/banners/<id>.png, ASSET_PROMPTS #250–#251) takes over the panel when DONE
+    const key = BM.Sprites.artSrc('ui/banner_' + b.id);
+    card.style.backgroundImage = key ? `linear-gradient(rgba(0,0,0,.05), rgba(0,0,0,.35)), url("${key}")` : '';
+    card.classList.toggle('has-art', !!key);
     const legs = document.createElement('div'); legs.className = 'bc-legs';
     for (const id of b.legendaries) {
       const d = document.createElement('div'); d.className = 'bc-leg';
       d.appendChild(ui.thumb(BM.LINES[id].forms[0], 170, false));
-      const n = document.createElement('span'); n.textContent = BM.LINES[id].name + (p.lines[id] ? ' ✓' : ''); d.appendChild(n);
+      const n = document.createElement('span'); n.className = 'bc-name'; n.textContent = BM.LINES[id].name + (p.lines[id] ? ' ✓' : ''); d.appendChild(n);
+      // H3: TYPE icons + ROLE label as chips under each legendary
+      const f = BM.LINES[id].forms[0], chips = document.createElement('div'); chips.className = 'bc-chips'; chips.dataset.line = id;
+      for (const t of f.types) {
+        const ic = BM.Sprites.artSrc('icons/type_' + t), c = document.createElement('span');
+        c.className = 'bc-chip type'; c.dataset.type = t; c.style.background = BM.TYPE_COLORS[t];
+        c.innerHTML = (ic ? `<img src="${ic}" alt="">` : '') + t; chips.appendChild(c);
+      }
+      const rl = BM.roleLabel(f), rc = document.createElement('span'); rc.className = 'bc-chip role'; rc.textContent = `${rl.icon} ${rl.text}`; chips.appendChild(rc);
+      d.appendChild(chips);
       legs.appendChild(d);
     }
     card.appendChild(legs);

@@ -1,5 +1,5 @@
 // Gacha logic (Phase 5, BUILD_PLAN §4.5 + §4.8). Pure rules on the active profile — the screen is gacha_screen.js.
-//   1 pull = 10 tickets, or 1 Poké Ball (9 balls buy a 10-pull). Legendary 2% per pull; per-banner pity: the 40th pull since
+//   1 pull = 10 tickets (a 10-pull = 90, playtest H2: buy 9 get 1), or 1 Poké Ball (9 balls buy a 10-pull). Legendary 2% per pull; per-banner pity: the 40th pull since
 //   that banner's last legendary is a guaranteed legendary (one of ITS two). Otherwise the loot table: Character 30 ·
 //   XP 45 (S 30 / M 12 / L 3) · Battle item 17 · Evolution item 8 (stones / held items of lines on that banner).
 //   Non-legendary character pulls favour unowned lines 75% while any remain. A duplicate character -> XP Candy L worth of
@@ -8,7 +8,7 @@
 //   regions the profile has CLEARED (duplicates -> XP L).
 window.BM = window.BM || {};
 BM.GACHA = {
-  PULL_TICKETS: 10, PULL_BALLS: 1, MULTI_BALLS: 9, MULTI: 10,
+  PULL_TICKETS: 10, MULTI_TICKETS: 90, PULL_BALLS: 1, MULTI_BALLS: 9, MULTI: 10,
   LEGEND_RATE: 0.02, PITY: 40,
   LOOT: [['character', 30], ['xp', 45], ['battle', 17], ['evo', 8]],
   XP: [['xp_candy_s', 30], ['xp_candy_m', 12], ['xp_candy_l', 3]],
@@ -61,7 +61,7 @@ BM.Gacha = (function () {
   // What a single / 10-pull costs in a currency, and whether the profile can pay.
   function price(count, currency) {
     if (currency === 'balls') return { item: 'poke_ball', n: count === G.MULTI ? G.MULTI_BALLS : G.PULL_BALLS * count };
-    return { tickets: G.PULL_TICKETS * count };
+    return { tickets: count === G.MULTI ? G.MULTI_TICKETS : G.PULL_TICKETS * count };
   }
   function canPay(count, currency, p = prof()) {
     const pr = price(count, currency);

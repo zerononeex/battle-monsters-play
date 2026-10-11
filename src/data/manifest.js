@@ -82,9 +82,9 @@ BM.SPRITE_FILES = {
  "arbok": {
   "run": {
    "src": "sprites/arbok.run.png",
-   "cellW": 115,
+   "cellW": 97,
    "cellH": 130,
-   "anchorX": 57,
+   "anchorX": 48,
    "anchorY": 129,
    "frames": [
     0,
@@ -376,9 +376,9 @@ BM.SPRITE_FILES = {
   },
   "run": {
    "src": "sprites/dragonair.run.png",
-   "cellW": 82,
+   "cellW": 60,
    "cellH": 130,
-   "anchorX": 41,
+   "anchorX": 30,
    "anchorY": 129,
    "frames": [
     0,
@@ -428,9 +428,9 @@ BM.SPRITE_FILES = {
   },
   "run": {
    "src": "sprites/dratini.run.png",
-   "cellW": 107,
+   "cellW": 78,
    "cellH": 130,
-   "anchorX": 53,
+   "anchorX": 39,
    "anchorY": 129,
    "frames": [
     0,
@@ -484,9 +484,9 @@ BM.SPRITE_FILES = {
  "ekans": {
   "run": {
    "src": "sprites/ekans.run.png",
-   "cellW": 97,
+   "cellW": 73,
    "cellH": 130,
-   "anchorX": 48,
+   "anchorX": 36,
    "anchorY": 129,
    "frames": [
     0,
@@ -510,9 +510,9 @@ BM.SPRITE_FILES = {
   },
   "run": {
    "src": "sprites/gastly.run.png",
-   "cellW": 103,
+   "cellW": 246,
    "cellH": 130,
-   "anchorX": 51,
+   "anchorX": 123,
    "anchorY": 129,
    "frames": [
     0,
@@ -551,9 +551,9 @@ BM.SPRITE_FILES = {
  "geodude": {
   "run": {
    "src": "sprites/geodude.run.png",
-   "cellW": 158,
+   "cellW": 127,
    "cellH": 130,
-   "anchorX": 79,
+   "anchorX": 63,
    "anchorY": 129,
    "frames": [
     0,
@@ -644,9 +644,9 @@ BM.SPRITE_FILES = {
   },
   "run": {
    "src": "sprites/gyarados.run.png",
-   "cellW": 90,
+   "cellW": 101,
    "cellH": 130,
-   "anchorX": 45,
+   "anchorX": 50,
    "anchorY": 129,
    "frames": [
     0,
@@ -778,9 +778,9 @@ BM.SPRITE_FILES = {
  "koffing": {
   "run": {
    "src": "sprites/koffing.run.png",
-   "cellW": 122,
+   "cellW": 153,
    "cellH": 130,
-   "anchorX": 61,
+   "anchorX": 76,
    "anchorY": 129,
    "frames": [
     0,
@@ -1120,9 +1120,9 @@ BM.SPRITE_FILES = {
   },
   "run": {
    "src": "sprites/onix.run.png",
-   "cellW": 92,
+   "cellW": 105,
    "cellH": 130,
-   "anchorX": 46,
+   "anchorX": 52,
    "anchorY": 129,
    "frames": [
     0,
@@ -1202,9 +1202,9 @@ BM.SPRITE_FILES = {
   },
   "run": {
    "src": "sprites/pikachu.run.png",
-   "cellW": 110,
+   "cellW": 122,
    "cellH": 130,
-   "anchorX": 55,
+   "anchorX": 61,
    "anchorY": 129,
    "frames": [
     0,
@@ -1325,9 +1325,9 @@ BM.SPRITE_FILES = {
  "rattata": {
   "run": {
    "src": "sprites/rattata.run.png",
-   "cellW": 106,
+   "cellW": 81,
    "cellH": 130,
-   "anchorX": 53,
+   "anchorX": 40,
    "anchorY": 129,
    "frames": [
     0,
@@ -1511,9 +1511,9 @@ BM.SPRITE_FILES = {
  "staryu": {
   "run": {
    "src": "sprites/staryu.run.png",
-   "cellW": 80,
+   "cellW": 124,
    "cellH": 130,
-   "anchorX": 40,
+   "anchorX": 62,
    "anchorY": 129,
    "frames": [
     0,
@@ -1541,9 +1541,9 @@ BM.SPRITE_FILES = {
  "tentacool": {
   "run": {
    "src": "sprites/tentacool.run.png",
-   "cellW": 118,
+   "cellW": 87,
    "cellH": 130,
-   "anchorX": 59,
+   "anchorX": 43,
    "anchorY": 129,
    "frames": [
     0,
@@ -1679,9 +1679,9 @@ BM.SPRITE_FILES = {
  "voltorb": {
   "run": {
    "src": "sprites/voltorb.run.png",
-   "cellW": 81,
+   "cellW": 113,
    "cellH": 130,
-   "anchorX": 40,
+   "anchorX": 56,
    "anchorY": 129,
    "frames": [
     0,
@@ -1757,9 +1757,9 @@ BM.SPRITE_FILES = {
   },
   "run": {
    "src": "sprites/weezing.run.png",
-   "cellW": 133,
+   "cellW": 119,
    "cellH": 130,
-   "anchorX": 66,
+   "anchorX": 59,
    "anchorY": 129,
    "frames": [
     0,
@@ -1824,9 +1824,9 @@ BM.SPRITE_FILES = {
  "zubat": {
   "run": {
    "src": "sprites/zubat.run.png",
-   "cellW": 85,
+   "cellW": 113,
    "cellH": 130,
-   "anchorX": 42,
+   "anchorX": 56,
    "anchorY": 129,
    "frames": [
     0,
@@ -1982,6 +1982,330 @@ BM.FX_FILES = {
    2
   ]
  },
+ "move_beam": {
+  "src": "sprites/fx_move_beam.png",
+  "cellW": 195,
+  "cellH": 130,
+  "anchorX": 97,
+  "anchorY": 65,
+  "frames": [
+   0,
+   1,
+   2
+  ]
+ },
+ "move_bolt": {
+  "src": "sprites/fx_move_bolt.png",
+  "cellW": 195,
+  "cellH": 130,
+  "anchorX": 97,
+  "anchorY": 65,
+  "frames": [
+   0,
+   1,
+   2
+  ]
+ },
+ "move_bone": {
+  "src": "sprites/fx_move_bone.png",
+  "cellW": 160,
+  "cellH": 130,
+  "anchorX": 80,
+  "anchorY": 65,
+  "frames": [
+   0,
+   1,
+   2
+  ]
+ },
+ "move_dragon": {
+  "src": "sprites/fx_move_dragon.png",
+  "cellW": 144,
+  "cellH": 130,
+  "anchorX": 72,
+  "anchorY": 65,
+  "frames": [
+   0,
+   1,
+   2
+  ]
+ },
+ "move_fairy": {
+  "src": "sprites/fx_move_fairy.png",
+  "cellW": 177,
+  "cellH": 130,
+  "anchorX": 88,
+  "anchorY": 65,
+  "frames": [
+   0,
+   1,
+   2
+  ]
+ },
+ "move_fang": {
+  "src": "sprites/fx_move_fang.png",
+  "cellW": 166,
+  "cellH": 130,
+  "anchorX": 83,
+  "anchorY": 65,
+  "frames": [
+   0,
+   1,
+   2
+  ]
+ },
+ "move_flame": {
+  "src": "sprites/fx_move_flame.png",
+  "cellW": 187,
+  "cellH": 130,
+  "anchorX": 93,
+  "anchorY": 65,
+  "frames": [
+   0,
+   1,
+   2
+  ]
+ },
+ "move_horn": {
+  "src": "sprites/fx_move_horn.png",
+  "cellW": 158,
+  "cellH": 130,
+  "anchorX": 79,
+  "anchorY": 65,
+  "frames": [
+   0,
+   1,
+   2
+  ]
+ },
+ "move_ice": {
+  "src": "sprites/fx_move_ice.png",
+  "cellW": 157,
+  "cellH": 130,
+  "anchorX": 78,
+  "anchorY": 65,
+  "frames": [
+   0,
+   1,
+   2
+  ]
+ },
+ "move_kick": {
+  "src": "sprites/fx_move_kick.png",
+  "cellW": 135,
+  "cellH": 130,
+  "anchorX": 67,
+  "anchorY": 65,
+  "frames": [
+   0,
+   1,
+   2
+  ]
+ },
+ "move_leaf": {
+  "src": "sprites/fx_move_leaf.png",
+  "cellW": 145,
+  "cellH": 130,
+  "anchorX": 72,
+  "anchorY": 65,
+  "frames": [
+   0,
+   1,
+   2
+  ]
+ },
+ "move_needle": {
+  "src": "sprites/fx_move_needle.png",
+  "cellW": 176,
+  "cellH": 130,
+  "anchorX": 88,
+  "anchorY": 65,
+  "frames": [
+   0,
+   1,
+   2
+  ]
+ },
+ "move_poison": {
+  "src": "sprites/fx_move_poison.png",
+  "cellW": 152,
+  "cellH": 130,
+  "anchorX": 76,
+  "anchorY": 65,
+  "frames": [
+   0,
+   1,
+   2
+  ]
+ },
+ "move_psy": {
+  "src": "sprites/fx_move_psy.png",
+  "cellW": 137,
+  "cellH": 130,
+  "anchorX": 68,
+  "anchorY": 65,
+  "frames": [
+   0,
+   1,
+   2
+  ]
+ },
+ "move_punch": {
+  "src": "sprites/fx_move_punch.png",
+  "cellW": 141,
+  "cellH": 130,
+  "anchorX": 70,
+  "anchorY": 65,
+  "frames": [
+   0,
+   1,
+   2
+  ]
+ },
+ "move_rock": {
+  "src": "sprites/fx_move_rock.png",
+  "cellW": 163,
+  "cellH": 130,
+  "anchorX": 81,
+  "anchorY": 65,
+  "frames": [
+   0,
+   1,
+   2
+  ]
+ },
+ "move_shadow": {
+  "src": "sprites/fx_move_shadow.png",
+  "cellW": 151,
+  "cellH": 130,
+  "anchorX": 75,
+  "anchorY": 65,
+  "frames": [
+   0,
+   1,
+   2
+  ]
+ },
+ "move_sing": {
+  "src": "sprites/fx_move_sing.png",
+  "cellW": 142,
+  "cellH": 130,
+  "anchorX": 71,
+  "anchorY": 65,
+  "frames": [
+   0,
+   1,
+   2
+  ]
+ },
+ "move_slam": {
+  "src": "sprites/fx_move_slam.png",
+  "cellW": 171,
+  "cellH": 130,
+  "anchorX": 85,
+  "anchorY": 65,
+  "frames": [
+   0,
+   1,
+   2
+  ]
+ },
+ "move_slap": {
+  "src": "sprites/fx_move_slap.png",
+  "cellW": 154,
+  "cellH": 130,
+  "anchorX": 77,
+  "anchorY": 65,
+  "frames": [
+   0,
+   1,
+   2
+  ]
+ },
+ "move_slash": {
+  "src": "sprites/fx_move_slash.png",
+  "cellW": 173,
+  "cellH": 130,
+  "anchorX": 86,
+  "anchorY": 65,
+  "frames": [
+   0,
+   1,
+   2
+  ]
+ },
+ "move_spark": {
+  "src": "sprites/fx_move_spark.png",
+  "cellW": 158,
+  "cellH": 130,
+  "anchorX": 79,
+  "anchorY": 65,
+  "frames": [
+   0,
+   1,
+   2
+  ]
+ },
+ "move_splash": {
+  "src": "sprites/fx_move_splash.png",
+  "cellW": 190,
+  "cellH": 130,
+  "anchorX": 95,
+  "anchorY": 65,
+  "frames": [
+   0,
+   1,
+   2
+  ]
+ },
+ "move_star": {
+  "src": "sprites/fx_move_star.png",
+  "cellW": 150,
+  "cellH": 130,
+  "anchorX": 75,
+  "anchorY": 65,
+  "frames": [
+   0,
+   1,
+   2
+  ]
+ },
+ "move_vine": {
+  "src": "sprites/fx_move_vine.png",
+  "cellW": 236,
+  "cellH": 130,
+  "anchorX": 118,
+  "anchorY": 65,
+  "frames": [
+   0,
+   1,
+   2
+  ]
+ },
+ "move_water": {
+  "src": "sprites/fx_move_water.png",
+  "cellW": 181,
+  "cellH": 130,
+  "anchorX": 90,
+  "anchorY": 65,
+  "frames": [
+   0,
+   1,
+   2
+  ]
+ },
+ "move_wing": {
+  "src": "sprites/fx_move_wing.png",
+  "cellW": 149,
+  "cellH": 130,
+  "anchorX": 74,
+  "anchorY": 65,
+  "frames": [
+   0,
+   1,
+   2
+  ]
+ },
  "normal": {
   "src": "sprites/fx_normal.png",
   "cellW": 149,
@@ -2091,6 +2415,8 @@ BM.ART = {
  "icons/dowsing_machine": "art/icons/dowsing_machine.png",
  "icons/dubious_disc": "art/icons/dubious_disc.png",
  "icons/fire_stone": "art/icons/fire_stone.png",
+ "icons/full_ap": "art/icons/full_ap.png",
+ "icons/gen_lv8": "art/icons/gen_lv8.png",
  "icons/ice_stone": "art/icons/ice_stone.png",
  "icons/leaf_stone": "art/icons/leaf_stone.png",
  "icons/master_ball": "art/icons/master_ball.png",
@@ -2098,6 +2424,7 @@ BM.ART = {
  "icons/moon_stone": "art/icons/moon_stone.png",
  "icons/poke_ball": "art/icons/poke_ball.png",
  "icons/rare_candy": "art/icons/rare_candy.png",
+ "icons/speed_up": "art/icons/speed_up.png",
  "icons/thunder_stone": "art/icons/thunder_stone.png",
  "icons/type_bug": "art/icons/type_bug.png",
  "icons/type_dark": "art/icons/type_dark.png",
@@ -2119,6 +2446,7 @@ BM.ART = {
  "icons/type_water": "art/icons/type_water.png",
  "icons/up_grade": "art/icons/up_grade.png",
  "icons/water_stone": "art/icons/water_stone.png",
+ "icons/xp_bonus": "art/icons/xp_bonus.png",
  "icons/xp_candy_l": "art/icons/xp_candy_l.png",
  "icons/xp_candy_m": "art/icons/xp_candy_m.png",
  "icons/xp_candy_s": "art/icons/xp_candy_s.png",
@@ -2128,6 +2456,10 @@ BM.ART = {
  "ui/region_johto": "art/ui/region_johto.png",
  "ui/region_kanto": "art/ui/region_kanto.png",
  "ui/region_sinnoh": "art/ui/region_sinnoh.png",
+ "ui/regionw_hoenn": "art/ui/regionw_hoenn.png",
+ "ui/regionw_johto": "art/ui/regionw_johto.png",
+ "ui/regionw_kanto": "art/ui/regionw_kanto.png",
+ "ui/regionw_sinnoh": "art/ui/regionw_sinnoh.png",
  "ui/title_key_art": "art/ui/title_key_art.png"
 };
 BM.MUSIC_FILES = {

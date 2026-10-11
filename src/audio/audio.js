@@ -95,6 +95,11 @@ BM.Audio = (function () {
     faint() { if (throttled('faint', 80)) return; tone(sfxGain, ac.currentTime, 600, 0.3, 0.07, 'square', 0.125, 120); },
     dodge() { if (throttled('dodge', 200)) return; noise(sfxGain, ac.currentTime, 0.12, 0.06, 3000); },
     upgrade() { const t = ac.currentTime; [392, 523, 659, 784, 1047].forEach((f, i) => tone(sfxGain, t + i * 0.06, f, 0.1, 0.09, 'square', 0.5)); },
+    // Phase 6 challenges: a bright two-note "ding" for a right answer, a soft low "bonk" for a wrong tap, a run-up for a
+    // 10-in-a-row ticket bonus
+    correct() { const t = ac.currentTime; tone(sfxGain, t, 784, 0.09, 0.1, 'square', 0.25); tone(sfxGain, t + 0.08, 1175, 0.16, 0.1, 'square', 0.25); },
+    wrong() { const t = ac.currentTime; tone(sfxGain, t, 220, 0.16, 0.12, 'triangle', 0.5, 150); },
+    streak() { const t = ac.currentTime; [523, 659, 784, 1047, 1319].forEach((f, i) => tone(sfxGain, t + i * 0.07, f, 0.12, 0.1, 'square', 0.25)); },
     win() {}, lose() {},
   };
   // Supplied sound files (G8): art-src/sfx/<key>.mp3 (BM.SFX_FILES) and art-src/cries/<species>.mp3 (BM.CRY_FILES) are

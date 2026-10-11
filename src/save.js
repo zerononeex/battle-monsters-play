@@ -4,7 +4,7 @@
 window.BM = window.BM || {};
 BM.Save = (function () {
   const KEY = 'battle-monsters.save';
-  const VERSION = 5;
+  const VERSION = 6;
   const SLOTS = 3;
   const GRADES = [2, 3, 4, 5, 6, 7]; // grade drives the Phase 6 math difficulty; set at creation only
   // MIGRATIONS[n] upgrades a WHOLE save from version n to n+1. Never edit a shipped step; append.
@@ -76,7 +76,19 @@ BM.Save = (function () {
       }
       return d;
     },
+    // v6 (Phase 6): the challenge mistake allowances become per-profile settings (sliders) — old profiles get the
+    // defaults: math 2 (range 2–10), spelling 3 (range 3–10).
+    5: (d) => {
+      for (const p of d.profiles) {
+        if (!p) continue;
+        p.settings = p.settings || { music: true, sound: true };
+        p.settings.mathMistakes = MISTAKES.mathMistakes.def;
+        p.settings.spellMistakes = MISTAKES.spellMistakes.def;
+      }
+      return d;
+    },
   };
+  const MISTAKES = { mathMistakes: { def: 2, min: 2, max: 10 }, spellMistakes: { def: 3, min: 3, max: 10 } }; // = BM.CHALLENGE.SLIDERS
   const START_TICKETS = 30; // §4.5: a new profile starts with 3 pulls
   const LOADOUT = { FREE: 10, MAX: 20, PRICE: 50 }; // F4: 10 free preset teams, buy up to 20 at 50 tickets each
   const XP_CAP = Math.pow(BM.C.LEVEL_CAP, 3);
@@ -84,7 +96,7 @@ BM.Save = (function () {
   function newProfile(slot, name, grade) {
     const p = {
       slot, name: name || 'Player ' + (slot + 1), grade: grade || null, created: Date.now(),
-      settings: { music: true, sound: true },
+      settings: { music: true, sound: true, mathMistakes: MISTAKES.mathMistakes.def, spellMistakes: MISTAKES.spellMistakes.def },
       cleared: {},               // stageId -> number of wins
       lines: {},                 // lineId -> { level, xp (total, L³ curve), form (fielded), unlocked: [formIds] }
       team: BM.DEFAULT_TEAM.slice(),
@@ -129,6 +141,7 @@ BM.Save = (function () {
   function sanitize(p, slot) {
     p.slot = slot;
     p.settings = { music: true, sound: true, ...(p.settings || {}) };
+    for (const [k, r] of Object.entries(MISTAKES)) { const v = Number(p.settings[k]); p.settings[k] = Number.isFinite(v) ? Math.max(r.min, Math.min(r.max, Math.round(v))) : r.def; }
     p.cleared = p.cleared || {};
     p.tickets = Math.max(0, Number.isFinite(p.tickets) ? Math.floor(p.tickets) : START_TICKETS);
     p.items = p.items && typeof p.items === 'object' ? p.items : {};
@@ -321,7 +334,8 @@ BM.Save = (function () {
   // drops [{item, n}], item (§4.6 fixed stone), gift, evolve [line ids whose level evolution is now pending].
   // `used` = battle items that were armed for this battle: a WIN consumes one of each (a loss never calls this, so a loss
   // keeps them); XP Bonus multiplies the team XP, a Dowsing Machine adds the stage's rarest drop (BM.rarestDrop).
-  function recordWin(stageId, battled, rnd = Math.random, used = []) {
+  // `opts.keepArmed` (a challenge auto-clear, Phase 6): no battle was fought, so armed items stay armed and untouched.
+  function recordWin(stageId, battled, rnd = Math.random, used = [], opts = {}) {
     const p = profile(), st = BM.stageById(stageId);
     if (!p || !st) return null;
     const first = !(p.cleared[stageId] > 0);
@@ -330,7 +344,7 @@ BM.Save = (function () {
     if (st.dev) { r.tickets = 0; r.xp = 0; }
     r.used = (used || []).filter((id) => BM.ITEM_INFO[id] && BM.ITEM_INFO[id].battle && p.items[id] > 0);
     for (const id of r.used) take(p, id);
-    p.armed = []; // a win uses them up — arm again for the next battle
+    if (!opts.keepArmed) p.armed = []; // a win uses them up — arm again for the next battle
     if (r.used.includes('xp_bonus')) { r.xp = Math.round(r.xp * BM.BATTLE_ITEM_FX.xpMul); r.xpBonus = true; }
     p.tickets += r.tickets;
     r.xpLines = []; r.evolve = [];
@@ -418,6 +432,13 @@ BM.Save = (function () {
     persist(); return 'ok';
   }
 
+  // Settings slider (Phase 6): clamps to the slider's range and saves.
+  function setMistakes(key, v) {
+    const p = profile(), r = MISTAKES[key];
+    if (!p || !r) return null;
+    p.settings[key] = Math.max(r.min, Math.min(r.max, Math.round(Number(v)) || r.def)); persist();
+    return p.settings[key];
+  }
   function setMapAt(stageId) { const p = profile(); if (p && p.mapAt !== stageId) { p.mapAt = stageId; persist(); } }
 
   // Dev/test only (hidden dev mode): own every Kanto line, unlock every form, set levels.
@@ -437,5 +458,5 @@ BM.Save = (function () {
 
   return { load, persist, profile, list, select, create, finishSetup, eraseProfile, exportCode, decodeCode, importCode,
     setForm, devUnlockAll, devGrantItems, giveLine, recordWin, setMapAt, addXpTo: (p, id, n) => addXp(p, id, n), addXp: (id, n) => { const r = addXp(profile(), id, n); persist(); return r; },
-    pendingEvolution, evolve, useItem, saveLoadout, loadLoadout, buyLoadoutSlot, saveTeam, switchLoadout, placeInTeam, removeFromTeam, toggleArmed, LOADOUT, START_TICKETS, VERSION, SLOTS, GRADES, KEY, get memoryOnly() { return memoryOnly; } };
+    pendingEvolution, evolve, useItem, saveLoadout, loadLoadout, buyLoadoutSlot, saveTeam, switchLoadout, placeInTeam, removeFromTeam, toggleArmed, setMistakes, MISTAKES, LOADOUT, START_TICKETS, VERSION, SLOTS, GRADES, KEY, get memoryOnly() { return memoryOnly; } };
 })();

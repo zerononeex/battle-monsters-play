@@ -65,6 +65,15 @@ BM.TRAITS = {
   sniper: { name: 'Sniper', icon: '🎯', range: 1.6, text: 'reaches 60% farther' },
   splash: { name: 'Splash', icon: '💦', splash: { radius: 70, frac: 0.5 }, text: 'hits also splash foes next to the target' },
 };
+// Role label words (playtest H3: the gacha banner shows each legendary's ROLE as a chip, docs/ROLE_TRAITS.md). A form's
+// trait wins (Swift, Tank…); otherwise its role + reach style ("Legend · Ranged").
+BM.ROLE_NAMES = { balanced: 'Balanced', tank: 'Tank', rusher: 'Rusher', ranged: 'Ranged', bruiser: 'Bruiser', legend: 'Legend' };
+BM.roleLabel = function (form) {
+  const t = BM.formTrait(form);
+  const style = BM.combatOf ? (BM.combatOf(form).style === 'ranged' ? 'Ranged' : 'Close') : '';
+  const role = BM.ROLE_NAMES[form.role] || 'Balanced';
+  return { icon: t ? t.icon : form.role === 'legend' ? '👑' : '⚔️', text: t ? `${t.name} · ${style}` : role === style ? role : `${role} · ${style}` };
+};
 BM.formTrait = (form) => (form && form.trait && BM.TRAITS[form.trait]) || null;
 BM.traitText = function (form) {
   const t = BM.formTrait(form);

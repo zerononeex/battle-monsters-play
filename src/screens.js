@@ -390,6 +390,7 @@ BM.Screens = function (ui) {
   }
   // ---------- tap-to-place picker ----------
   let pickSlot = 0;
+  const PICKER_TABLET_MIN = 24;
   function openPicker(slot) {
     pickSlot = slot;
     show('scr-picker', true);
@@ -397,7 +398,7 @@ BM.Screens = function (ui) {
   }
   function renderPicker() {
     const p = prof(), occ = p.team[pickSlot];
-    $('picker-title').textContent = occ ? `Slot ${pickSlot + 1}: swap ${BM.FORMS[p.lines[occ].form].name} for…` : `Slot ${pickSlot + 1}: choose a Pokémon`;
+    $('picker-title').textContent = occ ? `Slot ${pickSlot + 1}: swap ${BM.FORMS[p.lines[occ].form].name} for…` : `Slot ${pickSlot + 1}: choose from your PC Box`;
     // the occupant's unlocked forms — which form battles (form choice lives here now that a tap opens the picker)
     const pf = $('picker-forms'); pf.innerHTML = '';
     if (occ) {
@@ -415,7 +416,9 @@ BM.Screens = function (ui) {
     updateFilterBadges();
     const grid = $('picker-grid'); grid.innerHTML = '';
     const ids = applyFilter(ownedLines(), true);
-    const w = fitGrid(grid, Math.max(ownedLines().length, 8), 1.22, 6, 12);
+    // H4: on tablet widths the grid is sized for 24+ cards (a denser grid: 12+ visible, still easy to tap); phones keep 8
+    const tablet = Math.min(window.innerWidth, window.innerHeight) >= 600;
+    const w = fitGrid(grid, Math.max(ownedLines().length, tablet ? PICKER_TABLET_MIN : 8), 1.22, 6, 12);
     const ts = Math.max(40, Math.min(110, Math.round(w * 0.8)));
     if (!ids.length) { const d = document.createElement('div'); d.className = 'bench-empty'; d.textContent = 'Nobody matches — tap Filter → Reset.'; grid.appendChild(d); }
     for (const id of ids) {

@@ -23,6 +23,9 @@
     show('scr-collection', name === 'collection');
     show('scr-team', name === 'team');
     show('scr-gacha', name === 'gacha');
+    show('scr-challenge', name === 'challenge'); // Phase 6: no music change — the screen you came from keeps playing
+    show('scr-chmode', false); show('scr-chover', false);
+    if (name !== 'challenge') BM.Speech.stop();
     show('scr-result', false); show('scr-pause', false); show('scr-bag', false); show('scr-line', false); show('scr-filter', false); show('scr-picker', false); show('scr-reveal', false); show('scr-legend', false);
     canvas.style.visibility = name === 'battle' ? 'visible' : 'hidden';
     if (name === 'profiles') { BM.Audio.playMusic('title'); renderProfiles(); }
@@ -46,6 +49,17 @@
     BM.Audio.setMusic(s.music); BM.Audio.setSound(s.sound);
     $('tg-music').innerHTML = `🎵 Music: <b>${s.music ? 'ON' : 'OFF'}</b>`; $('tg-music').classList.toggle('off', !s.music);
     $('tg-sound').innerHTML = `🔊 Sound: <b>${s.sound ? 'ON' : 'OFF'}</b>`; $('tg-sound').classList.toggle('off', !s.sound);
+    applySliders();
+  }
+  // Phase 6: per-profile mistake allowances for challenges (sliders)
+  function applySliders() {
+    const s = prof() ? prof().settings : { mathMistakes: 2, spellMistakes: 3 };
+    $('sl-math').value = s.mathMistakes; $('sl-math-v').textContent = s.mathMistakes;
+    $('sl-spell').value = s.spellMistakes; $('sl-spell-v').textContent = s.spellMistakes;
+  }
+  for (const [id, key] of [['sl-math', 'mathMistakes'], ['sl-spell', 'spellMistakes']]) {
+    $(id).addEventListener('input', () => { if (!prof()) return; BM.Save.setMistakes(key, $(id).value); applySliders(); });
+    $(id).addEventListener('change', () => BM.Audio.sfx('tap'));
   }
   tap($('tg-music'), () => { if (!prof()) return; prof().settings.music = !prof().settings.music; BM.Save.persist(); applySettings(); BM.Audio.sfx('tap'); });
   tap($('tg-sound'), () => { if (!prof()) return; prof().settings.sound = !prof().settings.sound; BM.Save.persist(); applySettings(); BM.Audio.sfx('tap'); });
@@ -196,6 +210,8 @@
     screen: () => screen, playEvolution: (list, done) => Evo.play(list, () => { if (screen === 'collection' || screen === 'team') BM.Audio.playMusic('team'); if (done) done(); }) });
   const Evo = BM.EvoScene({ $, tap, show, fit });
   const Gacha = BM.GachaScreen({ $, tap, toast, show, fit, go: (n) => go(n), thumb: (...a) => Scr.thumb(...a), itemIcon: (id) => Scr.itemIcon(id), renderWallet: () => renderWallet() });
+  const Chal = BM.ChallengeScreen({ $, tap, toast, show, fit, go: (n) => go(n), thumb: (...a) => Scr.thumb(...a), screen: () => screen,
+    back: () => go('prebattle'), cleared: (run) => showChallengeResult(run) });
   const KMap = BM.MapScreen({ $, tap, toast, go: (n) => go(n), openPrebattle: (id) => { preStage = id; go('prebattle'); } });
 
   // ---------- home (F5): region tiles replace PLAY; Teams · All Characters · Items below ----------
@@ -326,6 +342,7 @@
   tap($('btn-pre-back'), () => { BM.Audio.sfx('tap'); go('map'); });
   tap($('btn-pre-team'), () => { BM.Audio.sfx('tap'); teamFrom = 'prebattle'; go('team'); });
   tap($('btn-pre-go'), () => { BM.Audio.sfx('tap'); startBattle(preStage); });
+  tap($('btn-pre-challenge'), () => { BM.Audio.sfx('tap'); Chal.choose(preStage); });
 
   // ---------- battle ----------
   let cardEls = [];
@@ -447,8 +464,14 @@
     }
     B.S.events.length = 0;
   }
+  let resultMode = 'battle'; // 'battle' | 'challenge' (the challenge-result screen reuses this panel)
+  function setResultMode(m) {
+    resultMode = m;
+    show('btn-retry', m === 'battle'); show('result-art', m === 'challenge');
+  }
   function showResult(result) {
     if (!B) return;
+    setResultMode('battle');
     const st = B.S.stage;
     if (result === 'win') {
       const r = BM.Save.recordWin(st.id, B.S.battled, Math.random, B.S.items);
@@ -469,6 +492,26 @@
       BM.Audio.playMusic('defeat');
     }
     show('hint', false);
+    show('scr-result', true);
+    fit($('scr-result'));
+  }
+  // Challenge auto-clear (10 in a row): the stage is cleared through the SAME recordWin path as a battle win (done in
+  // challenge.js); this shows the challenge-result screen — stage art + reward chips + XP rows — with the stage's normal
+  // victory key, and Map walks the token on exactly like a win.
+  function showChallengeResult(run) {
+    const st = BM.stageById(run.stageId), r = run.rewards;
+    B = null; lastRewards = r;
+    setResultMode('challenge');
+    if (r.first && !st.dev) KMap.queueWalk(st.id);
+    const bg = BM.Sprites.artSrc('bg/' + st.background);
+    $('result-art').style.backgroundImage = bg ? `url("${bg}")` : 'linear-gradient(160deg, #7ec8f5, #b6e3a0)';
+    $('result-art').innerHTML = `<span class="ra-tag">🧠 ${BM.CHALLENGE.GOAL} in a row!</span>`;
+    $('result-title').textContent = 'STAGE CLEAR!'; $('result-title').classList.remove('lose');
+    $('result-sub').textContent = r.first ? `${st.name} cleared by Challenge! First-clear rewards:` : `${st.name} cleared again by Challenge!`;
+    rewardChips(r, $('result-rewards'));
+    if (r.giftNew) { const d = document.createElement('span'); d.className = 'reward'; d.textContent = r.giftOnTeam ? 'Added to your team!' : 'Add them on the Team screen!'; $('result-rewards').appendChild(d); }
+    renderXpRows(r);
+    BM.Audio.playMusic(st.kind === 'gym' ? 'victory_gym' : 'victory');
     show('scr-result', true);
     fit($('scr-result'));
   }
@@ -512,7 +555,7 @@
     };
     step();
   }
-  tap($('btn-retry'), () => { BM.Audio.sfx('tap'); afterResult(() => startBattle(B.S.stage.id)); });
+  tap($('btn-retry'), () => { if (resultMode !== 'battle' || !B) return; BM.Audio.sfx('tap'); afterResult(() => startBattle(B.S.stage.id)); });
   let lastRewards = null;
   tap($('btn-map'), () => { BM.Audio.sfx('tap'); afterResult(() => { B = null; go('map'); }); });
 
@@ -525,7 +568,10 @@
     $('pause-title').textContent = from === 'battle' ? 'Paused' : 'Settings';
     show('pause-battle-btns', from === 'battle');
     show('btn-close-settings', from !== 'battle');
+    show('mistake-sliders', !!prof());
+    applySliders();
     show('scr-pause', true);
+    fit($('scr-pause'));
   }
   // Dev mode: step through all 28 music keys to hear every slot (shows whether the MP3 or the fallback plays).
   let devKey = -1;
@@ -546,7 +592,12 @@
     if (document.hidden && screen === 'battle' && B && !B.S.result && !paused) openSettings('battle');
   });
   document.addEventListener('gesturestart', (e) => e.preventDefault());
-  window.addEventListener('resize', () => { layout(); if (B) buildCards(); if (screen === 'map') KMap.layout(); });
+  window.addEventListener('resize', () => {
+    layout(); if (B) buildCards(); if (screen === 'map') KMap.layout();
+    // rotation / resize: open panels re-fit the new viewport (never scroll)
+    for (const o of document.querySelectorAll('.overlay:not(.hidden)')) if (o.querySelector('.fit')) fit(o);
+    if (screen === 'prebattle') fit($('scr-prebattle'));
+  });
 
   // ---------- loop ----------
   const DT = 1 / C.TICK_HZ;
@@ -592,6 +643,6 @@
   });
   // first tap anywhere unlocks audio on iOS and starts the title music
   document.addEventListener('pointerdown', () => { BM.Audio.unlock(); if ((screen === 'title' || screen === 'profiles') && !BM.Audio.currentKey) BM.Audio.playMusic('title'); }, { once: false });
-  window.BM.debug = { get battle() { return B; }, startBattle, go, get screen() { return screen; }, map: KMap, render: R, evo: Evo, screens: Scr, gacha: Gacha, fit,
+  window.BM.debug = { get battle() { return B; }, startBattle, go, get screen() { return screen; }, map: KMap, render: R, evo: Evo, screens: Scr, gacha: Gacha, challenge: Chal, fit, openPrebattle: (id) => { preStage = id; go('prebattle'); },
     get preStage() { return preStage; }, get lastRewards() { return lastRewards; } };
 })();
