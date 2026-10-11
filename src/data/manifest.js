@@ -458,9 +458,9 @@ BM.SPRITE_FILES = {
  "eevee_water": {
   "attack": {
    "src": "sprites/eevee_water.attack.png",
-   "cellW": 205,
+   "cellW": 196,
    "cellH": 130,
-   "anchorX": 102,
+   "anchorX": 98,
    "anchorY": 129,
    "frames": [
     0,
@@ -469,9 +469,9 @@ BM.SPRITE_FILES = {
   },
   "run": {
    "src": "sprites/eevee_water.run.png",
-   "cellW": 133,
+   "cellW": 120,
    "cellH": 130,
-   "anchorX": 66,
+   "anchorX": 60,
    "anchorY": 129,
    "frames": [
     0,
