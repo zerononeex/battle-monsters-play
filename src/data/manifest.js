@@ -440,6 +440,21 @@ BM.SPRITE_FILES = {
    ]
   }
  },
+ "dugtrio": {
+  "run": {
+   "src": "sprites/dugtrio.run.png",
+   "cellW": 240,
+   "cellH": 130,
+   "anchorX": 120,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1,
+    2,
+    3
+   ]
+  }
+ },
  "eevee_water": {
   "attack": {
    "src": "sprites/eevee_water.attack.png",
@@ -1187,9 +1202,9 @@ BM.SPRITE_FILES = {
   },
   "run": {
    "src": "sprites/pikachu.run.png",
-   "cellW": 115,
+   "cellW": 110,
    "cellH": 130,
-   "anchorX": 57,
+   "anchorX": 55,
    "anchorY": 129,
    "frames": [
     0,
@@ -1310,9 +1325,9 @@ BM.SPRITE_FILES = {
  "rattata": {
   "run": {
    "src": "sprites/rattata.run.png",
-   "cellW": 128,
+   "cellW": 106,
    "cellH": 130,
-   "anchorX": 64,
+   "anchorX": 53,
    "anchorY": 129,
    "frames": [
     0,
@@ -2070,14 +2085,19 @@ BM.ART = {
  "bg/viridian_city": "art/bg/viridian_city.png",
  "bg/viridian_forest": "art/bg/viridian_forest.png",
  "icons/ap": "art/icons/ap.png",
+ "icons/ap_generator": "art/icons/ap_generator.png",
  "icons/battle_ticket": "art/icons/battle_ticket.png",
  "icons/black_augurite": "art/icons/black_augurite.png",
+ "icons/dowsing_machine": "art/icons/dowsing_machine.png",
  "icons/dubious_disc": "art/icons/dubious_disc.png",
  "icons/fire_stone": "art/icons/fire_stone.png",
  "icons/ice_stone": "art/icons/ice_stone.png",
  "icons/leaf_stone": "art/icons/leaf_stone.png",
+ "icons/master_ball": "art/icons/master_ball.png",
  "icons/metal_coat": "art/icons/metal_coat.png",
  "icons/moon_stone": "art/icons/moon_stone.png",
+ "icons/poke_ball": "art/icons/poke_ball.png",
+ "icons/rare_candy": "art/icons/rare_candy.png",
  "icons/thunder_stone": "art/icons/thunder_stone.png",
  "icons/type_bug": "art/icons/type_bug.png",
  "icons/type_dark": "art/icons/type_dark.png",
@@ -2104,6 +2124,10 @@ BM.ART = {
  "icons/xp_candy_s": "art/icons/xp_candy_s.png",
  "maps/kanto": "art/maps/kanto.png",
  "ui/logo": "art/ui/logo.png",
+ "ui/region_hoenn": "art/ui/region_hoenn.png",
+ "ui/region_johto": "art/ui/region_johto.png",
+ "ui/region_kanto": "art/ui/region_kanto.png",
+ "ui/region_sinnoh": "art/ui/region_sinnoh.png",
  "ui/title_key_art": "art/ui/title_key_art.png"
 };
 BM.MUSIC_FILES = {
@@ -2136,3 +2160,5 @@ BM.MUSIC_FILES = {
  "victory": "music/victory.mp3",
  "victory_gym": "music/victory_gym.mp3"
 };
+BM.CRY_FILES = {};
+BM.SFX_FILES = {};

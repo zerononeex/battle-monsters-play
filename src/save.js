@@ -4,7 +4,7 @@
 window.BM = window.BM || {};
 BM.Save = (function () {
   const KEY = 'battle-monsters.save';
-  const VERSION = 3;
+  const VERSION = 5;
   const SLOTS = 3;
   const GRADES = [2, 3, 4, 5, 6, 7]; // grade drives the Phase 6 math difficulty; set at creation only
   // MIGRATIONS[n] upgrades a WHOLE save from version n to n+1. Never edit a shipped step; append.
@@ -45,8 +45,41 @@ BM.Save = (function () {
       }
       return d;
     },
+    // v4 (Phase 4): stored XP becomes levels (level = ∛xp, cap 60 — every Phase 3 line was still Lv 1), and preset
+    // teams (playtest F4): loadouts[] (null or { team, forms }) with loadoutSlots free slots (more bought with tickets).
+    3: (d) => {
+      for (const p of d.profiles) {
+        if (!p) continue;
+        for (const id of Object.keys(p.lines || {})) { const l = p.lines[id]; l.level = BM.levelFromXp(Math.max(l.xp || 1, Math.pow(l.level || 1, 3))); }
+        p.loadoutSlots = LOADOUT.FREE;
+        p.loadouts = Array(LOADOUT.FREE).fill(null);
+      }
+      return d;
+    },
+    // v5 (Phase 5): T3 preset rail — `loadoutAt` = the preset being edited (the team IS that preset; edits auto-save to
+    // it); gacha — `pity` {bannerId: pulls since that banner's last legendary}, `pulls` {bannerId: total}; battle items —
+    // `armed` [itemIds] chosen on the pre-battle screen (consumed only on a WIN).
+    4: (d) => {
+      for (const p of d.profiles) {
+        if (!p) continue;
+        // the current team becomes a circle WITHOUT touching saved presets: the preset that already equals it, else the
+        // first empty circle; only if all are full does circle 1 become current (and its team is loaded on use)
+        p.loadouts = Array.isArray(p.loadouts) ? p.loadouts : [];
+        const team = (p.team || []).slice(), key = team.join();
+        let at = p.loadouts.findIndex((lo) => lo && Array.isArray(lo.team) && lo.team.join() === key);
+        if (at < 0) at = p.loadouts.findIndex((lo) => !lo);
+        if (at < 0 && p.loadouts.length < (p.loadoutSlots || LOADOUT.FREE)) at = p.loadouts.length;
+        if (at < 0) at = 0;
+        else if (!p.loadouts[at] && team.length) p.loadouts[at] = { team, forms: Object.fromEntries(team.map((id) => [id, p.lines[id] && p.lines[id].form])) };
+        p.loadoutAt = at;
+        p.pity = {}; p.pulls = {}; p.armed = [];
+      }
+      return d;
+    },
   };
   const START_TICKETS = 30; // §4.5: a new profile starts with 3 pulls
+  const LOADOUT = { FREE: 10, MAX: 20, PRICE: 50 }; // F4: 10 free preset teams, buy up to 20 at 50 tickets each
+  const XP_CAP = Math.pow(BM.C.LEVEL_CAP, 3);
 
   function newProfile(slot, name, grade) {
     const p = {
@@ -58,8 +91,15 @@ BM.Save = (function () {
       tickets: START_TICKETS,    // Battle Tickets (spent on the Phase 5 banners)
       items: {},                 // itemId -> count (stones / held items; used from the collection in Phase 4)
       mapAt: null,               // stage id the map token stands on (null = place it without walking)
+      loadoutSlots: LOADOUT.FREE, // preset teams (F4)
+      loadouts: Array(LOADOUT.FREE).fill(null), // null | { team: [lineIds], forms: { lineId: formId } }
+      loadoutAt: 0,              // T3: the preset being edited (the team auto-saves into it)
+      pity: {},                  // bannerId -> pulls since that banner's last legendary (§4.5 pity at 40)
+      pulls: {},                 // bannerId -> total pulls
+      armed: [],                 // battle items armed for the next battle (consumed only on a WIN)
     };
     for (const id of BM.DEFAULT_TEAM) giveLine(p, id);
+    p.loadouts[0] = { team: p.team.slice(), forms: Object.fromEntries(p.team.map((id) => [id, p.lines[id].form])) };
     return p;
   }
   function giveLine(p, id) {
@@ -99,12 +139,26 @@ BM.Save = (function () {
       if (!line || line.enemyOnly) { delete p.lines[id]; continue; }
       const ids = line.forms.map((f) => f.id);
       l.level = Math.max(1, Math.min(BM.C.LEVEL_CAP, l.level | 0 || 1));
-      l.xp = Math.max(Math.pow(l.level, 3), Number.isFinite(l.xp) ? Math.floor(l.xp) : 0);
+      l.xp = Math.min(XP_CAP, Math.max(Math.pow(l.level, 3), Number.isFinite(l.xp) ? Math.floor(l.xp) : 0));
+      l.level = BM.levelFromXp(l.xp); // the level always follows the total XP (§4.3)
       l.unlocked = (l.unlocked || []).filter((f) => ids.includes(f));
       if (!l.unlocked.includes(ids[0])) l.unlocked.unshift(ids[0]); // the base form is always fieldable
       if (!l.unlocked.includes(l.form)) l.form = l.unlocked[0];
     }
     p.team = [...new Set(p.team || [])].filter((id) => p.lines[id]).slice(0, BM.TEAM_SIZE);
+    p.loadoutSlots = Math.max(LOADOUT.FREE, Math.min(LOADOUT.MAX, p.loadoutSlots | 0));
+    p.loadouts = Array.from({ length: p.loadoutSlots }, (_, i) => {
+      const lo = (p.loadouts || [])[i];
+      if (!lo || !Array.isArray(lo.team)) return null;
+      const team = [...new Set(lo.team)].filter((id) => p.lines[id]).slice(0, BM.TEAM_SIZE);
+      const forms = {};
+      for (const id of team) { const f = lo.forms && lo.forms[id]; if (f && p.lines[id].unlocked.includes(f)) forms[id] = f; }
+      return team.length ? { team, forms } : null;
+    });
+    p.loadoutAt = Math.max(0, Math.min(p.loadoutSlots - 1, p.loadoutAt | 0));
+    const counts = (o) => Object.fromEntries(Object.entries(o && typeof o === 'object' ? o : {}).filter(([k, v]) => BM.BANNERS && BM.BANNERS.some((b) => b.id === k) && v >= 0).map(([k, v]) => [k, Math.floor(v)]));
+    p.pity = counts(p.pity); p.pulls = counts(p.pulls);
+    p.armed = [...new Set(Array.isArray(p.armed) ? p.armed : [])].filter((id) => BM.ITEM_INFO[id] && BM.ITEM_INFO[id].battle && p.items[id] > 0);
     return p;
   }
 
@@ -195,33 +249,175 @@ BM.Save = (function () {
   // ---------- line / form helpers (team + collection screens) ----------
   function setForm(lineId, formId) {
     const l = profile().lines[lineId];
-    if (l && l.unlocked.includes(formId)) { l.form = formId; persist(); return true; }
+    if (l && l.unlocked.includes(formId)) { l.form = formId; if (profile().team.includes(lineId)) saveTeam(); persist(); return true; }
     return false;
   }
-  // A WON stage: count the clear and store its rewards (spent from Phase 4/5). `battled` = line ids that were
-  // fielded at least once in that battle (they get the team XP, §4.3). Returns what was given, for the result screen.
-  function recordWin(stageId, battled) {
+  // ---------- XP, levels, evolution, items (Phase 4) ----------
+  // Adds XP to a line (capped at Lv 60's 216,000) and re-derives its level. Returns { from, to, xpBefore, xpAfter }.
+  function addXp(p, id, n) {
+    const l = p.lines[id], from = l.level, xpBefore = l.xp;
+    l.xp = Math.min(XP_CAP, l.xp + Math.max(0, Math.floor(n)));
+    l.level = BM.levelFromXp(l.xp);
+    return { id, from, to: l.level, xpBefore, xpAfter: l.xp };
+  }
+  // The next form a line can evolve into BY LEVEL right now (real level, or the §4.6 trade/friendship level), not yet
+  // unlocked — the EVOLVE! badge / evolution scene. Item evolutions are never pending: they need the item used.
+  function pendingEvolution(id, p = profile()) {
+    const l = p && p.lines[id], line = BM.LINES[id];
+    if (!l || !line) return null;
+    const next = nextLocked(line, l);
+    return next && next.evo && next.evo.level && l.level >= next.evo.level ? next : null;
+  }
+  function nextLocked(line, l) {
+    for (let i = 1; i < line.forms.length; i++) {
+      const f = line.forms[i];
+      if (!l.unlocked.includes(f.id)) return l.unlocked.includes(line.forms[i - 1].id) ? f : null;
+    }
+    return null;
+  }
+  // Unlocks `formId` (the evolution scene calls this) and fields it; the earlier forms stay fieldable (form cycling).
+  function evolve(id, formId) {
+    const p = profile(), l = p.lines[id], f = BM.FORMS[formId];
+    if (!l || !f || f.line !== id || l.unlocked.includes(formId)) return false;
+    l.unlocked.push(formId);
+    l.unlocked.sort((a, b) => BM.FORMS[a].stage - BM.FORMS[b].stage);
+    l.form = formId;
+    persist();
+    return true;
+  }
+  // Uses one item on a line (collection detail panel). Returns { ok, msg } plus { evolveTo } for a stone / held item
+  // (consumed + unlocked here; the UI then plays the evolution scene) or { from, to } for XP candy / Rare Candy.
+  function useItem(id, itemId) {
+    const p = profile(), l = p.lines[id], it = BM.ITEM_INFO[itemId], line = BM.LINES[id];
+    if (!l || !it) return { ok: false, msg: 'Nothing happened.' };
+    const have = p.items[itemId] || 0;
+    if (it.kind === 'evo') {
+      const next = nextLocked(line, l), target = line.forms.find((f) => f.evo && f.evo.item === itemId);
+      if (!target) return { ok: false, msg: `${line.name} can't use a ${it.name}.` };
+      if (l.unlocked.includes(target.id)) return { ok: false, msg: `${target.name} is already your friend!` };
+      if (next !== target) return { ok: false, msg: `Evolve into ${next ? next.name : 'the form before'} first!` };
+      if (l.level < target.evo.minLevel) { const k = target.evo.minLevel - l.level; return { ok: false, msg: `${target.name} needs Lv ${target.evo.minLevel} — ${k} more level${k === 1 ? '' : 's'}!` }; }
+      if (!have) return { ok: false, msg: `You need a ${it.name} — win stages to find one!` };
+      take(p, itemId); evolve(id, target.id);
+      return { ok: true, evolveTo: target.id, msg: `${it.name} used!` };
+    }
+    if (it.kind === 'xp' || it.kind === 'candy') {
+      if (!have) return { ok: false, msg: `You have no ${it.name} yet — win stages to find them!` };
+      if (l.level >= BM.C.LEVEL_CAP) return { ok: false, msg: `${line.name} is already Lv ${BM.C.LEVEL_CAP} — the top level!` };
+      take(p, itemId);
+      // Rare Candy: +1 level at any level — XP becomes exactly the next level's L³ threshold
+      const r = addXp(p, id, it.kind === 'candy' ? BM.xpForLevel(l.level + 1) - l.xp : it.xp);
+      persist();
+      return { ok: true, ...r, msg: r.to > r.from ? `Level up! Lv ${r.from} → ${r.to}` : `+${it.xp.toLocaleString()} XP` };
+    }
+    return { ok: false, msg: `${it.name}: coming soon!` };
+  }
+  function take(p, itemId) { p.items[itemId]--; if (!(p.items[itemId] > 0)) delete p.items[itemId]; }
+  function give(p, itemId, n = 1) { p.items[itemId] = (p.items[itemId] || 0) + n; }
+
+  // A WON stage: count the clear and store its rewards. `battled` = line ids fielded at least once in that battle (they
+  // get the team XP, §4.3, which now raises their level). Drops are rolled from the stage's drop table (`rnd` = test
+  // seed). Returns what was given, for the result screen: tickets, xp, xpLines [{id, from, to, xpBefore, xpAfter}],
+  // drops [{item, n}], item (§4.6 fixed stone), gift, evolve [line ids whose level evolution is now pending].
+  // `used` = battle items that were armed for this battle: a WIN consumes one of each (a loss never calls this, so a loss
+  // keeps them); XP Bonus multiplies the team XP, a Dowsing Machine adds the stage's rarest drop (BM.rarestDrop).
+  function recordWin(stageId, battled, rnd = Math.random, used = []) {
     const p = profile(), st = BM.stageById(stageId);
     if (!p || !st) return null;
     const first = !(p.cleared[stageId] > 0);
     p.cleared[stageId] = (p.cleared[stageId] || 0) + 1;
     const r = BM.stageRewards(st, first);
     if (st.dev) { r.tickets = 0; r.xp = 0; }
+    r.used = (used || []).filter((id) => BM.ITEM_INFO[id] && BM.ITEM_INFO[id].battle && p.items[id] > 0);
+    for (const id of r.used) take(p, id);
+    p.armed = []; // a win uses them up — arm again for the next battle
+    if (r.used.includes('xp_bonus')) { r.xp = Math.round(r.xp * BM.BATTLE_ITEM_FX.xpMul); r.xpBonus = true; }
     p.tickets += r.tickets;
-    r.xpLines = [];
+    r.xpLines = []; r.evolve = [];
     for (const id of new Set(battled || [])) {
       const l = p.lines[id];
       if (!l || !r.xp) continue;
-      l.xp += r.xp; r.xpLines.push(id);
+      const pend = pendingEvolution(id, p);
+      r.xpLines.push(addXp(p, id, r.xp));
+      if (!pend && pendingEvolution(id, p)) r.evolve.push(id);
     }
-    if (r.item) p.items[r.item] = (p.items[r.item] || 0) + 1;
+    if (r.item) give(p, r.item);
+    r.drops = st.dev ? [] : BM.rollDrops(st, first, rnd);
+    if (r.used.includes('dowsing_machine') && !st.dev) {
+      const rare = BM.rarestDrop(st);
+      if (rare) { const o = r.drops.find((d) => d.item === rare); if (o) o.n++; else r.drops.push({ item: rare, n: 1 }); r.dowsed = rare; }
+    }
+    for (const d of r.drops) { if (d.item === 'tickets') p.tickets += d.n; else give(p, d.item, d.n); }
     if (r.gift) {
       r.giftNew = giveLine(p, r.gift);
-      if (r.giftNew && p.team.length < BM.TEAM_SIZE) { p.team.push(r.gift); r.giftOnTeam = true; }
+      if (r.giftNew && p.team.length < BM.TEAM_SIZE) { p.team.push(r.gift); r.giftOnTeam = true; saveTeam(); }
     }
     persist();
     return r;
   }
+
+  // ---------- preset teams (F4) ----------
+  function saveLoadout(i) {
+    const p = profile();
+    if (!(i >= 0 && i < p.loadoutSlots)) return false;
+    p.loadouts[i] = { team: p.team.slice(), forms: Object.fromEntries(p.team.map((id) => [id, p.lines[id].form])) };
+    persist(); return true;
+  }
+  function loadLoadout(i) {
+    const p = profile(), lo = p.loadouts[i];
+    if (!lo) return false;
+    const team = lo.team.filter((id) => p.lines[id]);
+    if (!team.length) return false;
+    p.team = team;
+    for (const id of team) if (lo.forms[id] && p.lines[id].unlocked.includes(lo.forms[id])) p.lines[id].form = lo.forms[id];
+    persist(); return true;
+  }
+  // Pre-battle item row: tap = arm / disarm a battle item you own (stored until a WIN uses it up).
+  function toggleArmed(itemId) {
+    const p = profile(), it = BM.ITEM_INFO[itemId];
+    if (!it || !it.battle) return 'none';
+    if (p.armed.includes(itemId)) { p.armed = p.armed.filter((x) => x !== itemId); persist(); return 'off'; }
+    if (!(p.items[itemId] > 0)) return 'none';
+    p.armed.push(itemId); persist(); return 'on';
+  }
+  // T3: the team IS the current preset — every team edit is written back into loadouts[loadoutAt].
+  function saveTeam() { const p = profile(); saveLoadout(p.loadoutAt); }
+  // T3 rail: tap circle i = switch to preset i (the current team stays saved in its own circle). An empty preset starts as
+  // a copy of the current team, so a team is never empty.
+  function switchLoadout(i) {
+    const p = profile();
+    if (!(i >= 0 && i < p.loadoutSlots)) return false;
+    saveLoadout(p.loadoutAt);
+    p.loadoutAt = i;
+    if (!loadLoadout(i)) saveLoadout(i);
+    persist(); return true;
+  }
+  // Tap-to-place: put `lineId` into team slot `slot` (0-based; a slot past the end appends). If the line is already on
+  // the team it swaps places with the slot's occupant. Returns 'ok' | 'same' | 'none'.
+  function placeInTeam(slot, lineId) {
+    const p = profile();
+    if (!p.lines[lineId]) return 'none';
+    const team = p.team.slice(), at = team.indexOf(lineId);
+    if (slot >= team.length) { if (at >= 0) return 'same'; if (team.length >= BM.TEAM_SIZE) return 'none'; team.push(lineId); }
+    else if (at === slot) return 'same';
+    else if (at >= 0) { team[at] = team[slot]; team[slot] = lineId; }
+    else team[slot] = lineId;
+    p.team = team; saveTeam(); return 'ok';
+  }
+  function removeFromTeam(lineId) {
+    const p = profile();
+    if (p.team.length <= 1 || !p.team.includes(lineId)) return false;
+    p.team = p.team.filter((t) => t !== lineId); saveTeam(); return true;
+  }
+  // Returns 'ok' | 'max' | 'tickets'
+  function buyLoadoutSlot() {
+    const p = profile();
+    if (p.loadoutSlots >= LOADOUT.MAX) return 'max';
+    if (p.tickets < LOADOUT.PRICE) return 'tickets';
+    p.tickets -= LOADOUT.PRICE; p.loadoutSlots++; p.loadouts.push(null);
+    persist(); return 'ok';
+  }
+
   function setMapAt(stageId) { const p = profile(); if (p && p.mapAt !== stageId) { p.mapAt = stageId; persist(); } }
 
   // Dev/test only (hidden dev mode): own every Kanto line, unlock every form, set levels.
@@ -231,12 +427,15 @@ BM.Save = (function () {
       giveLine(p, id);
       const l = p.lines[id];
       l.unlocked = BM.LINES[id].forms.map((f) => f.id);
-      l.level = Math.max(l.level, 36);
-      l.xp = Math.max(l.xp || 0, Math.pow(l.level, 3));
+      l.xp = Math.max(l.xp || 0, Math.pow(36, 3));
+      l.level = BM.levelFromXp(l.xp);
     }
     persist();
   }
+  // Dev/test only: 5 of every item (the real sources are the stage drop tables).
+  function devGrantItems() { const p = profile(); for (const id of BM.BAG_ORDER) give(p, id, 5); persist(); }
 
   return { load, persist, profile, list, select, create, finishSetup, eraseProfile, exportCode, decodeCode, importCode,
-    setForm, devUnlockAll, giveLine, recordWin, setMapAt, START_TICKETS, VERSION, SLOTS, GRADES, KEY, get memoryOnly() { return memoryOnly; } };
+    setForm, devUnlockAll, devGrantItems, giveLine, recordWin, setMapAt, addXpTo: (p, id, n) => addXp(p, id, n), addXp: (id, n) => { const r = addXp(profile(), id, n); persist(); return r; },
+    pendingEvolution, evolve, useItem, saveLoadout, loadLoadout, buyLoadoutSlot, saveTeam, switchLoadout, placeInTeam, removeFromTeam, toggleArmed, LOADOUT, START_TICKETS, VERSION, SLOTS, GRADES, KEY, get memoryOnly() { return memoryOnly; } };
 })();

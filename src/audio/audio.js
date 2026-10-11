@@ -19,8 +19,23 @@ BM.Audio = (function () {
     for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
     return ac;
   }
-  // iOS needs a user gesture before audio can start.
+  // iOS needs a user gesture before audio can start — for the AudioContext AND for every <audio> element. Music uses ONE
+  // shared element (BR-016): the first tap plays it (silent clip) so later tracks may start without a tap — e.g. the
+  // victory song, which starts from a timer after the battle ends. A NEW Audio() per track is refused there by iOS.
+  const SILENCE = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=';
+  let musicEl = null, elUnlocked = false;
+  function shared() {
+    if (!musicEl) { musicEl = new Audio(); musicEl.preload = 'auto'; musicEl.setAttribute('playsinline', ''); }
+    return musicEl;
+  }
   function unlock() {
+    const el = shared();
+    if (!elUnlocked) {
+      elUnlocked = true;
+      if (!current || !current.el) { // nothing streaming yet: prime the element with silence inside this gesture
+        el.src = SILENCE; el.play().then(() => { if (!current || !current.el) el.pause(); }).catch(() => { elUnlocked = false; });
+      } else if (el.paused && musicOn) el.play().catch(() => { elUnlocked = false; }); // a track was refused before the first tap
+    }
     if (!ensure()) return;
     if (ac.state === 'suspended') ac.resume();
     const b = ac.createBufferSource(); b.buffer = ac.createBuffer(1, 1, 22050); b.connect(ac.destination); b.start(0);
@@ -74,21 +89,67 @@ BM.Audio = (function () {
     deny() { const t = ac.currentTime; tone(sfxGain, t, 140, 0.12, 0.1, 'square', 0.5); tone(sfxGain, t + 0.1, 110, 0.12, 0.1, 'square', 0.5); },
     hit() { if (throttled('hit', 45)) return; noise(sfxGain, ac.currentTime, 0.07, 0.12, 1800); },
     baseHit() { if (throttled('base', 160)) return; const t = ac.currentTime; tone(sfxGain, t, 90, 0.15, 0.18, 'triangle', 0.5, 50); noise(sfxGain, t, 0.1, 0.08, 400); },
-    superEffective() { if (throttled('se', 250)) return; const t = ac.currentTime; [523, 659, 784, 1047].forEach((f, i) => tone(sfxGain, t + i * 0.05, f, 0.08, 0.09, 'square', 0.25)); },
+    superEffective() { if (throttled('superEffective', 250)) return; const t = ac.currentTime; [523, 659, 784, 1047].forEach((f, i) => tone(sfxGain, t + i * 0.05, f, 0.08, 0.09, 'square', 0.25)); },
     notVery() { if (throttled('nv', 250)) return; tone(sfxGain, ac.currentTime, 330, 0.12, 0.07, 'triangle', 0.5, 220); },
     noEffect() { if (throttled('ne', 250)) return; tone(sfxGain, ac.currentTime, 120, 0.18, 0.12, 'triangle', 0.5, 90); },
     faint() { if (throttled('faint', 80)) return; tone(sfxGain, ac.currentTime, 600, 0.3, 0.07, 'square', 0.125, 120); },
+    dodge() { if (throttled('dodge', 200)) return; noise(sfxGain, ac.currentTime, 0.12, 0.06, 3000); },
     upgrade() { const t = ac.currentTime; [392, 523, 659, 784, 1047].forEach((f, i) => tone(sfxGain, t + i * 0.06, f, 0.1, 0.09, 'square', 0.5)); },
     win() {}, lose() {},
   };
+  // Supplied sound files (G8): art-src/sfx/<key>.mp3 (BM.SFX_FILES) and art-src/cries/<species>.mp3 (BM.CRY_FILES) are
+  // decoded once into AudioBuffers and played through the SFX bus (so the Sound toggle silences them too). Until a file
+  // is supplied — or while it is still loading — the WebAudio synth plays that slot. Never fatal.
+  const buffers = {}; // src -> AudioBuffer | 'loading' | 'failed'
+  function loadBuffer(src) {
+    if (!src || buffers[src] || !ensure()) return;
+    buffers[src] = 'loading';
+    fetch(src).then((r) => r.arrayBuffer()).then((ab) => new Promise((ok, bad) => ac.decodeAudioData(ab, ok, bad)))
+      .then((buf) => { buffers[src] = buf; }).catch(() => { buffers[src] = 'failed'; });
+  }
+  function playBuffer(src, vol) {
+    const buf = buffers[src];
+    if (!buf || typeof buf === 'string') { loadBuffer(src); return false; }
+    const s = ac.createBufferSource(), g = ac.createGain();
+    s.buffer = buf; g.gain.value = vol; s.connect(g); g.connect(sfxGain); s.start();
+    return true;
+  }
+  const SFX_FILE_KEYS = { superEffective: 'super_effective' }; // synth name -> reserved art-src/sfx key
+  // What the last sound was (tests + dev): { kind: 'sfx'|'cry', key, source: 'mp3'|'synth', vol }; `played` counts
+  // sound requests that reached the speakers' bus (nothing counts while Sound is OFF; throttled repeats may still count).
+  const stats = { played: 0, last: null };
   function sfx(name) {
     if (!ac || !soundOn) return;
-    try { SFX[name] && SFX[name](); } catch (e) { /* audio is never fatal */ }
+    try {
+      const fk = SFX_FILE_KEYS[name], file = fk && BM.SFX_FILES && BM.SFX_FILES[fk];
+      if (file) { // a supplied file replaces the synth sting (same throttle); synth while it is still loading
+        if (throttled(name, 250)) return;
+        if (playBuffer(file, 0.9)) { stats.played++; stats.last = { kind: 'sfx', key: name, source: 'mp3', vol: 0.9 }; return; }
+        delete last[name];
+      }
+      if (SFX[name]) { SFX[name](); stats.played++; stats.last = { kind: 'sfx', key: name, source: 'synth', vol: 1 }; }
+    } catch (e) { /* audio is never fatal */ }
   }
 
-  // Pokémon-STYLE cry: original synth chirp derived from the form id (deterministic, not a recording).
-  function cry(formId, size = 1) {
-    if (!ac || !soundOn || throttled('cry', 220)) return;
+  // Spawn cry (G8). Key-driven like music: art-src/cries/<species>.mp3 when the user has supplied one (BM.CRY_FILES,
+  // key = BM.cryKey(form)), else an original Pokémon-STYLE synth chirp derived from the form id (deterministic, never a
+  // recording). `vol` 1 = player units, enemies play quieter (BM.C.CRY_ENEMY_VOL). Throttled per side so a wave of
+  // spawns doesn't become noise.
+  function cry(formId, size = 1, vol = 1, side = 1) {
+    if (!ac || !soundOn || throttled('cry' + side, 220)) return;
+    const form = BM.FORMS && BM.FORMS[formId], key = form && BM.cryKey ? BM.cryKey(form) : formId;
+    const file = BM.CRY_FILES && BM.CRY_FILES[key];
+    if (file && playBuffer(file, vol)) { stats.played++; stats.last = { kind: 'cry', key, source: 'mp3', vol }; return; }
+    synthCry(formId, size, vol);
+    stats.played++; stats.last = { kind: 'cry', key, source: 'synth', vol };
+  }
+  // Starts decoding the supplied cries for these forms (battle start) so the first spawn already uses the file.
+  function preloadCries(formIds) {
+    if (!BM.CRY_FILES || !ensure()) return;
+    for (const id of formIds) { const f = BM.FORMS[id], k = f && BM.cryKey(f); if (k && BM.CRY_FILES[k]) loadBuffer(BM.CRY_FILES[k]); }
+    if (BM.SFX_FILES) for (const k of Object.values(SFX_FILE_KEYS)) if (BM.SFX_FILES[k]) loadBuffer(BM.SFX_FILES[k]);
+  }
+  function synthCry(formId, size, vol) {
     let h = 7;
     for (const c of formId) h = (h * 31 + c.charCodeAt(0)) >>> 0;
     const r = (k) => ((h >>> k) & 255) / 255;
@@ -99,7 +160,7 @@ BM.Audio = (function () {
       const d = 0.07 + r(i * 3 + 2) * 0.08;
       const f0 = base * (1 + (r(i * 5 + 1) - 0.3) * 0.8);
       const f1 = f0 * (0.6 + r(i * 7 + 4) * 0.9);
-      tone(sfxGain, at, f0, d, 0.06, 'square', [0.125, 0.25, 0.5][(h >>> (i + 3)) % 3], f1);
+      tone(sfxGain, at, f0, d, 0.06 * vol, 'square', [0.125, 0.25, 0.5][(h >>> (i + 3)) % 3], f1);
       at += d * 0.85;
     }
   }
@@ -113,10 +174,11 @@ BM.Audio = (function () {
     const loop = BM.MUSIC_KEYS[key].loop;
     const file = BM.MUSIC_FILES[key];
     if (file) {
-      const el = new Audio(file);
-      el.loop = loop; el.volume = musicOn ? 0.7 : 0;
-      el.play().catch(() => {});
-      current = { key, el, stop() { el.pause(); el.src = ''; } };
+      const el = shared();
+      el.src = file; el.loop = loop; el.volume = 0.7;
+      el.currentTime = 0;
+      if (musicOn) el.play().catch(() => {}); // music off: the track is loaded but stays paused (G4)
+      current = { key, el, stop() { el.pause(); } };
       return;
     }
     if (!ensure()) return;
@@ -151,18 +213,22 @@ BM.Audio = (function () {
   }
   function stopMusic() { if (current) { current.stop(); current = null; } }
 
+  // G4 (BR-025): iOS ignores <audio>.volume, so turning music off must PAUSE the element (and mute the synth bus).
   function setMusic(on) {
     musicOn = on;
     if (musicGain) musicGain.gain.value = on ? 1 : 0;
-    if (current && current.el) current.el.volume = on ? 0.7 : 0;
+    if (current && current.el) { if (on) current.el.play().catch(() => {}); else current.el.pause(); }
   }
   function setSound(on) { soundOn = on; if (sfxGain) sfxGain.gain.value = on ? 1 : 0; }
   function suspend() { if (ac && ac.state === 'running') ac.suspend(); if (current && current.el) current.el.pause(); }
-  function resume() { if (ac && ac.state === 'suspended') ac.resume(); if (current && current.el) current.el.play().catch(() => {}); }
+  function resume() { if (ac && ac.state === 'suspended') ac.resume(); if (current && current.el && musicOn) current.el.play().catch(() => {}); }
 
-  return { unlock, sfx, cry, playMusic, stopMusic, setMusic, setSound, suspend, resume,
+  return { unlock, sfx, cry, preloadCries, playMusic, stopMusic, setMusic, setSound, suspend, resume,
     get currentKey() { return current && current.key; },
+    get soundOn() { return soundOn; }, get musicOn() { return musicOn; }, stats,
     // what is playing now: 'mp3' (a supplied art-src/music file) or 'synth' (the WebAudio fallback) — tests + dev
     get currentSource() { return current ? (current.el ? 'mp3' : 'synth') : null; },
-    get currentEl() { return current && current.el; } };
+    get currentEl() { return current && current.el; },
+    // is music audible right now? (an MP3 actually playing, or the synth with music on) — G4 test
+    get musicAudible() { return !!current && musicOn && (current.el ? !current.el.paused : true); } };
 })();

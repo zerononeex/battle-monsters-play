@@ -22,19 +22,28 @@
   </div>
 </section>
 
-<!-- Title / home for the active profile -->
+<!-- Home (H2 Region Carousel, Phase 5 layout pass): slim top bar (player chip · wallet · settings), ONE big region card
+     with arrows + dots, compact Teams · All Characters · Items · Gacha buttons below -->
 <section id="scr-title" class="screen hidden">
-  <button id="btn-switch" class="player-chip corner-tl" aria-label="Switch player"><span id="chip-name">Player</span><span id="chip-grade" class="chip-grade"></span><span class="chip-sw">⇄</span></button>
-  <div class="title-wrap">
-    <h1 id="logo" class="logo">Battle<br>Monsters</h1>
-    <canvas id="title-sprite" width="200" height="140"></canvas>
-    <button id="btn-play" class="big-btn">PLAY</button>
-    <div class="row-btns">
-      <button id="btn-team" class="big-btn alt mid">🎴 Team</button>
-      <button id="btn-collection" class="big-btn alt mid">📖 Friends</button>
-    </div>
+  <div class="home-top">
+    <button id="btn-switch" class="player-chip" aria-label="Switch player"><span id="chip-name">Player</span><span id="chip-grade" class="chip-grade"></span><span class="chip-sw">⇄</span></button>
+    <h1 id="logo" class="logo home-logo">Battle Monsters</h1>
+    <span id="home-wallet" class="wallet"></span>
+    <button id="btn-title-settings" class="icon-btn" aria-label="Settings">⚙</button>
   </div>
-  <button id="btn-title-settings" class="icon-btn corner-tr" aria-label="Settings">⚙</button>
+  <div class="carousel">
+    <button id="btn-reg-prev" class="car-arrow" aria-label="Previous region">◀</button>
+    <div id="regions" class="regions"></div>
+    <button id="btn-reg-next" class="car-arrow" aria-label="Next region">▶</button>
+  </div>
+  <div id="reg-dots" class="reg-dots"></div>
+  <div class="home-btns">
+    <button id="btn-team" class="home-btn"><span class="hb-i">🎴</span>Teams</button>
+    <button id="btn-collection" class="home-btn"><span class="hb-i">📖</span>All Characters</button>
+    <button id="btn-items" class="home-btn"><span class="hb-i">🎒</span>Items</button>
+    <button id="btn-gacha" class="home-btn gacha"><span class="hb-i">🎰</span>Gacha</button>
+  </div>
+  <canvas id="title-sprite" width="200" height="140"></canvas>
 </section>
 
 <!-- Kanto campaign map = stage select (Phase 3) -->
@@ -53,7 +62,7 @@
 
 <!-- Pre-battle: stage name, town theme, enemy preview, rewards, Battle + Team -->
 <section id="scr-prebattle" class="screen hidden">
-  <div class="pre-panel">
+  <div class="pre-panel fit">
     <div class="pre-kicker" id="pre-kicker"></div>
     <h2 id="pre-name" class="pre-name"></h2>
     <div id="pre-sub" class="pre-sub"></div>
@@ -61,6 +70,8 @@
     <div id="pre-foes" class="pre-foes"></div>
     <h3 class="pre-h" id="pre-rew-h">Rewards</h3>
     <div id="pre-rewards" class="rewards"></div>
+    <h3 class="pre-h">Battle items <small>— tap to take one along · used up only if you WIN</small></h3>
+    <div id="pre-items" class="pre-items"></div>
     <div class="row-btns">
       <button id="btn-pre-back" class="big-btn alt mid">◀ Map</button>
       <button id="btn-pre-team" class="big-btn alt mid">🎴 Team</button>
@@ -73,37 +84,70 @@
 <section id="scr-collection" class="screen hidden">
   <div class="sub-head">
     <button id="btn-coll-back" class="icon-btn" aria-label="Back">◀</button>
-    <h2>Friends <span id="coll-count" class="head-count"></span></h2>
+    <h2>All Characters <span id="coll-count" class="head-count"></span></h2>
+    <button id="btn-coll-filter" class="pill-btn filter-btn">⚙ Filter<span class="fcount"></span></button>
+    <button id="btn-coll-bag" class="pill-btn">🎒 Items</button>
     <button id="btn-dev-unlock" class="dev-btn hidden">DEV: unlock all</button>
+    <button id="btn-dev-items" class="dev-btn hidden">DEV: +5 items</button>
   </div>
   <div id="coll-grid" class="coll-grid"></div>
 </section>
 
-<!-- Team (deck): up to 10 lines in 2 rows of 5; tap a slot to choose which unlocked form it fields -->
+<!-- Team (T3 Preset Rail + tweaks): a rail of numbered preset CIRCLES on the left (current lit; the rail alone may
+     scroll if presets outgrow it), preset name in the header, the team slots in ONE row. Tap a slot (filled or empty) ->
+     the character picker popup -> tap to place. ✕ = quick removal. -->
 <section id="scr-team" class="screen hidden">
   <div class="sub-head">
     <button id="btn-team-back" class="icon-btn" aria-label="Back">◀</button>
-    <h2>Team <span id="team-count" class="head-count"></span></h2>
-    <span class="sub-hint">Tap a Pokémon to switch its form · ✕ to take it off</span>
+    <h2><span id="team-name">Team 1</span> <span id="team-count" class="head-count"></span></h2>
+    <span class="sub-hint">Tap a slot to choose · ✕ = take off</span>
   </div>
-  <div id="deck" class="deck"></div>
-  <h3 class="bench-title">Your friends — tap to add</h3>
-  <div id="bench" class="bench"></div>
+  <div class="team-body">
+    <div id="presets" class="preset-rail may-scroll"></div>
+    <div class="team-main">
+      <div id="deck" class="deck"></div>
+      <div id="team-sum" class="team-sum"></div>
+    </div>
+  </div>
+</section>
+
+<!-- Gacha (Phase 5, §4.5 / §4.8): two always-open Kanto banners, ticket / Poké Ball currency, pity counter on screen,
+     Master Ball trade + the Legendary Gacha. Same component language as the H2/T3 screens. -->
+<section id="scr-gacha" class="screen hidden">
+  <div class="sub-head">
+    <button id="btn-gacha-back" class="icon-btn" aria-label="Back">◀</button>
+    <h2>Gacha</h2>
+    <span class="wallet gacha-wallet"></span>
+  </div>
+  <div class="gacha-body">
+    <div id="banner-tabs" class="banner-tabs"></div>
+    <div id="banner-card" class="banner-card"></div>
+    <div class="gacha-side">
+      <div class="cur-pick"><span class="cur-lbl">Pay with</span>
+        <button id="cur-tickets" class="cur-btn" data-cur="tickets"></button>
+        <button id="cur-balls" class="cur-btn" data-cur="balls"></button>
+      </div>
+      <button id="btn-pull1" class="pull-btn"></button>
+      <button id="btn-pull10" class="pull-btn ten"></button>
+      <button id="btn-master-trade" class="side-btn"></button>
+      <button id="btn-legend" class="side-btn legend"></button>
+    </div>
+  </div>
 </section>
 
 <!-- Battle HUD -->
 <section id="scr-battle" class="screen hidden">
   <button id="btn-pause" class="icon-btn corner-tl" aria-label="Pause">❚❚</button>
-  <div id="ap-pill" class="ap-pill"><span class="ap-icon">⚡</span><span id="ap-num">0</span><span class="ap-cap">/ <span id="ap-cap">0</span></span></div>
+  <div id="ap-pill" class="ap-pill"><span class="ap-icon">⚡</span><span id="ap-num">0</span><span class="ap-cap">/ <span id="ap-cap">0</span></span><span id="armed-icons" class="armed-icons"></span></div>
   <div id="hint" class="hint hidden"></div>
   <div id="hud" class="hud">
     <button id="btn-gen" class="gen-btn">
+      <span class="gen-icon" id="gen-icon">⚡<i>▲</i></span>
       <span class="gen-title">AP Generator</span>
       <span class="gen-lv">Lv <b id="gen-lv">1</b></span>
       <span class="gen-cost" id="gen-cost">⚡120</span>
     </button>
     <div id="cards" class="cards"></div>
-    <button id="btn-row" class="row-btn hidden" aria-label="Other row"><span id="row-lbl">1/2</span><span>⇅</span></button>
   </div>
 </section>
 
@@ -128,13 +172,14 @@
 
 <!-- Result -->
 <section id="scr-result" class="overlay hidden">
-  <div class="panel">
+  <div class="panel result-panel fit">
     <h2 id="result-title" class="result-title">VICTORY!</h2>
     <p id="result-sub"></p>
     <div id="result-rewards" class="rewards"></div>
+    <div id="result-xp" class="result-xp"></div>
     <div class="row-btns">
-      <button id="btn-retry" class="big-btn">Retry</button>
-      <button id="btn-map" class="big-btn alt">Map</button>
+      <button id="btn-retry" class="big-btn mid">Retry</button>
+      <button id="btn-map" class="big-btn alt mid">Map</button>
     </div>
   </div>
 </section>
@@ -155,7 +200,7 @@
 
 <!-- Save code: export (copy) / import (paste + pick a slot) -->
 <section id="scr-code" class="overlay hidden">
-  <div class="panel code-panel">
+  <div class="panel code-panel fit">
     <h2 id="code-title">Save code</h2>
     <p id="code-help"></p>
     <textarea id="code-text" class="code-text" spellcheck="false" autocomplete="off" autocapitalize="off"></textarea>
@@ -168,14 +213,98 @@
   </div>
 </section>
 
-<!-- Line detail (from the collection) -->
+<!-- Character detail (D1 Pokédex Entry): sprite framed LEFT with a cry button, labelled stat list with bars RIGHT,
+     evolution chain along the bottom with the item actions on the chain row. ✕, tap outside or Close (F1); fits (fit()). -->
 <section id="scr-line" class="overlay hidden">
-  <div class="panel line-panel">
+  <div class="panel line-panel fit">
+    <button id="btn-line-x" class="panel-x" aria-label="Close">✕</button>
     <h2 id="line-title"></h2>
-    <div id="line-forms" class="line-forms"></div>
-    <div id="line-info" class="line-info"></div>
+    <div class="dex">
+      <div class="dex-left">
+        <div id="dex-frame" class="dex-frame"></div>
+        <button id="btn-cry" class="cry-btn" aria-label="Play cry">🔊 Cry</button>
+        <div id="dex-tags" class="dex-tags"></div>
+      </div>
+      <div class="dex-right">
+        <div id="dex-stats" class="dex-stats"></div>
+        <div id="line-info" class="line-info"></div>
+      </div>
+    </div>
+    <div class="chain-row">
+      <div id="line-forms" class="line-forms"></div>
+      <div id="line-items" class="line-items"></div>
+    </div>
     <button id="btn-line-close" class="big-btn alt mid">Close</button>
   </div>
+</section>
+
+<!-- Sort + filter popup (C4 tweak: ONE Filter button, every option in here; fits the screen, never scrolls) -->
+<section id="scr-filter" class="overlay hidden">
+  <div class="panel filter-panel fit">
+    <button id="btn-filter-x" class="panel-x" aria-label="Close">✕</button>
+    <h2>Sort &amp; Filter</h2>
+    <div class="flt-grid">
+      <div class="flt-sec"><h3>Sort by <button id="flt-dir" class="flt-chip dir">↓ High first</button></h3><div id="flt-sort" class="flt-chips"></div></div>
+      <div class="flt-sec" id="flt-owned-sec"><h3>Show</h3><div id="flt-owned" class="flt-chips"></div></div>
+      <div class="flt-sec wide"><h3>Type</h3><div id="flt-types" class="flt-types"></div></div>
+      <div class="flt-sec"><h3>Role / trait</h3><div id="flt-traits" class="flt-chips"></div></div>
+      <div class="flt-sec"><h3>Rarity</h3><div id="flt-rarity" class="flt-chips"></div></div>
+    </div>
+    <div class="row-btns">
+      <button id="btn-filter-reset" class="big-btn alt mid">Reset</button>
+      <button id="btn-filter-done" class="big-btn mid">Show <span id="flt-n"></span></button>
+    </div>
+  </div>
+</section>
+
+<!-- Team character picker (tap-to-place): owned Pokémon + the same Filter button -->
+<section id="scr-picker" class="overlay hidden">
+  <div class="panel picker-panel">
+    <button id="btn-picker-x" class="panel-x" aria-label="Close">✕</button>
+    <div class="picker-head">
+      <h2 id="picker-title">Choose</h2>
+      <div id="picker-forms" class="picker-forms"></div>
+      <button id="btn-picker-filter" class="pill-btn filter-btn">⚙ Filter<span class="fcount"></span></button>
+    </div>
+    <div id="picker-grid" class="coll-grid picker-grid"></div>
+  </div>
+</section>
+
+<!-- Gacha reveal: the gacha_fanfare key + cards flipping in (1 or 10) -->
+<section id="scr-reveal" class="overlay hidden">
+  <div class="panel reveal-panel fit">
+    <h2 id="reveal-title">You got…</h2>
+    <div id="reveal-grid" class="reveal-grid"></div>
+    <button id="btn-reveal-ok" class="big-btn mid">OK!</button>
+  </div>
+</section>
+
+<!-- Legendary Gacha (holding ≥ 1 Master Ball): 1 Master Ball = 1 random legendary of the cleared regions -->
+<section id="scr-legend" class="overlay hidden">
+  <div class="panel legend-panel fit">
+    <button id="btn-legend-x" class="panel-x" aria-label="Close">✕</button>
+    <h2>✨ Legendary Gacha</h2>
+    <p id="legend-help"></p>
+    <div id="legend-pool" class="legend-pool"></div>
+    <button id="btn-legend-pull" class="big-btn"></button>
+  </div>
+</section>
+
+<!-- Item bag (F5 "Items", Phase 4): counts + icons; Poké Balls / Dowsing Machines "coming soon" -->
+<section id="scr-bag" class="overlay hidden">
+  <div class="panel bag-panel fit">
+    <button id="btn-bag-x" class="panel-x" aria-label="Close">✕</button>
+    <h2>🎒 Items</h2>
+    <div id="bag-grid" class="bag-grid"></div>
+    <p class="bag-help">Use candies and stones on a character: All Characters → tap one.</p>
+  </div>
+</section>
+
+<!-- Evolution scene (Phase 4): the evolution music key + a white-flash silhouette morph -->
+<section id="scr-evo" class="overlay evo hidden">
+  <canvas id="evo-canvas" width="480" height="360"></canvas>
+  <p id="evo-text" class="evo-text"></p>
+  <button id="btn-evo-ok" class="big-btn mid hidden">OK!</button>
 </section>
 
 <div id="toast" class="toast"></div>
@@ -185,7 +314,10 @@
 <script src="src/data/types.js"></script>
 <script src="src/data/constants.js"></script>
 <script src="src/data/units.js"></script>
+<script src="src/data/items.js"></script>
 <script src="src/data/enemies.js"></script>
+<script src="src/data/base_stats.js"></script>
+<script src="src/data/combat.js"></script>
 <script src="src/data/stages.js"></script>
 <script src="src/data/kanto_map.js"></script>
 <script src="src/data/banners.js"></script>
@@ -194,11 +326,14 @@
 <script src="src/audio/songs.js"></script>
 <script src="src/audio/audio.js"></script>
 <script src="src/save.js"></script>
+<script src="src/gacha.js"></script>
 <script src="src/engine/sprites.js"></script>
 <script src="src/engine/battle.js"></script>
 <script src="src/engine/render.js"></script>
 <script src="src/screens.js"></script>
+<script src="src/evolution.js"></script>
 <script src="src/map.js"></script>
+<script src="src/gacha_screen.js"></script>
 <script src="src/main.js"></script>
 <!-- /BM:SCRIPTS -->
 </body>

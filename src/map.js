@@ -128,7 +128,16 @@ BM.MapScreen = function (ui) {
     if (s === 'soon') { BM.Audio.sfx('deny'); toast(`${st.name} opens in a later update!`); return; }
     if (s === 'locked') { BM.Audio.sfx('deny'); toast(`Beat ${ST[i - 1].name} first!`); return; }
     BM.Audio.sfx('tap');
-    ui.openPrebattle(st.id);
+    // F7 (BR-020): the trainer walks along the path to the tapped node FIRST, then the pre-battle screen opens
+    const at = tokenAt();
+    if (at === st.id) { ui.openPrebattle(st.id); return; }
+    startWalk(at, st.id, () => ui.openPrebattle(st.id));
+  }
+  // The node the token stands on: where it was last walked to (profile.mapAt) if that node is reachable, else the
+  // current stage.
+  function tokenAt() {
+    const at = prof().mapAt, i = idx(at), t = idx(tokenTarget());
+    return i >= 0 && i <= t && nodeState(i) !== 'locked' && nodeState(i) !== 'soon' ? at : ST[t].id;
   }
 
   // ---------- trainer token: 4-frame walk sheet (ASSET_PROMPTS #204), procedural until it is DONE ----------
@@ -156,11 +165,14 @@ BM.MapScreen = function (ui) {
     tokenEl.style.left = x * 100 + '%'; tokenEl.style.top = y * 100 + '%';
   }
 
-  // Walk the polyline from `fromId` to `toId` (several segments when a profile skipped ahead, e.g. an old save).
-  function startWalk(fromId, toId) {
-    const a = idx(fromId), z = idx(toId);
-    let pts = [M.nodes[fromId]];
-    for (let i = a + 1; i <= z; i++) pts = pts.concat(BM.mapPath(ST[i].id).slice(1));
+  // Walk the polyline from `fromId` to `toId` along the campaign path — forwards, or backwards to replay an earlier
+  // stage (several segments when it is more than one node away). `onEnd` runs when the token arrives.
+  function startWalk(fromId, toId, onEnd) {
+    const a = idx(fromId), z = idx(toId), lo = Math.min(a, z), hi = Math.max(a, z);
+    let pts = [M.nodes[ST[lo].id]];
+    for (let i = lo + 1; i <= hi; i++) pts = pts.concat(BM.mapPath(ST[i].id).slice(1));
+    if (a > z) pts.reverse();
+    walk.onEnd = onEnd || null;
     let len = 0;
     for (let i = 1; i < pts.length; i++) len += Math.hypot((pts[i][0] - pts[i - 1][0]) * 16, (pts[i][1] - pts[i - 1][1]) * 9);
     Object.assign(walk, { active: true, pts, len, t0: performance.now(), dur: Math.min(3200, 900 + len * 260), from: fromId, to: toId });
@@ -189,21 +201,26 @@ BM.MapScreen = function (ui) {
       tokenEl.classList.remove('flip'); drawToken(0);
       renderNodes();
       BM.Audio.sfx('upgrade');
+      const cb = walk.onEnd; walk.onEnd = null;
+      if (cb) cb();
     }
   }
 
   function render() {
     layout();
     renderNodes();
-    const target = tokenTarget(), at = prof().mapAt;
-    walk.active = false; box.classList.remove('walking');
-    if (at && idx(at) >= 0 && idx(at) < idx(target)) { placeToken(M.nodes[at]); drawToken(0); startWalk(at, target); }
-    else { placeToken(M.nodes[target]); drawToken(0); BM.Save.setMapAt(target); }
+    const target = tokenTarget(), from = queued;
+    queued = null;
+    walk.active = false; walk.onEnd = null; box.classList.remove('walking');
+    // after a FIRST clear the token walks on to the newly opened stage; otherwise it stays where the kid walked it (F7)
+    if (from && idx(from) >= 0 && idx(from) < idx(target)) { placeToken(M.nodes[from]); drawToken(0); startWalk(from, target); }
+    else { const at = tokenAt(); placeToken(M.nodes[at]); drawToken(0); BM.Save.setMapAt(at); }
     const tk = BM.Sprites.artSrc('icons/battle_ticket');
     $('map-tickets').innerHTML = (tk ? `<img src="${tk}" alt="">` : '🎫') + `<b>${prof().tickets}</b>`;
   }
   tap($('btn-map-back'), () => { BM.Audio.sfx('tap'); ui.go('title'); });
   tap($('btn-map-dev'), () => { BM.Audio.sfx('tap'); ui.openPrebattle('dev_types'); });
 
-  return { render, layout: () => { if (bw) { layout(); renderNodes(); } }, tick: walkTick, nodeState, tokenTarget, walk, test };
+  let queued = null; // stage id just cleared for the first time: walk from it to the next stage on the next render
+  return { render, queueWalk: (id) => { queued = id; }, tokenAt, layout: () => { if (bw) { layout(); renderNodes(); } }, tick: walkTick, nodeState, tokenTarget, walk, test };
 };

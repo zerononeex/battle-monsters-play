@@ -210,6 +210,12 @@ BM.Render = function (canvas) {
         ctx.fillStyle = 'rgba(0,0,0,.55)'; ctx.fillRect(x - bw / 2 - 1, by - 1, bw + 2, 7);
         ctx.fillStyle = u.side === 1 ? '#5ad35a' : '#f05050'; ctx.fillRect(x - bw / 2, by, bw * (u.hp / u.maxHp), 5);
       }
+      if (u.side === 1) { // small Lv tag under your units (Phase 4)
+        ctx.save(); ctx.font = `800 ${Math.round(Math.max(10, h * 0.13))}px system-ui, sans-serif`; ctx.textAlign = 'center';
+        ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(20,28,50,.85)'; ctx.fillStyle = '#ffe14a';
+        const ty = y + Math.max(11, h * 0.13) + (sp.placeholder ? h * 0.16 : 2);
+        ctx.strokeText('Lv ' + u.level, x, ty); ctx.fillText('Lv ' + u.level, x, ty); ctx.restore();
+      }
       const ly = y + h * 0.2, lw = h * 0.9;
       if (sp.placeholder && !labels.some((r) => Math.abs(r[0] - x) < (r[2] + lw) / 2 && Math.abs(r[1] - ly) < 16)) {
         labels.push([x, ly, lw]);
@@ -222,26 +228,104 @@ BM.Render = function (canvas) {
 
   // ---------- effects ----------
   function onEvent(ev, now) {
-    if (ev.type === 'hit') {
-      const a = ev.attacker, t = ev.target;
+    if (ev.type === 'dodge') {
+      const t = ev.target, ty = L.ground() + L.depth(t) - L.unitH(t.form);
+      if (!texts.some((x) => x.text === 'Dodged!' && now - x.t0 < 0.5)) texts.push({ text: 'Dodged!', x: Math.min(Math.max(L.sx(t.x), 120), W - 120), y: ty, t0: now, dur: 0.8, size: 24, color: '#bff5ff' });
+    } else if (ev.type === 'hit' && ev.splash) { // Splash trait: a small burst on the neighbour, no projectile
+      const t = ev.target, ty = L.ground() + L.depth(t) - L.unitH(t.form) * 0.5;
+      fx.push({ kind: 'burst', x: L.sx(t.x), y: ty, color: BM.TYPE_COLORS[ev.attacker.form.attackType] || '#fff', art: null, dir: ev.attacker.side, t0: now + 0.12, dur: 0.25 });
+      if (ev.mult === 0) addText(0, L.sx(t.x), ty - L.unitH(t.form) * 0.6, now);
+    } else if (ev.type === 'hit') {
+      const a = ev.attacker, t = ev.target, cb = BM.combatOf(a.form), dt = (ev.k || 0) * 0.11; // multi-hit: staggered
       const color = BM.TYPE_COLORS[a.form.attackType] || '#fff';
       const ty = L.ground() + L.depth(t) - L.unitH(t.form) * 0.5;
       const ay = L.ground() + L.depth(a) - L.unitH(a.form) * 0.55;
-      const art = BM.Sprites.fx(a.form.attackType);
-      if (a.range > BM.C.MELEE_RANGE) fx.push({ kind: 'shot', x0: L.sx(a.x), y0: ay, x1: L.sx(t.x), y1: ty, color, art, dir: a.side, t0: now, dur: 0.2 });
-      else fx.push({ kind: 'burst', x: L.sx(t.x), y: ty, color, art, dir: a.side, t0: now, dur: 0.3 });
-      // a ranged shot's impact frame plays when it lands
-      if (art && a.range > BM.C.MELEE_RANGE) fx.push({ kind: 'burst', x: L.sx(t.x), y: ty, color, art, dir: a.side, t0: now + 0.2, dur: 0.22 });
+      moveFx(cb, a, L.sx(a.x), ay, L.sx(t.x), ty, color, now + dt);
       if (ev.mult !== 1) addText(ev.mult, L.sx(t.x), ty - L.unitH(t.form) * 0.6, now);
     } else if (ev.type === 'baseHit') {
-      const bw = L.baseW();
+      const bw = L.baseW(), a = ev.attacker;
       const x = ev.side === -1 ? W - bw * 0.6 : bw * 0.6;
-      fx.push({ kind: 'burst', x: x + (Math.random() - 0.5) * bw * 0.4, y: L.ground() - bw * 0.5 + (Math.random() - 0.5) * bw * 0.4,
-        color: BM.TYPE_COLORS[ev.attacker.form.attackType], art: BM.Sprites.fx(ev.attacker.form.attackType), dir: ev.attacker.side, t0: now, dur: 0.3 });
+      moveFx(BM.combatOf(a.form), a, L.sx(a.x), L.ground() + L.depth(a) - L.unitH(a.form) * 0.55,
+        x + (Math.random() - 0.5) * bw * 0.4, L.ground() - bw * 0.5 + (Math.random() - 0.5) * bw * 0.4, BM.TYPE_COLORS[a.form.attackType], now + (ev.k || 0) * 0.11);
     } else if (ev.type === 'ace') {
       texts.push({ text: `${ev.leader || 'The leader'} sends out ${ev.unit.form.name}!`, x: W * 0.5, y: fieldH * 0.32, t0: now, dur: 2.2, size: 36, color: '#ffb347' });
+    } else if (ev.type === 'bounty' && ev.paid > 0) { // G3: "+N AP" floats up from the defeated enemy (nothing at the cap)
+      const t = ev.unit, ty = L.ground() + L.depth(t) - L.unitH(t.form) * (t.ace ? 1.1 : 0.9);
+      if (texts.length > 10) texts.shift();
+      texts.push({ text: ev.paid > 0 ? `+${ev.paid} AP` : 'AP full!', x: Math.min(Math.max(L.sx(t.x), 60), W - 60), y: ty, t0: now, dur: 1.0,
+        size: ev.cls === 'boss' ? 34 : 22, color: ev.paid > 0 ? '#7ff5ff' : '#c9d6e8', bounty: true });
     } else if (ev.type === 'upgrade') {
       texts.push({ text: 'AP GENERATOR UP!', x: W * 0.5, y: fieldH * 0.3, t0: now, dur: 1.2, size: 34, color: '#7ff5ff' });
+    }
+  }
+  // G9: the attack's species-flavoured visual (combat.js `fx`). A generated move sprite (assets/effects/moves/<fx>.png ->
+  // BM.FX_FILES['move_<fx>']) is used when DONE; until then a procedural visual by kind — projectile (Razor Leaf, Bonemerang,
+  // Shadow Ball…), stream (Ember breath, Water Gun, Thunder Shock, beams) or melee (Fury Swipes, punches, bites…). The
+  // per-type effect sprite plays as the impact burst.
+  function moveFx(cb, a, x0, y0, x1, y1, color, t0) {
+    if (fx.length > 90) fx.splice(0, fx.length - 90);
+    const art = BM.Sprites.fx('move_' + cb.fx), impact = BM.Sprites.fx(a.form.attackType), dir = a.side;
+    const fly = cb.kind === 'projectile' ? Math.min(0.3, 0.12 + Math.abs(x1 - x0) / 2500) : cb.kind === 'stream' ? 0.16 : 0;
+    if (art) fx.push({ kind: cb.kind === 'melee' ? 'burst' : 'shot', x0, y0, x1, y1, x: x1, y: y1, color, art, dir, t0, dur: fly || 0.3 });
+    else if (cb.kind !== 'melee') fx.push({ kind: cb.kind, fxn: cb.fx, x0, y0, x1, y1, color, dir, t0, dur: fly + (cb.kind === 'stream' ? 0.12 : 0), seed: Math.random() });
+    fx.push({ kind: 'move', fxn: cb.fx, x: x1, y: y1, color, dir, t0: t0 + fly, dur: 0.28, seed: Math.random() });
+    if (impact) fx.push({ kind: 'burst', x: x1, y: y1, color, art: impact, dir, t0: t0 + fly, dur: 0.22 });
+  }
+  // Procedural species visuals (no sprite yet). All sizes scale with the field height.
+  function drawMoveProc(f, k) {
+    const u = fieldH * 0.02, c = f.color;
+    ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    if (f.kind === 'projectile') {
+      const x = f.x0 + (f.x1 - f.x0) * k, y = f.y0 + (f.y1 - f.y0) * k - Math.sin(k * Math.PI) * (f.fxn === 'bone' ? u * 3 : u);
+      ctx.translate(x, y); ctx.rotate(['leaf', 'bone', 'star'].includes(f.fxn) ? k * 14 * f.dir : 0);
+      ctx.fillStyle = c; ctx.strokeStyle = '#1c1c28'; ctx.lineWidth = 2;
+      if (f.fxn === 'leaf') { ctx.beginPath(); ctx.ellipse(0, 0, u * 1.6, u * 0.6, 0.5, 0, 7); ctx.fillStyle = '#5ac83a'; ctx.fill(); ctx.stroke(); ctx.beginPath(); ctx.moveTo(-u * 1.4, 0); ctx.lineTo(u * 1.4, 0); ctx.stroke(); }
+      else if (f.fxn === 'bone') { ctx.fillStyle = '#f4efe2'; ctx.fillRect(-u * 1.6, -u * 0.3, u * 3.2, u * 0.6); ctx.strokeRect(-u * 1.6, -u * 0.3, u * 3.2, u * 0.6); for (const sx of [-1.6, 1.6]) for (const sy of [-0.4, 0.4]) { ctx.beginPath(); ctx.arc(sx * u, sy * u, u * 0.45, 0, 7); ctx.fill(); ctx.stroke(); } }
+      else if (f.fxn === 'star') { ctx.fillStyle = '#ffe14a'; ctx.beginPath(); for (let i = 0; i < 10; i++) { const r = i % 2 ? u * 0.6 : u * 1.5, an = i * Math.PI / 5; ctx.lineTo(Math.cos(an) * r, Math.sin(an) * r); } ctx.closePath(); ctx.fill(); ctx.stroke(); }
+      else if (f.fxn === 'needle') { ctx.strokeStyle = c; ctx.lineWidth = u * 0.4; for (const o of [-0.7, 0, 0.7]) { ctx.beginPath(); ctx.moveTo(-u * 1.8 * f.dir, o * u); ctx.lineTo(u * 0.6 * f.dir, o * u); ctx.stroke(); } }
+      else if (f.fxn === 'ice') { ctx.fillStyle = '#bff0ff'; ctx.beginPath(); ctx.moveTo(u * 1.8 * f.dir, 0); ctx.lineTo(-u * f.dir, -u * 0.7); ctx.lineTo(-u * 0.6 * f.dir, 0); ctx.lineTo(-u * f.dir, u * 0.7); ctx.closePath(); ctx.fill(); ctx.stroke(); }
+      else if (f.fxn === 'rock') { ctx.fillStyle = '#9a7a55'; ctx.beginPath(); for (let i = 0; i < 7; i++) { const an = i / 7 * 7, r = u * (1 + ((f.seed * 10 + i) % 1) * 0.4); ctx.lineTo(Math.cos(an) * r, Math.sin(an) * r); } ctx.closePath(); ctx.fill(); ctx.stroke(); }
+      else if (f.fxn === 'psy') { ctx.strokeStyle = c; ctx.lineWidth = u * 0.35; for (let i = 0; i < 3; i++) { ctx.globalAlpha = 1 - i * 0.3; ctx.beginPath(); ctx.arc(-i * u * 1.2 * f.dir, 0, u * (1.4 + i * 0.3), 0, 7); ctx.stroke(); } }
+      else if (f.fxn === 'sing') { ctx.fillStyle = c; ctx.font = `900 ${Math.round(u * 3)}px system-ui`; ctx.textAlign = 'center'; ctx.lineWidth = 3; ctx.strokeText('♪', 0, u); ctx.fillText('♪', 0, u); ctx.strokeText('♫', -u * 2 * f.dir, -u); ctx.fillText('♫', -u * 2 * f.dir, -u); }
+      else { // shadow / poison / fairy orbs
+        const g = ctx.createRadialGradient(0, 0, 1, 0, 0, u * 1.6); g.addColorStop(0, '#fff'); g.addColorStop(0.35, c); g.addColorStop(1, f.fxn === 'shadow' ? '#2a1a3a' : c);
+        ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, 0, u * 1.4, 0, 7); ctx.fill();
+        if (f.fxn === 'fairy') { ctx.fillStyle = '#fff'; for (let i = 0; i < 4; i++) { ctx.beginPath(); ctx.arc(Math.cos(i + k * 9) * u * 2, Math.sin(i + k * 9) * u * 2, u * 0.3, 0, 7); ctx.fill(); } }
+      }
+      return;
+    }
+    if (f.kind === 'stream') { // attacker -> target: breath / jet / bolt / beam / vine
+      const reach = Math.min(1, k / 0.6), x2 = f.x0 + (f.x1 - f.x0) * reach, y2 = f.y0 + (f.y1 - f.y0) * reach;
+      ctx.globalAlpha = k > 0.75 ? (1 - k) / 0.25 : 1;
+      if (f.fxn === 'flame') {
+        for (let i = 0; i < 9; i++) { const q = i / 8, x = f.x0 + (x2 - f.x0) * q, y = f.y0 + (y2 - f.y0) * q + Math.sin(i * 2.3 + k * 20) * u * q;
+          ctx.fillStyle = i % 3 === 0 ? '#ffe14a' : i % 3 === 1 ? '#ff8a2a' : '#e8463c'; ctx.beginPath(); ctx.arc(x, y, u * (0.5 + q * 1.1), 0, 7); ctx.fill(); }
+      } else if (f.fxn === 'water') {
+        ctx.strokeStyle = '#7ec8f5'; ctx.lineWidth = u * 1.1; ctx.beginPath(); ctx.moveTo(f.x0, f.y0); ctx.lineTo(x2, y2); ctx.stroke();
+        ctx.strokeStyle = '#fff'; ctx.lineWidth = u * 0.35; ctx.beginPath(); ctx.moveTo(f.x0, f.y0 - u * 0.2); ctx.lineTo(x2, y2 - u * 0.2); ctx.stroke();
+        ctx.fillStyle = '#d4f0ff'; for (let i = 0; i < 4; i++) { const q = (i / 4 + k) % 1; ctx.beginPath(); ctx.arc(f.x0 + (x2 - f.x0) * q, f.y0 + (y2 - f.y0) * q - u, u * 0.4, 0, 7); ctx.fill(); }
+      } else if (f.fxn === 'bolt') {
+        ctx.strokeStyle = '#ffe14a'; ctx.lineWidth = u * 0.6; ctx.shadowColor = '#fff7a0'; ctx.shadowBlur = 10; ctx.beginPath(); ctx.moveTo(f.x0, f.y0);
+        for (let i = 1; i <= 6; i++) { const q = i / 6; ctx.lineTo(f.x0 + (x2 - f.x0) * q, f.y0 + (y2 - f.y0) * q + (i < 6 ? ((i * 37 + Math.floor(k * 12)) % 3 - 1) * u * 1.4 : 0)); }
+        ctx.stroke();
+      } else if (f.fxn === 'vine') {
+        ctx.strokeStyle = '#3f8a30'; ctx.lineWidth = u * 0.5; ctx.beginPath(); ctx.moveTo(f.x0, f.y0); ctx.quadraticCurveTo((f.x0 + x2) / 2, Math.min(f.y0, y2) - u * 4, x2, y2); ctx.stroke();
+      } else { // beam (Solar Beam, Tri Attack, Hyper Beam…)
+        ctx.strokeStyle = f.color; ctx.lineWidth = u * 1.4; ctx.shadowColor = '#fff'; ctx.shadowBlur = 14; ctx.beginPath(); ctx.moveTo(f.x0, f.y0); ctx.lineTo(x2, y2); ctx.stroke();
+        ctx.strokeStyle = '#fff'; ctx.lineWidth = u * 0.5; ctx.beginPath(); ctx.moveTo(f.x0, f.y0); ctx.lineTo(x2, y2); ctx.stroke();
+      }
+      return;
+    }
+    // melee / impact visuals at the target
+    ctx.translate(f.x, f.y); ctx.globalAlpha = 1 - k;
+    const r = u * (1.2 + k * 1.6);
+    ctx.strokeStyle = f.fxn === 'slash' ? '#fff' : f.color; ctx.lineWidth = u * 0.45;
+    if (f.fxn === 'slash' || f.fxn === 'wing') { for (const o of [-0.8, 0, 0.8]) { ctx.beginPath(); ctx.moveTo(-r + o * u, -r); ctx.lineTo(r + o * u, r); ctx.stroke(); } }
+    else if (f.fxn === 'fang') { ctx.fillStyle = '#fff'; for (const sy of [-1, 1]) for (let i = -1; i <= 1; i++) { ctx.beginPath(); ctx.moveTo(i * u * 0.9 - u * 0.4, sy * r * 0.9); ctx.lineTo(i * u * 0.9, sy * r * 0.2); ctx.lineTo(i * u * 0.9 + u * 0.4, sy * r * 0.9); ctx.fill(); ctx.stroke(); } }
+    else if (f.fxn === 'splash') { ctx.fillStyle = '#7ec8f5'; for (let i = 0; i < 6; i++) { const an = -Math.PI * (0.15 + i * 0.14); ctx.beginPath(); ctx.arc(Math.cos(an) * r, Math.sin(an) * r, u * 0.4, 0, 7); ctx.fill(); } }
+    else if (f.fxn === 'spark') { ctx.strokeStyle = '#ffe14a'; for (let i = 0; i < 5; i++) { const an = i * 1.26 + f.seed * 6; ctx.beginPath(); ctx.moveTo(Math.cos(an) * u * 0.5, Math.sin(an) * u * 0.5); ctx.lineTo(Math.cos(an + 0.3) * r * 0.7, Math.sin(an + 0.3) * r * 0.7); ctx.lineTo(Math.cos(an) * r, Math.sin(an) * r); ctx.stroke(); } }
+    else { // punch / kick / slam / horn / slap / dragon: a star-burst
+      ctx.fillStyle = '#fff'; ctx.beginPath(); for (let i = 0; i < 12; i++) { const rr = i % 2 ? r * 0.45 : r; const an = i * Math.PI / 6; ctx.lineTo(Math.cos(an) * rr, Math.sin(an) * rr); } ctx.closePath(); ctx.fill(); ctx.stroke();
     }
   }
   function addText(mult, x, y, now) {
@@ -273,6 +357,7 @@ BM.Render = function (canvas) {
       if (k < 0) continue; // scheduled impact frame
       ctx.save();
       if (f.art) { drawFxArt(f, k); ctx.restore(); continue; }
+      if (f.kind === 'projectile' || f.kind === 'stream' || f.kind === 'move') { drawMoveProc(f, k); ctx.restore(); continue; }
       if (f.kind === 'shot') {
         const x = f.x0 + (f.x1 - f.x0) * k, y = f.y0 + (f.y1 - f.y0) * k;
         ctx.fillStyle = f.color; ctx.strokeStyle = '#fff'; ctx.lineWidth = 2;
@@ -315,5 +400,13 @@ BM.Render = function (canvas) {
     baseLabel(S);
   }
   function clearFx() { fx.length = 0; texts.length = 0; }
-  return { resize, draw, onEvent, clearFx, get fieldH() { return fieldH; } };
+  // Screen rects (CSS px) of the two base HP bars incl. their number labels — tests check the hint never covers them.
+  function hpBarRects() {
+    const bw = L.baseW(), gy = L.ground() + fieldH * 0.04, bh = bw * 1.25;
+    return [1, -1].map((side) => {
+      const x = side === 1 ? bw * 0.05 : W - bw * 1.05, top = Math.max(TOP_SAFE, gy - bh - 38) - 18;
+      return { x: Math.min(x + bw * 0.05, (side === 1 ? bw * 0.55 : W - bw * 0.55) - 60), y: top, w: Math.max(bw * 0.9, 120), h: Math.max(TOP_SAFE + 8, gy - bh - 30) + 15 - top };
+    });
+  }
+  return { resize, draw, onEvent, clearFx, hpBarRects, get fieldH() { return fieldH; } };
 };

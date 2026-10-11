@@ -19,6 +19,12 @@ BM.Battle = function (stage, profile, opts = {}) {
     battled: [],                                           // line ids fielded at least once (team XP, §4.3)
   };
 
+  // Battle items armed on the pre-battle screen (consumed only on a WIN — BM.Save.recordWin). In-battle effects here.
+  const items = (opts.items || profile.armed || []).filter((id) => BM.ITEM_INFO[id] && BM.ITEM_INFO[id].battle);
+  S.items = items;
+  if (items.includes('speed_up')) S.speedMul = BM.BATTLE_ITEM_FX.speedMul;
+  if (items.includes('gen_lv8')) S.gen = C.GEN_MAX;
+  if (items.includes('full_ap')) S.ap = C.GEN[S.gen][1];
   function count(side) { let n = 0; for (const u of S.units) if (u.side === side && !u.dead) n++; return n; }
   function makeUnit(form, level, side, x) {
     const st = BM.unitStats(form, level);
@@ -82,15 +88,37 @@ BM.Battle = function (stage, profile, opts = {}) {
     if (tgt === 'base') {
       const base = u.side === 1 ? S.enemyBase : S.playerBase;
       base.hp = Math.max(0, base.hp - u.dmg);
-      S.events.push({ type: 'baseHit', side: -u.side, attacker: u, dmg: u.dmg });
+      for (let k = 0; k < (u.hits || 1); k++) S.events.push({ type: 'baseHit', side: -u.side, attacker: u, dmg: u.dmg / (u.hits || 1), k });
       if (base.hp <= 0 && !S.result) end(u.side === 1 ? 'win' : 'lose');
       return;
     }
-    const mult = BM.typeMultiplier(u.form.attackType, tgt.form.types);
-    const dmg = mult === 0 ? 0 : Math.max(1, Math.round(u.dmg * mult));
+    // G9: a multi-hit move (Fury Swipes ×3…) splits the attack's damage across its hits (k = hit index, for the visuals)
+    const per = u.dmg / (u.hits || 1);
+    for (let k = 0; k < (u.hits || 1) && !tgt.dead; k++) {
+      hitUnit(u, tgt, per, false, k);
+      // Splash trait: the hit also lands (at a fraction) on every other foe close to the target
+      if (u.splash) for (const o of S.units) {
+        if (o !== tgt && !o.dead && o.side !== u.side && Math.abs(o.x - tgt.x) <= u.splash.radius) hitUnit(u, o, per * u.splash.frac, true, k);
+      }
+    }
+  }
+  // One hit on one unit: Dodger trait may dodge it; Flyer trait (or the type chart) can make it "No effect!".
+  function hitUnit(u, tgt, raw, splash, k = 0) {
+    if (tgt.dodge && rnd() < tgt.dodge) { S.events.push({ type: 'dodge', attacker: u, target: tgt, splash, k }); return; }
+    const mult = tgt.immune && tgt.immune.includes(u.form.attackType) ? 0 : BM.typeMultiplier(u.form.attackType, tgt.form.types);
+    const dmg = mult === 0 ? 0 : Math.max(1, Math.round(raw * mult));
     tgt.hp -= dmg;
-    S.events.push({ type: 'hit', attacker: u, target: tgt, mult, dmg });
-    if (tgt.hp <= 0 && !tgt.dead) { tgt.dead = true; tgt.hp = 0; S.events.push({ type: 'faint', unit: tgt }); }
+    S.events.push({ type: 'hit', attacker: u, target: tgt, mult, dmg, splash, k });
+    if (tgt.hp <= 0 && !tgt.dead) { tgt.dead = true; tgt.hp = 0; S.events.push({ type: 'faint', unit: tgt }); if (tgt.side === -1) bounty(tgt); }
+  }
+  // G3 AP BOUNTY: a defeated enemy pays AP at once by its size class — up to the current cap, never above it (and never
+  // takes AP away if a Full-AP start already sits at the cap). The event carries what was really paid for "+N AP".
+  function bounty(u) {
+    const cls = u.ace ? 'boss' : BM.sizeClass(u.form), n = C.BOUNTY[cls] || 0, cap = genInfo().cap;
+    const before = S.ap;
+    S.ap = Math.max(S.ap, Math.min(cap, S.ap + n));
+    S.bountyPaid = (S.bountyPaid || 0) + (S.ap - before);
+    S.events.push({ type: 'bounty', unit: u, cls, n, paid: Math.round(S.ap - before) });
   }
 
   function end(result) {
@@ -150,5 +178,5 @@ BM.Battle = function (stage, profile, opts = {}) {
     }
   }
 
-  return { S, step, spawn, canSpawn, upgradeGen, genInfo, count };
+  return { S, step, spawn, canSpawn, upgradeGen, genInfo, count, hitUnitForTest: (u, tgt, raw) => hitUnit(u, tgt, raw, false) };
 };
