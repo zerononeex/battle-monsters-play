@@ -1,10 +1,205 @@
-<!DOCTYPE html>
-<html lang="en"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Battle Monsters</title></head>
-<body style="font-family:system-ui;background:#10131a;color:#e8ecf4;display:grid;place-items:center;height:100vh;margin:0">
-<div style="text-align:center">
-<h1>Battle Monsters</h1>
-<p>The Kanto campaign is being built — Phase 3 (map + first 12 stages) is in progress.<br>This page becomes the playable game as soon as it lands.</p>
-</div>
-</body></html>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Battle Monsters</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<canvas id="field"></canvas>
+
+<!-- Profile picker (launch screen) -->
+<section id="scr-profiles" class="screen">
+  <div class="profiles-wrap">
+    <h1 class="logo small" id="logo-pick">Battle<br>Monsters</h1>
+    <h2 class="pick-title">Who's playing?</h2>
+    <div id="slot-list" class="slot-list"></div>
+    <button id="btn-import" class="big-btn alt mid">📥 Load a code</button>
+  </div>
+</section>
+
+<!-- Title / home for the active profile -->
+<section id="scr-title" class="screen hidden">
+  <button id="btn-switch" class="player-chip corner-tl" aria-label="Switch player"><span id="chip-name">Player</span><span id="chip-grade" class="chip-grade"></span><span class="chip-sw">⇄</span></button>
+  <div class="title-wrap">
+    <h1 id="logo" class="logo">Battle<br>Monsters</h1>
+    <canvas id="title-sprite" width="200" height="140"></canvas>
+    <button id="btn-play" class="big-btn">PLAY</button>
+    <div class="row-btns">
+      <button id="btn-team" class="big-btn alt mid">🎴 Team</button>
+      <button id="btn-collection" class="big-btn alt mid">📖 Friends</button>
+    </div>
+  </div>
+  <button id="btn-title-settings" class="icon-btn corner-tr" aria-label="Settings">⚙</button>
+</section>
+
+<!-- Kanto campaign map = stage select (Phase 3) -->
+<section id="scr-map" class="screen hidden">
+  <div id="map-box" class="map-box">
+    <canvas id="map-canvas"></canvas>
+    <div id="map-nodes"></div>
+    <canvas id="map-token" class="map-token" width="56" height="76"></canvas>
+  </div>
+  <div class="map-ui">
+    <span id="map-tickets" class="ticket-pill"></span>
+    <button id="btn-map-back" class="icon-btn" aria-label="Back">◀</button>
+  </div>
+  <button id="btn-map-dev" class="dev-btn map-dev hidden">DEV: Type Test</button>
+</section>
+
+<!-- Pre-battle: stage name, town theme, enemy preview, rewards, Battle + Team -->
+<section id="scr-prebattle" class="screen hidden">
+  <div class="pre-panel">
+    <div class="pre-kicker" id="pre-kicker"></div>
+    <h2 id="pre-name" class="pre-name"></h2>
+    <div id="pre-sub" class="pre-sub"></div>
+    <h3 class="pre-h">Who you'll meet</h3>
+    <div id="pre-foes" class="pre-foes"></div>
+    <h3 class="pre-h" id="pre-rew-h">Rewards</h3>
+    <div id="pre-rewards" class="rewards"></div>
+    <div class="row-btns">
+      <button id="btn-pre-back" class="big-btn alt mid">◀ Map</button>
+      <button id="btn-pre-team" class="big-btn alt mid">🎴 Team</button>
+      <button id="btn-pre-go" class="big-btn">⚔ Battle!</button>
+    </div>
+  </div>
+</section>
+
+<!-- Collection ("Friends"): owned lines, their forms, level, locked forms greyed -->
+<section id="scr-collection" class="screen hidden">
+  <div class="sub-head">
+    <button id="btn-coll-back" class="icon-btn" aria-label="Back">◀</button>
+    <h2>Friends <span id="coll-count" class="head-count"></span></h2>
+    <button id="btn-dev-unlock" class="dev-btn hidden">DEV: unlock all</button>
+  </div>
+  <div id="coll-grid" class="coll-grid"></div>
+</section>
+
+<!-- Team (deck): up to 10 lines in 2 rows of 5; tap a slot to choose which unlocked form it fields -->
+<section id="scr-team" class="screen hidden">
+  <div class="sub-head">
+    <button id="btn-team-back" class="icon-btn" aria-label="Back">◀</button>
+    <h2>Team <span id="team-count" class="head-count"></span></h2>
+    <span class="sub-hint">Tap a Pokémon to switch its form · ✕ to take it off</span>
+  </div>
+  <div id="deck" class="deck"></div>
+  <h3 class="bench-title">Your friends — tap to add</h3>
+  <div id="bench" class="bench"></div>
+</section>
+
+<!-- Battle HUD -->
+<section id="scr-battle" class="screen hidden">
+  <button id="btn-pause" class="icon-btn corner-tl" aria-label="Pause">❚❚</button>
+  <div id="ap-pill" class="ap-pill"><span class="ap-icon">⚡</span><span id="ap-num">0</span><span class="ap-cap">/ <span id="ap-cap">0</span></span></div>
+  <div id="hint" class="hint hidden"></div>
+  <div id="hud" class="hud">
+    <button id="btn-gen" class="gen-btn">
+      <span class="gen-title">AP Generator</span>
+      <span class="gen-lv">Lv <b id="gen-lv">1</b></span>
+      <span class="gen-cost" id="gen-cost">⚡120</span>
+    </button>
+    <div id="cards" class="cards"></div>
+    <button id="btn-row" class="row-btn hidden" aria-label="Other row"><span id="row-lbl">1/2</span><span>⇅</span></button>
+  </div>
+</section>
+
+<!-- Pause / settings (minimal on purpose: pause, music, sound, erase profile) -->
+<section id="scr-pause" class="overlay hidden">
+  <div class="panel">
+    <h2 id="pause-title">Paused</h2>
+    <div class="row-btns" id="pause-battle-btns">
+      <button id="btn-resume" class="big-btn">Resume</button>
+      <button id="btn-quit" class="big-btn alt">Leave battle</button>
+    </div>
+    <div class="toggles">
+      <button id="tg-music" class="toggle">🎵 Music: <b>ON</b></button>
+      <button id="tg-sound" class="toggle">🔊 Sound: <b>ON</b></button>
+    </div>
+    <button id="btn-export" class="toggle share-btn">📤 Share my save code</button>
+    <button id="btn-dev-music" class="dev-btn hidden">DEV: play next music key</button>
+    <button id="btn-erase" class="erase-btn"><span class="erase-fill"></span><span class="erase-label">Hold 3 s to erase this profile</span></button>
+    <button id="btn-close-settings" class="big-btn alt hidden">Done</button>
+  </div>
+</section>
+
+<!-- Result -->
+<section id="scr-result" class="overlay hidden">
+  <div class="panel">
+    <h2 id="result-title" class="result-title">VICTORY!</h2>
+    <p id="result-sub"></p>
+    <div id="result-rewards" class="rewards"></div>
+    <div class="row-btns">
+      <button id="btn-retry" class="big-btn">Retry</button>
+      <button id="btn-map" class="big-btn alt">Map</button>
+    </div>
+  </div>
+</section>
+
+<!-- New player -->
+<section id="scr-create" class="overlay hidden">
+  <div class="panel">
+    <h2 id="create-title">New player</h2>
+    <input id="create-name" class="name-input" maxlength="12" placeholder="Your name" autocomplete="off" autocapitalize="words" spellcheck="false">
+    <p class="grade-q">What grade are you in?</p>
+    <div id="grade-btns" class="grade-btns"></div>
+    <div class="row-btns">
+      <button id="btn-create-go" class="big-btn">Let's go!</button>
+      <button id="btn-create-cancel" class="big-btn alt">Back</button>
+    </div>
+  </div>
+</section>
+
+<!-- Save code: export (copy) / import (paste + pick a slot) -->
+<section id="scr-code" class="overlay hidden">
+  <div class="panel code-panel">
+    <h2 id="code-title">Save code</h2>
+    <p id="code-help"></p>
+    <textarea id="code-text" class="code-text" spellcheck="false" autocomplete="off" autocapitalize="off"></textarea>
+    <div id="code-export-btns" class="row-btns">
+      <button id="btn-code-copy" class="big-btn mid">📋 Copy</button>
+    </div>
+    <div id="code-import-slots" class="row-btns"></div>
+    <p id="code-status" class="code-status"></p>
+    <button id="btn-code-close" class="big-btn alt mid">Done</button>
+  </div>
+</section>
+
+<!-- Line detail (from the collection) -->
+<section id="scr-line" class="overlay hidden">
+  <div class="panel line-panel">
+    <h2 id="line-title"></h2>
+    <div id="line-forms" class="line-forms"></div>
+    <div id="line-info" class="line-info"></div>
+    <button id="btn-line-close" class="big-btn alt mid">Close</button>
+  </div>
+</section>
+
+<div id="toast" class="toast"></div>
+<div id="rotate" class="rotate"><div>↻<br>Turn your iPad sideways to play!</div></div>
+
+<!-- BM:SCRIPTS (tools/bundle.mjs inlines everything between these markers) -->
+<script src="src/data/types.js"></script>
+<script src="src/data/constants.js"></script>
+<script src="src/data/units.js"></script>
+<script src="src/data/enemies.js"></script>
+<script src="src/data/stages.js"></script>
+<script src="src/data/kanto_map.js"></script>
+<script src="src/data/banners.js"></script>
+<script src="src/data/manifest.js"></script>
+<script src="src/audio/music_keys.js"></script>
+<script src="src/audio/songs.js"></script>
+<script src="src/audio/audio.js"></script>
+<script src="src/save.js"></script>
+<script src="src/engine/sprites.js"></script>
+<script src="src/engine/battle.js"></script>
+<script src="src/engine/render.js"></script>
+<script src="src/screens.js"></script>
+<script src="src/map.js"></script>
+<script src="src/main.js"></script>
+<!-- /BM:SCRIPTS -->
+</body>
+</html>
