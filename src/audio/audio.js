@@ -13,6 +13,7 @@ BM.Audio = (function () {
     ac = new Ctx();
     master = ac.createGain(); master.gain.value = 0.9; master.connect(ac.destination);
     musicGain = ac.createGain(); musicGain.gain.value = musicOn ? 1 : 0; musicGain.connect(master);
+    duckGain = ac.createGain(); duckGain.gain.value = duckLevel; duckGain.connect(musicGain); // P2: music → duck → music on/off
     sfxGain = ac.createGain(); sfxGain.gain.value = soundOn ? 1 : 0; sfxGain.connect(master);
     noiseBuf = ac.createBuffer(1, ac.sampleRate * 0.5, ac.sampleRate);
     const d = noiseBuf.getChannelData(0);
@@ -170,6 +171,22 @@ BM.Audio = (function () {
     }
   }
 
+  // ---------- P2 music ducking (playtest: kids couldn't hear the spoken spelling word) ----------
+  // duck(level): the music plays at `level` (1 = normal) — ~0.1 for a whole challenge run, ~0.02 while a word is spoken.
+  // MP3s: iOS ignores <audio>.volume, so the shared element is routed through WebAudio (a gain node) the first time it is
+  // ducked with a RUNNING AudioContext (never before — an un-resumed context would silence the music); until then (and if
+  // routing is refused) <audio>.volume carries the duck. The synth music sits behind the same duck gain.
+  let duckLevel = 1, duckGain = null, elRouted = false;
+  function routeEl() {
+    if (elRouted || !musicEl || !ac || ac.state !== 'running') return;
+    try { const src = ac.createMediaElementSource(musicEl); src.connect(duckGain); musicEl.__bmSrc = src; elRouted = true; musicEl.volume = 0.7; } catch (e) { elRouted = false; }
+  }
+  function duck(level) {
+    duckLevel = Math.max(0, Math.min(1, level));
+    if (ensure()) { routeEl(); duckGain.gain.setTargetAtTime(duckLevel, ac.currentTime, 0.05); }
+    if (musicEl && !elRouted) musicEl.volume = 0.7 * duckLevel;
+  }
+
   // ---------- Music ----------
   let current = null; // { key, el?, timer?, stop() }
   function playMusic(key) {
@@ -180,7 +197,7 @@ BM.Audio = (function () {
     const file = BM.MUSIC_FILES[key];
     if (file) {
       const el = shared();
-      el.src = file; el.loop = loop; el.volume = 0.7;
+      el.src = file; el.loop = loop; el.volume = elRouted ? 0.7 : 0.7 * duckLevel;
       el.currentTime = 0;
       if (musicOn) el.play().catch(() => {}); // music off: the track is loaded but stays paused (G4)
       current = { key, el, stop() { el.pause(); } };
@@ -194,7 +211,7 @@ BM.Audio = (function () {
     const stepDur = 60 / song.bpm / 4;
     const tracks = song.tracks.map((tr) => ({ ...tr, steps: tr.notes.trim().split(/\s+/) }));
     const total = Math.max(...tracks.map((t) => t.steps.length));
-    const out = ac.createGain(); out.gain.value = 1; out.connect(musicGain);
+    const out = ac.createGain(); out.gain.value = 1; out.connect(duckGain);
     let step = 0, nextTime = ac.currentTime + 0.08, done = false;
     function noteLen(tr, i) {
       let n = 1;
@@ -228,7 +245,8 @@ BM.Audio = (function () {
   function suspend() { if (ac && ac.state === 'running') ac.suspend(); if (current && current.el) current.el.pause(); }
   function resume() { if (ac && ac.state === 'suspended') ac.resume(); if (current && current.el && musicOn) current.el.play().catch(() => {}); }
 
-  return { unlock, sfx, cry, preloadCries, playMusic, stopMusic, setMusic, setSound, suspend, resume,
+  return { unlock, sfx, cry, preloadCries, playMusic, stopMusic, setMusic, setSound, suspend, resume, duck,
+    get duckLevel() { return duckLevel; }, get ctx() { return ac; },
     get currentKey() { return current && current.key; },
     get soundOn() { return soundOn; }, get musicOn() { return musicOn; }, stats,
     // what is playing now: 'mp3' (a supplied art-src/music file) or 'synth' (the WebAudio fallback) — tests + dev

@@ -37,6 +37,8 @@ BM.Render = function (canvas) {
     vermilion_city: { ...TOWN, sky: ['#f59a5a', '#ffe0a8'], sea: '#3d8fd1', hill: '#9cc77a', trees: '#5c9a48', cloud: 'rgba(255,230,200,.8)', houses: [[0.2, 70, '#e07a2e']] },
     lavender_town: { ...TOWN, sky: ['#6a4f8f', '#c9b3e0'], hill: '#7f8f86', trees: '#4f6a5a', grass: '#7aa070', grass2: '#6a9060', lane: '#b8a890', tower: true, cloud: 'rgba(240,230,255,.5)', houses: [[0.25, 70, '#7a4fa8'], [0.75, 70, '#7a4fa8']] },
     celadon_city: { ...TOWN, city: true, trees: '#3f8f4a', houses: [[0.56, 70, '#3fa86a']] },
+    // Indigo Plateau (Elite Four + Champion) until the hall / Champion room art (#270–#271) lands: dusk sky, grand league hall
+    indigo_plateau: { ...TOWN, sky: ['#3b2f6e', '#c89be0'], hill: '#6f7fa8', trees: '#4a5a88', grass: '#7a86b0', grass2: '#6a76a0', lane: '#c9b98f', cloud: 'rgba(255,230,255,.45)', city: true, houses: [[0.5, 150, '#c9a43d']] },
   };
   function drawBg(key) {
     const c = document.createElement('canvas');
@@ -185,7 +187,7 @@ BM.Render = function (canvas) {
     else if (u.strikeT > 0) frame = sp.attack[sp.attack.length - 1];
     else if (u.state === 'attack') frame = sp.run[0];
     else frame = sp.run[Math.floor(u.animT * 9) % sp.run.length];
-    const h = L.unitH(u.form) * (u.boss ? 2 : 1), s = h / sp.h;
+    const h = L.unitH(u.form) * (u.boss ? BM.C.GIANT.size : 1), s = h / sp.h;
     let x = L.sx(u.x);
     const y = L.ground() + L.depth(u);
     // run-only sprites "lunge" on the strike (enemy wave fodder: run sheet + type effect only)
@@ -197,18 +199,35 @@ BM.Render = function (canvas) {
     ctx.translate(x, y);
     if (u.side === -1) ctx.scale(-1, 1);
     if (u.dead) ctx.translate(0, u.deadT * h * 0.4);
+    if (u.st && (u.st.type === 'freeze' || u.st.type === 'sleep')) ctx.filter = u.st.type === 'freeze' ? 'saturate(.4) brightness(1.25) hue-rotate(160deg)' : 'brightness(.8)';
+    else if (u.st && u.st.type === 'poison') ctx.filter = 'hue-rotate(250deg) saturate(1.4)';
     ctx.drawImage(frame, -sp.ax * s, -sp.ay * s, sp.w * s, sp.h * s);
+    ctx.filter = 'none';
     ctx.restore();
     if (!u.dead) {
       if (u.ace) { // leader's ace marker
         ctx.save(); ctx.font = `900 ${Math.round(Math.max(14, h * 0.2))}px system-ui, sans-serif`; ctx.textAlign = 'center';
         ctx.lineWidth = 4; ctx.strokeStyle = '#2a1a3a'; ctx.fillStyle = '#ffd84a';
-        ctx.strokeText('★ ACE', x, y - h - 14); ctx.fillText('★ ACE', x, y - h - 14); ctx.restore();
+        const tag = u.giant ? '★ GIANT ACE' : '★ ACE';
+        ctx.strokeText(tag, x, y - h - 14); ctx.fillText(tag, x, y - h - 14); ctx.restore();
       }
       if (u.hp < u.maxHp) {
         const bw = h * 0.6, by = y - h - 8;
         ctx.fillStyle = 'rgba(0,0,0,.55)'; ctx.fillRect(x - bw / 2 - 1, by - 1, bw + 2, 7);
         ctx.fillStyle = u.side === 1 ? '#5ad35a' : '#f05050'; ctx.fillRect(x - bw / 2, by, bw * (u.hp / u.maxHp), 5);
+      }
+      // K4 status icon over the unit (❄ ⚡ 💤 ☠) + a tint while frozen / asleep
+      if (u.st) {
+        const sd = BM.STATUS[u.st.type];
+        ctx.save(); ctx.font = `900 ${Math.round(Math.max(16, h * 0.26))}px system-ui, sans-serif`; ctx.textAlign = 'center';
+        const bob = Math.sin(performance.now() / 160) * 3;
+        ctx.lineWidth = 4; ctx.strokeStyle = 'rgba(20,20,40,.75)'; ctx.fillStyle = sd.color; ctx.strokeText(sd.icon, x, y - h - 18 + bob); ctx.fillText(sd.icon, x, y - h - 18 + bob);
+        ctx.restore();
+      }
+      if (u.breaker) { // K2 wall-breaker marker
+        ctx.save(); ctx.font = `900 ${Math.round(Math.max(13, h * 0.17))}px system-ui, sans-serif`; ctx.textAlign = 'center';
+        ctx.lineWidth = 4; ctx.strokeStyle = '#2a1a3a'; ctx.fillStyle = '#ff7a59';
+        ctx.strokeText('💥 BREAKER', x, y - h - (u.st ? 40 : 14)); ctx.fillText('💥 BREAKER', x, y - h - (u.st ? 40 : 14)); ctx.restore();
       }
       if (u.side === 1) { // small Lv tag under your units (Phase 4)
         ctx.save(); ctx.font = `800 ${Math.round(Math.max(10, h * 0.13))}px system-ui, sans-serif`; ctx.textAlign = 'center';
@@ -248,7 +267,16 @@ BM.Render = function (canvas) {
       moveFx(BM.combatOf(a.form), a, L.sx(a.x), L.ground() + L.depth(a) - L.unitH(a.form) * 0.55,
         x + (Math.random() - 0.5) * bw * 0.4, L.ground() - bw * 0.5 + (Math.random() - 0.5) * bw * 0.4, BM.TYPE_COLORS[a.form.attackType], now + (ev.k || 0) * 0.11);
     } else if (ev.type === 'ace') {
-      texts.push({ text: `${ev.leader || 'The leader'} sends out ${ev.unit.form.name}!`, x: W * 0.5, y: fieldH * 0.32, t0: now, dur: 2.2, size: 36, color: '#ffb347' });
+      texts.push({ text: `${ev.leader || 'The leader'} sends out ${ev.giant ? 'GIANT ' : ''}${ev.unit.form.name}!`, x: W * 0.5, y: fieldH * 0.32, t0: now, dur: 2.2, size: ev.giant ? 42 : 36, color: '#ffb347' });
+    } else if (ev.type === 'burst') { // K2: a burst group / counter-burst pushes out
+      texts.push({ text: ev.kind === 'threshold' ? 'The den fights back!' : 'Here they come!', x: W * 0.62, y: fieldH * 0.4, t0: now, dur: 1.4, size: ev.kind === 'threshold' ? 34 : 26, color: ev.kind === 'threshold' ? '#ff7a59' : '#ffd84a' });
+    } else if (ev.type === 'aoe') { // K3: a ring over the hit zone
+      const t = ev.target, cx = L.sx(t.x), cy = L.ground() + L.depth(t) - L.unitH(t.form) * 0.4, r = Math.abs(L.sx(ev.radius) - L.sx(0));
+      fx.push({ kind: 'ring', x: cx, y: cy, r, color: BM.TYPE_COLORS[ev.attacker.form.attackType] || '#fff', t0: now + 0.1, dur: 0.4 });
+      if (ev.sig && !texts.some((x) => x.text === ev.attacker.sig.move && now - x.t0 < 1.5)) texts.push({ text: ev.attacker.sig.move + '!', x: Math.min(Math.max(cx, 160), W - 160), y: cy - L.unitH(ev.attacker.form) * 1.2, t0: now, dur: 1.2, size: 32, color: '#ffe14a' });
+    } else if (ev.type === 'status') { // K4: a puff of the status icon
+      const t = ev.unit;
+      if (!texts.some((x) => x.text === BM.STATUS[ev.status].name + '!' && now - x.t0 < 0.5)) texts.push({ text: BM.STATUS[ev.status].icon + ' ' + BM.STATUS[ev.status].name + '!', x: Math.min(Math.max(L.sx(t.x), 120), W - 120), y: L.ground() + L.depth(t) - L.unitH(t.form) * (t.boss ? 2.2 : 1.2), t0: now, dur: 0.9, size: 20, color: '#e0f4ff' });
     } else if (ev.type === 'bounty' && ev.paid > 0) { // G3: "+N AP" floats up from the defeated enemy (nothing at the cap)
       const t = ev.unit, ty = L.ground() + L.depth(t) - L.unitH(t.form) * (t.ace ? 1.1 : 0.9);
       if (texts.length > 10) texts.shift();
@@ -358,6 +386,11 @@ BM.Render = function (canvas) {
       ctx.save();
       if (f.art) { drawFxArt(f, k); ctx.restore(); continue; }
       if (f.kind === 'projectile' || f.kind === 'stream' || f.kind === 'move') { drawMoveProc(f, k); ctx.restore(); continue; }
+      if (f.kind === 'ring') {
+        ctx.globalAlpha = (1 - k) * 0.7; ctx.strokeStyle = f.color; ctx.lineWidth = 6;
+        ctx.beginPath(); ctx.ellipse(f.x, f.y, f.r * (0.4 + k * 0.6), f.r * 0.22 * (0.4 + k * 0.6), 0, 0, 7); ctx.stroke();
+        ctx.globalAlpha = (1 - k) * 0.2; ctx.fillStyle = f.color; ctx.fill(); ctx.restore(); continue;
+      }
       if (f.kind === 'shot') {
         const x = f.x0 + (f.x1 - f.x0) * k, y = f.y0 + (f.y1 - f.y0) * k;
         ctx.fillStyle = f.color; ctx.strokeStyle = '#fff'; ctx.lineWidth = 2;
@@ -389,7 +422,9 @@ BM.Render = function (canvas) {
   function draw(B, now) {
     const S = B.S;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    if (!bgCanvas || bgKey !== S.stage.background) { bgCanvas = drawBg(S.stage.background); bgKey = S.stage.background; }
+    // a gym / Elite Four interior (stage.bgArt, ASSET_PROMPTS #262–#271) once its art is DONE, else the town / placeholder
+    const key = S.stage.bgArt && BM.Sprites.bg(S.stage.bgArt) ? S.stage.bgArt : S.stage.background;
+    if (!bgCanvas || bgKey !== key) { bgCanvas = drawBg(key); bgKey = key; }
     ctx.drawImage(bgCanvas, 0, 0, W, fieldH);
     drawBase(1, S.playerBase.hp / S.playerBase.max);
     drawBase(-1, S.enemyBase.hp / S.enemyBase.max);

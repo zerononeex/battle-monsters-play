@@ -111,19 +111,70 @@ BM.GachaScreen = function (ui) {
   tap($('btn-legend-x'), closeLegend);
   $('scr-legend').addEventListener('pointerdown', (e) => { if (e.target.id === 'scr-legend') { e.preventDefault(); closeLegend(); } });
 
-  // ---------- reveal ----------
-  let lastResults = [];
+  // ---------- reveal: R2 Spotlight Stage on the S4 Elemental Burst ----------
+  // One pull at a time, centred: the Pokémon (animated run cycle) on a podium under the spotlight, or an item bouncing
+  // slowly in it; rarity ribbon + burst tint; name + stars + type/role plate below. ×10: Next ▶ steps through all ten
+  // (Skip ▸▸ jumps to the end), then the recap grid. The burst is the generated art when DONE, else CSS rays.
+  let lastResults = [], rvAt = 0, rvRaf = 0;
+  const TINT = { legendary: '#ffcf3a', super: '#c46bff', rare: '#4aa8ff', basic: '#9ad0ff', item: '#7fe0a8', new: '#ff9a3a' };
   function reveal(results) {
-    lastResults = results;
+    lastResults = results; rvAt = 0;
     BM.Audio.playMusic('gacha_fanfare');
-    const grid = $('reveal-grid'); grid.innerHTML = '';
+    const art = BM.Sprites.artSrc('ui/reveal_burst');
+    $('rv-burst').style.backgroundImage = art ? `url("${art}")` : '';
+    $('rv-burst').classList.toggle('art', !!art); $('rv-burst').dataset.fallback = art ? 'art' : 'css';
+    show('rv-stage', true); show('rv-recap', false);
+    show('scr-reveal', true);
+    showOne();
+  }
+  function showOne() {
+    const r = lastResults[rvAt], many = lastResults.length > 1, stage = $('rv-stage');
+    cancelAnimationFrame(rvRaf);
+    const fig = $('rv-figure'), plate = $('rv-plate'); fig.innerHTML = ''; plate.innerHTML = '';
+    let tint, ribbon;
+    stage.className = 'rv-stage rv-' + r.kind + (r.isNew ? ' new' : '');
+    if (r.line) {
+      const line = BM.LINES[r.line], f = line.forms[0], rar = BM.rarityOf(r.line);
+      tint = TINT[rar.id]; ribbon = (r.kind === 'legendary' ? '✨ LEGENDARY ✨' : rar.name.toUpperCase()) + (r.isNew ? ' · NEW!' : '');
+      stage.dataset.line = r.line; stage.dataset.rarity = rar.id; delete stage.dataset.item;
+      const cv = document.createElement('canvas'); cv.className = 'rv-mon'; cv.width = 360; cv.height = 300; fig.appendChild(cv);
+      const sp = BM.Sprites.get(f), g = cv.getContext('2d'), sc = Math.min(270 / sp.h, 330 / sp.w);
+      const draw = (now) => { g.clearRect(0, 0, cv.width, cv.height); const fr = sp.run[Math.floor(now / 110) % sp.run.length];
+        g.drawImage(fr, cv.width / 2 - sp.ax * sc, cv.height - 6 - sp.ay * sc, sp.w * sc, sp.h * sc); rvRaf = requestAnimationFrame(draw); };
+      rvRaf = requestAnimationFrame(draw);
+      plate.innerHTML = `<span class="rv-pname">${line.name}</span><span class="rv-pstars" style="color:${rar.color}">${'★'.repeat(rar.stars)}</span>`;
+      const chips = document.createElement('div'); chips.className = 'bc-chips rv-chips';
+      for (const t of f.types) { const ic = BM.Sprites.artSrc('icons/type_' + t), c = document.createElement('span'); c.className = 'bc-chip type'; c.dataset.type = t; c.style.background = BM.TYPE_COLORS[t]; c.innerHTML = (ic ? `<img src="${ic}" alt="">` : '') + t; chips.appendChild(c); }
+      const rl = BM.roleLabel(f), rc = document.createElement('span'); rc.className = 'bc-chip role'; rc.textContent = `${rl.icon} ${rl.text}`; chips.appendChild(rc);
+      plate.appendChild(chips);
+      plate.insertAdjacentHTML('beforeend', r.dupe ? '<span class="rv-ptag">Already a friend! +XP</span>' : `<span class="rv-ptag new">NEW FRIEND!${r.pity ? ' (pity)' : ''}</span>`);
+      setTimeout(() => BM.Audio.cry(f.id, f.size, 1, 'ui'), 350);
+    } else {
+      const it = BM.ITEM_INFO[r.item];
+      tint = TINT.item; ribbon = r.kind === 'battle' ? 'BATTLE ITEM' : r.kind === 'evo' ? 'EVOLUTION ITEM' : 'XP CANDY';
+      stage.dataset.item = r.item; delete stage.dataset.line; stage.dataset.rarity = 'item';
+      fig.innerHTML = `<span class="rv-item">${ui.itemIcon(r.item)}</span>`;
+      plate.innerHTML = `<span class="rv-pname">${it.name}</span><span class="rv-ptag">${it.blurb || ''}</span>`;
+    }
+    stage.style.setProperty('--rv-tint', tint);
+    $('rv-ribbon').textContent = ribbon;
+    $('rv-count').textContent = many ? `${rvAt + 1} / ${lastResults.length}` : '';
+    const last = rvAt >= lastResults.length - 1;
+    $('btn-rv-next').textContent = last ? (many ? 'See all ▶' : 'OK!') : 'Next ▶';
+    show('btn-rv-skip', many && !last);
+    // re-trigger the entrance animation
+    fig.classList.remove('in'); void fig.offsetWidth; fig.classList.add('in');
+  }
+  function recap() {
+    cancelAnimationFrame(rvRaf);
+    const results = lastResults, grid = $('reveal-grid'); grid.innerHTML = '';
     grid.classList.toggle('ten', results.length > 1);
     const best = results.some((r) => r.kind === 'legendary') ? 'legendary' : results.some((r) => r.isNew) ? 'new' : '';
-    $('reveal-title').textContent = best === 'legendary' ? '✨ LEGENDARY! ✨' : best === 'new' ? 'A new friend!' : 'You got…';
+    $('reveal-title').textContent = best === 'legendary' ? '✨ LEGENDARY! ✨' : best === 'new' ? 'New friends!' : 'You got…';
     results.forEach((r, i) => {
       const c = document.createElement('div');
       c.className = 'rv-card rv-' + r.kind + (r.isNew ? ' new' : '') + (r.dupe ? ' dupe' : '');
-      c.style.animationDelay = (i * 0.12) + 's';
+      c.style.animationDelay = (i * 0.06) + 's';
       if (r.line) {
         const line = BM.LINES[r.line], rar = BM.rarityOf(r.line);
         c.dataset.line = r.line; c.classList.add('rar-' + rar.id);
@@ -136,10 +187,15 @@ BM.GachaScreen = function (ui) {
       }
       grid.appendChild(c);
     });
-    show('scr-reveal', true); ui.fit($('scr-reveal'));
-    if (results.some((r) => r.line)) setTimeout(() => { const r = results.find((x) => x.line); const f = BM.LINES[r.line].forms[0]; BM.Audio.cry(f.id, f.size, 1, 'ui'); }, 600);
+    show('rv-stage', false); show('rv-recap', true); ui.fit($('scr-reveal'));
   }
-  tap($('btn-reveal-ok'), () => { BM.Audio.sfx('tap'); show('scr-reveal', false); BM.Audio.playMusic('gacha'); render(); });
+  function closeReveal() { cancelAnimationFrame(rvRaf); BM.Audio.sfx('tap'); show('scr-reveal', false); BM.Audio.playMusic('gacha'); render(); }
+  tap($('btn-rv-next'), () => {
+    if (rvAt < lastResults.length - 1) { rvAt++; BM.Audio.sfx('tap'); showOne(); return; }
+    if (lastResults.length > 1) { BM.Audio.sfx('tap'); recap(); } else closeReveal();
+  });
+  tap($('btn-rv-skip'), () => { BM.Audio.sfx('tap'); recap(); });
+  tap($('btn-reveal-ok'), closeReveal);
 
-  return { render, reveal, get lastResults() { return lastResults; }, setBanner: (id) => { bannerId = id; }, setCurrency: (c) => { currency = c; } };
+  return { render, reveal, recap, get revealAt() { return rvAt; }, get lastResults() { return lastResults; }, setBanner: (id) => { bannerId = id; }, setCurrency: (c) => { currency = c; } };
 };

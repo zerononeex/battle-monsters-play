@@ -5,21 +5,42 @@
 // out with a little celebration (the learning moment). No speech engine → the clue sentence is shown with the word's
 // letters blanked (tiles still work). The current screen's music keeps playing; correct / wrong are WebAudio SFX.
 window.BM = window.BM || {};
-// Text-to-speech wrapper (tests read `log`; `available` false → the blanked-clue fallback).
+// Text-to-speech wrapper (tests read `log`; `available` false → the blanked-clue fallback + the visible notice).
+// P2 (playtest: the word could not be heard): cancel() + resume() before every utterance (Safari can stall the queue), an
+// explicitly chosen English voice, volume 1, rate 0.85; the music is near-muted while the word is spoken and returns to the
+// run's duck level after; `prime()` speaks a silent utterance from the run-start tap so iOS lets later words through; any
+// failure / error event calls `onFail` (the screen shows "🔊 Turn sound on?") — a spelling run is never silently wordless.
 BM.Speech = (function () {
   const log = [];
+  let onFail = null, voice = null;
   const available = () => typeof window.speechSynthesis !== 'undefined' && typeof window.SpeechSynthesisUtterance !== 'undefined';
+  function pickVoice() {
+    if (voice) return voice;
+    try { const vs = window.speechSynthesis.getVoices() || []; voice = vs.find((v) => /^en[-_]US/i.test(v.lang) && v.localService) || vs.find((v) => /^en[-_]US/i.test(v.lang)) || vs.find((v) => /^en/i.test(v.lang)) || null; } catch (e) { voice = null; }
+    return voice;
+  }
+  function utter(text, vol) {
+    const s = window.speechSynthesis;
+    s.cancel(); if (s.resume) s.resume();
+    const u = new SpeechSynthesisUtterance(text); u.lang = 'en-US'; u.rate = 0.85; u.pitch = 1.05; u.volume = vol;
+    const v = pickVoice(); if (v) { try { u.voice = v; } catch (e) { voice = null; } } // a bad voice must never cost the word
+    return u;
+  }
   function speak(text) {
     log.push(text);
-    if (!available()) return false;
+    if (!available()) { if (onFail) onFail('missing'); return false; }
     try {
-      const s = window.speechSynthesis; s.cancel();
-      const u = new SpeechSynthesisUtterance(text); u.lang = 'en-US'; u.rate = 0.85; u.pitch = 1.05;
-      s.speak(u); return true;
-    } catch (e) { return false; }
+      const u = utter(text, 1);
+      BM.Audio.duck(BM.CHALLENGE.DUCK_SPEAK);
+      const back = () => { if (BM.Speech.active) BM.Audio.duck(BM.CHALLENGE.DUCK_RUN); };
+      u.onend = back; u.onerror = (e) => { back(); if (e && e.error !== 'interrupted' && e.error !== 'canceled' && onFail) onFail('error'); };
+      setTimeout(back, 6000); // safety: never leave the music near-muted
+      window.speechSynthesis.speak(u); return true;
+    } catch (e) { if (onFail) onFail('error'); return false; }
   }
+  function prime() { if (!available()) return; try { window.speechSynthesis.speak(utter(' ', 0)); } catch (e) { /* ignore */ } }
   const stop = () => { try { if (available()) window.speechSynthesis.cancel(); } catch (e) { /* ignore */ } };
-  return { speak, stop, available, log };
+  return { speak, stop, prime, available, log, active: false, set onFail(f) { onFail = f; } };
 })();
 
 BM.ChallengeScreen = function (ui) {
@@ -35,12 +56,13 @@ BM.ChallengeScreen = function (ui) {
     const p = prof(), st = BM.stageById(id), gc = BM.Challenge.gradeFor(p, 'clear'), gt = BM.Challenge.gradeFor(p, 'tickets');
     const wins = p.cleared[id] || 0;
     $('btn-ch-clear').innerHTML = `<span class="cp-t">⭐ Clear this stage</span><small>${CH.GOAL} right in a row · Grade ${gc}<br>${wins ? 'replay' : 'first-clear'} rewards, no battle</small>`;
-    $('btn-ch-tickets').innerHTML = `<span class="cp-t">🎫 Earn tickets</span><small>Grade ${gt} · 1 🎫 each right<br>+${CH.BONUS} bonus every ${CH.BONUS_EVERY} in a row</small>`;
+    // P1: the pre-battle Challenge is AUTO-CLEAR only; tickets are earned on the Gacha screen
+    $('btn-ch-tickets').innerHTML = `<span class="cp-t">🎫 Want tickets?</span><small>Earn them on the Gacha screen</small>`;
     $('chmode-help').textContent = `${st.name}: math and spelling, all mixed up!`;
     show('scr-chmode', true); ui.fit($('scr-chmode'));
   }
   tap($('btn-ch-clear'), () => { BM.Audio.sfx('tap'); show('scr-chmode', false); open('clear'); });
-  tap($('btn-ch-tickets'), () => { BM.Audio.sfx('tap'); show('scr-chmode', false); open('tickets'); });
+  tap($('btn-ch-tickets'), () => { BM.Audio.sfx('deny'); toast('Tickets are earned on the 🎰 Gacha screen!'); });
   const closeChooser = () => show('scr-chmode', false);
   tap($('btn-chmode-x'), closeChooser);
   $('scr-chmode').addEventListener('pointerdown', (e) => { if (e.target.id === 'scr-chmode') { e.preventDefault(); closeChooser(); } });
@@ -48,14 +70,20 @@ BM.ChallengeScreen = function (ui) {
   // ---------- run ----------
   function open(mode, rnd) {
     clearTimeout(timer);
-    run = BM.Challenge.start({ mode, stageId, rnd });
-    ui.go('challenge'); // no music change: the pre-battle (town) theme keeps playing
+    run = BM.Challenge.start({ mode, stageId: mode === 'tickets' ? null : stageId, rnd });
+    ui.go('challenge'); // no music change: the screen's theme keeps playing — but DUCKED for the whole run (P2)
+    BM.Speech.active = true; BM.Audio.duck(CH.DUCK_RUN); BM.Speech.prime(); // inside the start tap: iOS unlocks speech
+    show('ch-sound', !BM.Speech.available());
     renderTop(); renderQ();
   }
+  // P1 (playtest): ticket mode is launched from the GACHA screen ("Answer & Earn Tickets") — earn where you spend.
+  function openTickets(from) { ticketsFrom = from || 'gacha'; stageId = null; open('tickets'); }
+  let ticketsFrom = null;
+  BM.Speech.onFail = () => show('ch-sound', true);
   function renderTop() {
-    const st = BM.stageById(stageId);
+    const st = run.stageId && BM.stageById(run.stageId);
     $('ch-mode').textContent = `${MODE_TXT[run.mode]} · Grade ${run.grade}`;
-    $('ch-stage').textContent = st.name;
+    $('ch-stage').textContent = st ? st.name : '🎫 Ticket challenge';
     const m = $('ch-meter'); m.innerHTML = '';
     if (run.mode === 'clear') {
       for (let i = 0; i < CH.GOAL; i++) { const d = document.createElement('i'); d.className = i < run.streak ? 'on' : ''; m.appendChild(d); }
@@ -85,7 +113,9 @@ BM.ChallengeScreen = function (ui) {
     }
     // spelling: picture + 🔊 on the left; slots + tiles on the right
     const pic = document.createElement('div'); pic.className = 'ch-pic';
-    if (q.form && BM.FORMS[q.form]) pic.appendChild(ui.thumb(BM.FORMS[q.form], 180, false)); else pic.textContent = q.pic;
+    if (q.form && BM.FORMS[q.form]) pic.appendChild(ui.thumb(BM.FORMS[q.form], 180, false));
+    else if (q.pic) pic.textContent = q.pic;
+    else { pic.classList.add('no-pic'); pic.innerHTML = '<span>👂</span><small>Listen!</small>'; } // P3: no picture for this word
     left.appendChild(pic);
     const speech = BM.Speech.available();
     if (speech) {
@@ -192,11 +222,12 @@ BM.ChallengeScreen = function (ui) {
   tap($('btn-chover-again'), () => { BM.Audio.sfx('tap'); show('scr-chover', false); open('clear'); });
   tap($('btn-chover-back'), () => { BM.Audio.sfx('tap'); show('scr-chover', false); leave(); });
   function leave() {
-    clearTimeout(timer); BM.Speech.stop();
+    clearTimeout(timer); BM.Speech.stop(); BM.Speech.active = false; BM.Audio.duck(1);
     if (run && run.mode === 'tickets' && run.tickets) toast(`+${run.tickets} tickets this run — great work!`);
+    if (run && run.mode === 'tickets' && ticketsFrom) { const f = ticketsFrom; ticketsFrom = null; ui.go(f); return; } // back to the gacha: live totals
     ui.back();
   }
   tap($('btn-ch-stop'), () => { BM.Audio.sfx('tap'); leave(); });
 
-  return { choose, open, advance, speak, rerender: () => { renderTop(); renderQ(); }, get run() { return run; }, get last() { return lastOut; }, get stageId() { return stageId; }, set stageId(v) { stageId = v; } };
+  return { choose, open, openTickets, leave, advance, speak, rerender: () => { renderTop(); renderQ(); }, get run() { return run; }, get last() { return lastOut; }, get stageId() { return stageId; }, set stageId(v) { stageId = v; } };
 };

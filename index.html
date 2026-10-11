@@ -58,6 +58,23 @@
     <button id="btn-map-back" class="icon-btn" aria-label="Back">◀</button>
   </div>
   <button id="btn-map-dev" class="dev-btn map-dev hidden">DEV: Type Test</button>
+  <button id="btn-bonus" class="bonus-banner">⭐ BONUS ZONE</button>
+</section>
+
+<!-- Bonus Zone (Phase 7): XP stages · treasure stages · the locked Mega section — its own screen, never on the campaign path -->
+<section id="scr-bonus" class="screen hidden">
+  <div class="bz-panel fit">
+    <div class="sub-head">
+      <button id="btn-bonus-back" class="icon-btn" aria-label="Back to the map">◀</button>
+      <h2>⭐ Bonus Zone</h2>
+      <span class="sub-hint">Replay these as often as you like — they never block the map!</span>
+    </div>
+    <h3 class="bz-h">XP stages <small>team XP for everyone you bring + an XP candy</small></h3>
+    <div id="bz-xp" class="bz-row"></div>
+    <h3 class="bz-h">Treasure stages <small>the first clear always finds the treasure</small></h3>
+    <div id="bz-treasure" class="bz-row treasure-row"></div>
+    <div id="bz-mega" class="bz-row"></div>
+  </div>
 </section>
 
 <!-- Pre-battle: stage name, town theme, enemy preview, rewards, Battle + Team -->
@@ -66,7 +83,7 @@
     <div class="pre-kicker" id="pre-kicker"></div>
     <h2 id="pre-name" class="pre-name"></h2>
     <div id="pre-sub" class="pre-sub"></div>
-    <h3 class="pre-h">Who you'll meet</h3>
+    <h3 class="pre-h" id="pre-foes-h">Who you'll meet</h3>
     <div id="pre-foes" class="pre-foes"></div>
     <h3 class="pre-h" id="pre-rew-h">Rewards</h3>
     <div id="pre-rewards" class="rewards"></div>
@@ -94,21 +111,30 @@
   <div id="coll-grid" class="coll-grid"></div>
 </section>
 
-<!-- Team (T3 Preset Rail + tweaks): a rail of numbered preset CIRCLES on the left (current lit; the rail alone may
-     scroll if presets outgrow it), preset name in the header, the team slots in ONE row. Tap a slot (filled or empty) ->
-     the character picker popup -> tap to place. ✕ = quick removal. -->
+<!-- Team builder TA (Phase 7 fix-first, deck v3 pick — replaces the T3 circles + picker popup): header = team name with
+     ◀ ▶ preset arrows + ✏️ rename (+ buy a preset slot); middle band = the 10 slots (tap one to select it; tap it again =
+     next form; ✕ = take off); bottom strip = owned Pokémon as LEFT–RIGHT scrolling blocks (image + name + level) — tap a
+     block to place it in the selected slot; SMALL Filter = the PC Box filter popup; press-and-hold a block or a slot =
+     stats peek. Fixed bands, never overlapping; the screen never scrolls — only the strip scrolls, horizontally. -->
 <section id="scr-team" class="screen hidden">
-  <div class="sub-head">
+  <div class="sub-head ta-head">
     <button id="btn-team-back" class="icon-btn" aria-label="Back">◀</button>
-    <h2><span id="team-name">Team 1</span> <span id="team-count" class="head-count"></span></h2>
-    <span class="sub-hint">Tap a slot to choose · ✕ = take off</span>
+    <button id="btn-team-prev" class="icon-btn ta-arrow" aria-label="Previous team">◀</button>
+    <h2 class="ta-name"><span id="team-name">Team 1</span></h2>
+    <button id="btn-team-rename" class="icon-btn ta-arrow" aria-label="Rename team">✏️</button>
+    <button id="btn-team-next" class="icon-btn ta-arrow" aria-label="Next team">▶</button>
+    <span id="team-count" class="head-count ta-count"></span>
+    <span id="team-presets" class="ta-presets"></span>
+    <button id="btn-buy-preset" class="pill-btn ta-buy"></button>
   </div>
-  <div class="team-body">
-    <div id="presets" class="preset-rail may-scroll"></div>
-    <div class="team-main">
-      <div id="deck" class="deck"></div>
-      <div id="team-sum" class="team-sum"></div>
-    </div>
+  <div class="ta-mid">
+    <div id="deck" class="deck ta-deck"></div>
+    <div id="team-sum" class="team-sum"></div>
+  </div>
+  <div class="ta-box">
+    <div class="ta-box-head"><span id="ta-box-title" class="ta-box-title">PC Box</span>
+      <button id="btn-team-filter" class="pill-btn filter-btn ta-filter">⚙ Filter<span class="fcount"></span></button></div>
+    <div id="ta-strip" class="ta-strip may-scroll"></div>
   </div>
 </section>
 
@@ -130,6 +156,7 @@
       </div>
       <button id="btn-pull1" class="pull-btn"></button>
       <button id="btn-pull10" class="pull-btn ten"></button>
+      <button id="btn-earn" class="side-btn earn">🧠 Answer &amp; Earn Tickets</button>
       <button id="btn-master-trade" class="side-btn"></button>
       <button id="btn-legend" class="side-btn legend"></button>
     </div>
@@ -147,6 +174,7 @@
     <span id="ch-earned" class="ch-earned"></span>
   </div>
   <div class="ch-stagebox">
+    <div id="ch-sound" class="ch-sound hidden">🔊 Turn sound on? The words are spoken out loud — check the volume and that the iPad isn't on silent.</div>
     <div id="ch-card" class="ch-card"></div>
     <div id="ch-feedback" class="ch-feedback hidden"></div>
   </div>
@@ -155,14 +183,14 @@
 <!-- Battle HUD -->
 <section id="scr-battle" class="screen hidden">
   <button id="btn-pause" class="icon-btn corner-tl" aria-label="Pause">❚❚</button>
-  <div id="ap-pill" class="ap-pill"><span class="ap-icon">⚡</span><span id="ap-num">0</span><span class="ap-cap">/ <span id="ap-cap">0</span></span><span id="armed-icons" class="armed-icons"></span></div>
+  <div id="ap-pill" class="ap-pill"><span class="ap-icon"></span><span id="ap-num">0</span><span class="ap-cap">/ <span id="ap-cap">0</span></span><span id="armed-icons" class="armed-icons"></span></div>
   <div id="hint" class="hint hidden"></div>
   <div id="hud" class="hud">
     <button id="btn-gen" class="gen-btn">
-      <span class="gen-icon" id="gen-icon">⚡<i>▲</i></span>
+      <span class="gen-icon" id="gen-icon"></span>
       <span class="gen-title">AP Generator</span>
       <span class="gen-lv">Lv <b id="gen-lv">1</b></span>
-      <span class="gen-cost" id="gen-cost">⚡120</span>
+      <span class="gen-cost" id="gen-cost">120</span>
     </button>
     <div id="cards" class="cards"></div>
   </div>
@@ -221,6 +249,7 @@
 <section id="scr-result" class="overlay hidden">
   <div class="panel result-panel fit">
     <div id="result-art" class="result-art hidden"></div>
+    <div id="result-cele" class="result-cele hidden"></div>
     <h2 id="result-title" class="result-title">VICTORY!</h2>
     <p id="result-sub"></p>
     <div id="result-rewards" class="rewards"></div>
@@ -229,6 +258,19 @@
       <button id="btn-retry" class="big-btn mid">Retry</button>
       <button id="btn-map" class="big-btn alt mid">Map</button>
     </div>
+  </div>
+</section>
+
+<!-- ENDING (Phase 7): after the Champion's first clear — `credits` music, region-complete summary, Back to map -->
+<section id="scr-ending" class="overlay ending hidden">
+  <div class="panel ending-panel fit">
+    <div class="end-trophy">🏆</div>
+    <h2 id="end-title">Kanto complete!</h2>
+    <p id="end-sub"></p>
+    <div id="end-stats" class="end-stats"></div>
+    <div id="end-legends" class="end-legends"></div>
+    <p id="end-next" class="end-next"></p>
+    <button id="btn-end-map" class="big-btn mid">Back to map</button>
   </div>
 </section>
 
@@ -305,22 +347,52 @@
   </div>
 </section>
 
-<!-- Team character picker (tap-to-place): owned Pokémon + the same Filter button -->
-<section id="scr-picker" class="overlay hidden">
-  <div class="panel picker-panel">
-    <button id="btn-picker-x" class="panel-x" aria-label="Close">✕</button>
-    <div class="picker-head">
-      <h2 id="picker-title">Choose</h2>
-      <div id="picker-forms" class="picker-forms"></div>
-      <button id="btn-picker-filter" class="pill-btn filter-btn">⚙ Filter<span class="fcount"></span></button>
+<!-- Team builder stats peek (press-and-hold a block or slot): mini D1 — sprite, types/trait, six real stats, battle numbers -->
+<section id="scr-peek" class="overlay hidden">
+  <div class="panel peek-panel fit">
+    <button id="btn-peek-x" class="panel-x" aria-label="Close">✕</button>
+    <h2 id="peek-title"></h2>
+    <div class="peek-body">
+      <div id="peek-left" class="peek-left"></div>
+      <div id="peek-stats" class="dex-stats peek-stats"></div>
     </div>
-    <div id="picker-grid" class="coll-grid picker-grid"></div>
+    <div id="peek-battle" class="stat-row battle-row"></div>
   </div>
 </section>
 
-<!-- Gacha reveal: the gacha_fanfare key + cards flipping in (1 or 10) -->
-<section id="scr-reveal" class="overlay hidden">
-  <div class="panel reveal-panel fit">
+<!-- Team rename (✏️) -->
+<section id="scr-rename" class="overlay hidden">
+  <div class="panel rename-panel fit">
+    <h2>Name this team</h2>
+    <input id="rename-input" class="name-input" maxlength="14" autocomplete="off" spellcheck="false">
+    <div class="row-btns">
+      <button id="btn-rename-ok" class="big-btn mid">OK</button>
+      <button id="btn-rename-cancel" class="big-btn alt mid">Back</button>
+    </div>
+  </div>
+</section>
+
+<!-- Gacha reveal R2 SPOTLIGHT STAGE on the S4 ELEMENTAL BURST (Phase 7 fix-first, deck v3/v4 picks): full-screen; the
+     pull stands CENTRED on a podium under a centred spotlight, comic-book burst rays behind it (generated art
+     BM.ART['ui/reveal_burst'], ASSET_PROMPTS #259, else a CSS burst tinted by rarity), rarity ribbon, name + stars +
+     type/role plate centred below; items bounce slowly in the same spotlight. ×10 plays one by one, then the recap grid. -->
+<section id="scr-reveal" class="overlay reveal-ov hidden">
+  <div id="rv-stage" class="rv-stage">
+    <div id="rv-burst" class="rv-burst"></div>
+    <div class="rv-spot"></div>
+    <div id="rv-ribbon" class="rv-ribbon"></div>
+    <div id="rv-count" class="rv-count"></div>
+    <div class="rv-center">
+      <div id="rv-figure" class="rv-figure"></div>
+      <div class="rv-podium"></div>
+    </div>
+    <div id="rv-plate" class="rv-plate"></div>
+    <div class="rv-btns">
+      <button id="btn-rv-skip" class="big-btn alt mid">Skip ▸▸</button>
+      <button id="btn-rv-next" class="big-btn mid">Next ▶</button>
+    </div>
+  </div>
+  <div id="rv-recap" class="panel reveal-panel fit hidden">
     <h2 id="reveal-title">You got…</h2>
     <div id="reveal-grid" class="reveal-grid"></div>
     <button id="btn-reveal-ok" class="big-btn mid">OK!</button>
@@ -367,6 +439,7 @@
 <script src="src/data/base_stats.js"></script>
 <script src="src/data/combat.js"></script>
 <script src="src/data/stages.js"></script>
+<script src="src/data/bonus.js"></script>
 <script src="src/data/kanto_map.js"></script>
 <script src="src/data/banners.js"></script>
 <script src="src/data/math_gen.js"></script>
@@ -379,6 +452,7 @@
 <script src="src/gacha.js"></script>
 <script src="src/challenge.js"></script>
 <script src="src/engine/sprites.js"></script>
+<script src="src/ui_balls.js"></script>
 <script src="src/engine/battle.js"></script>
 <script src="src/engine/render.js"></script>
 <script src="src/screens.js"></script>
@@ -386,6 +460,7 @@
 <script src="src/map.js"></script>
 <script src="src/gacha_screen.js"></script>
 <script src="src/challenge_screen.js"></script>
+<script src="src/bonus_screen.js"></script>
 <script src="src/main.js"></script>
 <!-- /BM:SCRIPTS -->
 </body>

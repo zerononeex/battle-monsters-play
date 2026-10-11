@@ -1,5 +1,5 @@
-// Stage data — the 25 Kanto stages in campaign order (BUILD_PLAN §4.11). Stages 1–12 are playable from Phase 3;
-// 13–25 (Erika onward: gyms, Elite Four, Champion) are on the map but locked until Phase 7 (`locked: 'phase7'`).
+// Stage data — the 25 Kanto stages in campaign order (BUILD_PLAN §4.11). Stages 1–12 from Phase 3; 13–25 (Erika onward:
+// gyms, Elite Four, Champion) from Phase 7.
 //   kind: wild | trainer | gym | e4 | champion  (drives ticket rewards §4.5 and the victory jingle)
 //   level: the stage level = highest enemy level (§4.4: base HP = 1000 + 300 × level; XP §4.3)
 //   music: battle category key · townMusic: map/pre-battle key (MUSIC_PROMPTS — never per leader/town battle keys)
@@ -36,7 +36,7 @@ window.BM = window.BM || {};
   }
   BM.STAGES = [
     {
-      id: 'kanto_01_pallet', num: 1, name: 'Pallet Town', drops: D('early', { leaf_stone: 1 }), kind: 'wild', level: 3,
+      id: 'kanto_01_pallet', num: 1, name: 'Pallet Town', drops: D('early', { leaf_stone: 1 }), kind: 'wild', level: 3, ebBend: 1.2,
       background: 'pallet_town', music: 'battle_wild', townMusic: 'town_pallet', tutorial: true,
       waves: [W('rattata', 2, 4, 8), W('pidgey', 2, 14, 12), W('rattata', 3, 60, 10), W('pidgey', 3, 90, 14)],
     },
@@ -100,34 +100,61 @@ window.BM = window.BM || {};
       waves: [W('ekans', 25, 4, 12), W('rattata', 25, 14, 12), W('koffing', 26, 30, 24), W('ekans', 26, 100, 13), W('koffing', 27, 150, 26)],
       gift: 'eevee_water', item: 'fire_stone',
     },
-    // ---- Phase 7: on the map, locked. `foes` + `ace` are the §4.11 plan (waves are written in Phase 7). ----
-    { id: 'kanto_13_erika', num: 13, name: 'Celadon Gym', leader: 'Erika', drops: D('late', { leaf_stone: 3, moon_stone: 1 }), kind: 'gym', level: 29, locked: 'phase7',
-      background: 'celadon_city', music: 'battle_gym', townMusic: 'town_celadon', foes: ['oddish', 'tangela'], ace: { form: 'vileplume', level: 29 } },
-    { id: 'kanto_14_fuchsia', num: 14, name: 'Fuchsia City', place: 'Safari Zone', drops: D('late', { leaf_stone: 2, metal_coat: 1, black_augurite: 1 }), kind: 'wild', level: 33, locked: 'phase7',
-      background: 'fuchsia_city', music: 'battle_wild', townMusic: 'town_fuchsia', foes: ['rhyhorn', 'venonat', 'pinsir', 'scyther'] },
-    { id: 'kanto_15_koga', num: 15, name: 'Fuchsia Gym', leader: 'Koga', drops: D('late', { moon_stone: 2, thunder_stone: 1 }), kind: 'gym', level: 43, locked: 'phase7',
-      background: 'fuchsia_city', music: 'battle_gym', townMusic: 'town_fuchsia', foes: ['koffing', 'gastly'], ace: { form: 'weezing', level: 43 } },
-    { id: 'kanto_16_saffron', num: 16, name: 'Saffron City', place: 'Silph Co.', drops: D('late', { up_grade: 2, metal_coat: 1, thunder_stone: 1 }), kind: 'trainer', level: 38, locked: 'phase7',
-      background: 'saffron_city', music: 'battle_trainer', townMusic: 'town_saffron', foes: ['arbok', 'weezing', 'golbat'], gift: 'lapras' },
-    { id: 'kanto_17_sabrina', num: 17, name: 'Saffron Gym', leader: 'Sabrina', drops: D('late', { moon_stone: 2, dubious_disc: 1 }), kind: 'gym', level: 43, locked: 'phase7',
-      background: 'saffron_city', music: 'battle_gym', townMusic: 'town_saffron', foes: ['kadabra', 'mr_mime', 'venomoth'], ace: { form: 'alakazam', level: 43 } },
-    { id: 'kanto_18_cinnabar', num: 18, name: 'Cinnabar Island', place: 'Pokémon Mansion', drops: D('late', { fire_stone: 3, dubious_disc: 1 }), kind: 'wild', level: 42, locked: 'phase7',
-      background: 'cinnabar_island', music: 'battle_wild', townMusic: 'town_cinnabar', foes: ['ponyta', 'growlithe', 'vulpix', 'koffing'] },
-    { id: 'kanto_19_blaine', num: 19, name: 'Cinnabar Gym', leader: 'Blaine', drops: D('late', { fire_stone: 3 }), kind: 'gym', level: 47, locked: 'phase7',
-      background: 'cinnabar_island', music: 'battle_gym', townMusic: 'town_cinnabar', foes: ['growlithe', 'rapidash'], ace: { form: 'arcanine', level: 47 } },
-    { id: 'kanto_20_giovanni', num: 20, name: 'Viridian Gym', leader: 'Giovanni', drops: D('late', { black_augurite: 2, metal_coat: 1, moon_stone: 1 }), kind: 'gym', level: 50, locked: 'phase7',
-      background: 'viridian_city', music: 'battle_gym', townMusic: 'town_viridian', foes: ['rhyhorn', 'marowak', 'dugtrio'], ace: { form: 'rhydon', level: 50 } },
-    { id: 'kanto_21_lorelei', num: 21, name: 'Elite Four Lorelei', leader: 'Lorelei', drops: D('late', { ice_stone: 3, water_stone: 1 }), kind: 'e4', level: 56, locked: 'phase7',
-      background: 'indigo_plateau', music: 'battle_elitefour', townMusic: 'town_indigo', foes: ['dewgong', 'cloyster'], ace: { form: 'lapras', level: 56 } },
-    { id: 'kanto_22_bruno', num: 22, name: 'Elite Four Bruno', leader: 'Bruno', drops: D('late', { black_augurite: 2, metal_coat: 1 }), kind: 'e4', level: 58, locked: 'phase7',
-      background: 'indigo_plateau', music: 'battle_elitefour', townMusic: 'town_indigo', foes: ['onix', 'hitmonlee', 'machoke'], ace: { form: 'machamp', level: 58 } },
-    { id: 'kanto_23_agatha', num: 23, name: 'Elite Four Agatha', leader: 'Agatha', drops: D('late', { moon_stone: 2, dubious_disc: 1 }), kind: 'e4', level: 60, locked: 'phase7',
-      background: 'indigo_plateau', music: 'battle_elitefour', townMusic: 'town_indigo', foes: ['haunter', 'golbat', 'arbok'], ace: { form: 'gengar', level: 60 } },
-    { id: 'kanto_24_lance', num: 24, name: 'Elite Four Lance', leader: 'Lance', drops: D('late', { ice_stone: 2, thunder_stone: 1, water_stone: 1 }), kind: 'e4', level: 60, locked: 'phase7',
-      background: 'indigo_plateau', music: 'battle_elitefour', townMusic: 'town_indigo', foes: ['gyarados', 'dragonair', 'aerodactyl'], ace: { form: 'dragonite', level: 60 } },
-    { id: 'kanto_25_champion', num: 25, name: 'Champion', leader: 'Blue', drops: D('late', { fire_stone: 1, water_stone: 1, thunder_stone: 1, leaf_stone: 1, moon_stone: 1, ice_stone: 1 }), kind: 'champion', level: 60, locked: 'phase7',
-      background: 'indigo_plateau', music: 'battle_champion', townMusic: 'town_indigo',
-      foes: ['pidgeot', 'alakazam', 'rhydon', 'gyarados', 'arcanine'], ace: { form: 'charizard', level: 60 }, gift: 'mewtwo', regionFinal: true },
+    // ---- Phase 7: the Kanto endgame (stages 13–25). Waves = the leader's real team + type (§4.11); every gym ace from 13 on,
+    // every Elite Four ace and the Champion's ace is a GIANT boss (§4.4 ×2 size, HP ×6, damage ×2) with a SIGNATURE move
+    // (`sig`: big AoE + reliable status — K3/K4). `bgArt` = the gym / Elite Four interior art key (ASSET_PROMPTS #262–#271),
+    // used once DONE; until then the town / placeholder background.
+    { id: 'kanto_13_erika', num: 13, name: 'Celadon Gym', leader: 'Erika', drops: D('late', { leaf_stone: 3, moon_stone: 1 }), kind: 'gym', level: 29, ebBend: 0.8,
+      background: 'celadon_city', bgArt: 'gym_erika', music: 'battle_gym', townMusic: 'town_celadon',
+      waves: [W('oddish', 24, 4, 12), W('tangela', 25, 20, 19), W('oddish', 25, 50, 14), W('tangela', 26, 110, 18)],
+      ace: { form: 'vileplume', level: 29, giant: true, sig: { move: 'Sleep Powder', aoe: 90, status: 'sleep', reach: 230, every: 14 } } /* the first giant: a gentler signature */ },
+    { id: 'kanto_14_fuchsia', num: 14, name: 'Fuchsia City', place: 'Safari Zone', drops: D('late', { leaf_stone: 2, metal_coat: 1, black_augurite: 1 }), kind: 'wild', level: 33,
+      background: 'fuchsia_city', music: 'battle_wild', townMusic: 'town_fuchsia',
+      waves: [W('rhyhorn', 30, 4, 12), W('venonat', 31, 10, 11), W('pinsir', 32, 30, 18), W('scyther', 33, 50, 18), W('venonat', 32, 100, 11)] },
+    { id: 'kanto_15_koga', num: 15, name: 'Fuchsia Gym', leader: 'Koga', drops: D('late', { moon_stone: 2, thunder_stone: 1 }), kind: 'gym', level: 43,
+      background: 'fuchsia_city', bgArt: 'gym_koga', music: 'battle_gym', townMusic: 'town_fuchsia',
+      waves: [W('koffing', 37, 3, 10), W('gastly', 38, 12, 12), W('koffing', 39, 40, 11), W('haunter', 39, 80, 14)],
+      ace: { form: 'weezing', level: 43, giant: true, sig: { move: 'Sludge Bomb', aoe: 130, status: 'poison', reach: 220 } } },
+    { id: 'kanto_16_saffron', num: 16, name: 'Saffron City', place: 'Silph Co.', drops: D('late', { up_grade: 2, metal_coat: 1, thunder_stone: 1 }), kind: 'trainer', level: 38,
+      background: 'saffron_city', music: 'battle_trainer', townMusic: 'town_saffron', gift: 'lapras',
+      waves: [W('arbok', 35, 4, 12), W('golbat', 36, 10, 11), W('weezing', 37, 30, 20), W('arbok', 37, 70, 12), W('golbat', 38, 110, 11)] },
+    { id: 'kanto_17_sabrina', num: 17, name: 'Saffron Gym', leader: 'Sabrina', drops: D('late', { moon_stone: 2, dubious_disc: 1 }), kind: 'gym', level: 43,
+      background: 'saffron_city', bgArt: 'gym_sabrina', music: 'battle_gym', townMusic: 'town_saffron',
+      waves: [W('kadabra', 36, 6, 14), W('mr_mime', 36, 22, 18), W('venomoth', 37, 44, 19), W('kadabra', 37, 95, 15)],
+      ace: { form: 'alakazam', level: 43, giant: true, sig: { move: 'Hypnosis', aoe: 120, status: 'sleep', reach: 270 } } },
+    { id: 'kanto_18_cinnabar', num: 18, name: 'Cinnabar Island', place: 'Pokémon Mansion', drops: D('late', { fire_stone: 3, dubious_disc: 1 }), kind: 'wild', level: 42,
+      background: 'cinnabar_island', music: 'battle_wild', townMusic: 'town_cinnabar',
+      waves: [W('ponyta', 40, 3, 10), W('growlithe', 41, 12, 13), W('vulpix', 41, 24, 15), W('koffing', 42, 40, 18), W('ponyta', 42, 100, 10)] },
+    { id: 'kanto_19_blaine', num: 19, name: 'Cinnabar Gym', leader: 'Blaine', drops: D('late', { fire_stone: 3 }), kind: 'gym', level: 47,
+      background: 'cinnabar_island', bgArt: 'gym_blaine', music: 'battle_gym', townMusic: 'town_cinnabar',
+      waves: [W('growlithe', 42, 3, 11), W('rapidash', 44, 16, 16), W('ponyta', 43, 40, 12), W('rapidash', 45, 100, 15)],
+      ace: { form: 'arcanine', level: 47, giant: true, sig: { move: 'Flamethrower', aoe: 150, reach: 200 } } },
+    { id: 'kanto_20_giovanni', num: 20, name: 'Viridian Gym', leader: 'Giovanni', drops: D('late', { black_augurite: 2, metal_coat: 1, moon_stone: 1 }), kind: 'gym', level: 50,
+      background: 'viridian_city', bgArt: 'gym_giovanni', music: 'battle_gym', townMusic: 'town_viridian',
+      waves: [W('rhyhorn', 45, 4, 12), W('dugtrio', 46, 12, 13), W('marowak', 46, 26, 16), W('rhyhorn', 47, 80, 12)],
+      ace: { form: 'rhydon', level: 50, giant: true, sig: { move: 'Earthquake', aoe: 170 } } },
+    { id: 'kanto_21_lorelei', num: 21, name: 'Elite Four Lorelei', leader: 'Lorelei', drops: D('late', { ice_stone: 3, water_stone: 1 }), kind: 'e4', level: 56,
+      background: 'indigo_plateau', bgArt: 'e4_hall', music: 'battle_elitefour', townMusic: 'town_indigo',
+      waves: [W('dewgong', 52, 8, 13), W('cloyster', 53, 20, 15), W('dewgong', 54, 60, 13), W('cloyster', 54, 110, 15)],
+      ace: { form: 'lapras', level: 56, giant: true, sig: { move: 'Blizzard', aoe: 150, status: 'freeze', reach: 260 } } },
+    { id: 'kanto_22_bruno', num: 22, name: 'Elite Four Bruno', leader: 'Bruno', drops: D('late', { black_augurite: 2, metal_coat: 1 }), kind: 'e4', level: 58,
+      background: 'indigo_plateau', bgArt: 'e4_hall', music: 'battle_elitefour', townMusic: 'town_indigo',
+      waves: [W('onix', 51, 8, 13), W('hitmonlee', 53, 16, 14), W('machoke', 54, 28, 15), W('onix', 54, 75, 14), W('hitmonlee', 55, 115, 14)],
+      ace: { form: 'machamp', level: 58, giant: true, sig: { move: 'Dynamic Punch', aoe: 100, status: 'paralyze' } } },
+    { id: 'kanto_23_agatha', num: 23, name: 'Elite Four Agatha', leader: 'Agatha', drops: D('late', { moon_stone: 2, dubious_disc: 1 }), kind: 'e4', level: 60,
+      background: 'indigo_plateau', bgArt: 'e4_hall', music: 'battle_elitefour', townMusic: 'town_indigo',
+      waves: [W('haunter', 54, 8, 13), W('golbat', 55, 16, 13), W('arbok', 56, 30, 15), W('haunter', 57, 75, 13), W('golbat', 57, 115, 13)],
+      ace: { form: 'gengar', level: 60, giant: true, sig: { move: 'Hypnosis', aoe: 150, status: 'sleep', reach: 240 } } },
+    { id: 'kanto_24_lance', num: 24, name: 'Elite Four Lance', leader: 'Lance', drops: D('late', { ice_stone: 2, thunder_stone: 1, water_stone: 1 }), kind: 'e4', level: 60,
+      background: 'indigo_plateau', bgArt: 'e4_hall', music: 'battle_elitefour', townMusic: 'town_indigo',
+      waves: [W('dragonair', 50, 8, 15), W('gyarados', 50, 40, 20), W('aerodactyl', 51, 60, 20), W('dragonair', 52, 100, 16)],
+      ace: { form: 'dragonite', level: 60, giant: true, sig: { move: 'Outrage + Thunder Wave', aoe: 140, status: 'paralyze', reach: 120 } } },
+    // The Champion (Blue): his real team, Charizard as the giant ace. First clear = Mewtwo (rewardOnly, §4.8) + the region's
+    // Master Ball (§4 economy: 1 per region fully beaten) + the ENDING screen (`credits`).
+    { id: 'kanto_25_champion', num: 25, name: 'Champion', leader: 'Blue', drops: D('late', { fire_stone: 1, water_stone: 1, thunder_stone: 1, leaf_stone: 1, moon_stone: 1, ice_stone: 1 }), kind: 'champion', level: 60,
+      background: 'indigo_plateau', bgArt: 'champion_room', music: 'battle_champion', townMusic: 'town_indigo',
+      waves: [W('pidgeot', 52, 8, 15), W('alakazam', 52, 22, 20), W('arcanine', 53, 40, 20), W('rhydon', 53, 60, 22), W('gyarados', 53, 90, 22)],
+      ace: { form: 'charizard', level: 60, giant: true, sig: { move: 'Blast Burn', aoe: 180, status: 'freeze', reach: 260 } }, gift: 'mewtwo', regionFinal: true, region: 'kanto', ebBend: 0.9 },
     {
       // Hidden dev stage (long-press a logo 2 s, or ?dev): exercises the type chart.
       id: 'dev_types', num: 0, name: 'Type Test', kind: 'trainer', level: 3, dev: true,
@@ -135,6 +162,58 @@ window.BM = window.BM || {};
       waves: [W('geodude', 3, 2, 9), W('pidgey', 3, 6, 11), W('charmander', 3, 4, 10)], // Electric->Rock/Ground 0x, ->Flying 2x; Water->Fire 2x
     },
   ];
+  // J2 ENEMY BASE HP (corrected, user 2026-10-11): a raw-number curve, DECOUPLED from the player base (which keeps the
+  // forgiving 1000 + 300 × level, BM.C.baseHP). Anchors by campaign stage number, geometric between them; gym stages
+  // ×1.25, Elite Four + Champion ×1.4. `st.ebBend` (±20%) is the sim's per-stage bend; `st.enemyBaseHP` overrides all
+  // (Bonus Zone stages pass `curveAt` = the campaign stage their band matches). Final table: docs/BUILD_PLAN.md §4.4.
+  BM.EB_ANCHORS = [[1, 800], [5, 3000], [10, 10000], [15, 28000], [20, 60000], [25, 120000]];
+  BM.EB_KIND = { gym: 1.25, e4: 1.4, champion: 1.4 };
+  // The anchors NAME their stages (5 = Brock, 10 = Lt. Surge, 15 = Koga, 20 = Giovanni, 25 = the Champion), so the curve
+  // passes exactly through them: its plain-stage value at an anchor is anchor ÷ that stage's premium, and every other gym /
+  // Elite Four stage gets its premium on top of the geometric curve between.
+  BM.enemyBaseCurve = function (n) {
+    const A = BM.EB_ANCHORS.map(([x, y]) => { const st = BM.STAGES.find((s) => s.num === x && !s.dev && !s.bonus); return [x, y / ((st && BM.EB_KIND[st.kind]) || 1)]; });
+    if (n <= A[0][0]) return A[0][1];
+    for (let i = 1; i < A.length; i++) if (n <= A[i][0]) { const [x0, y0] = A[i - 1], [x1, y1] = A[i]; return y0 * Math.pow(y1 / y0, (n - x0) / (x1 - x0)); }
+    return A[A.length - 1][1];
+  };
+  BM.enemyBaseHP = function (st) {
+    if (st.enemyBaseHP) return st.enemyBaseHP;
+    const n = st.curveAt || st.num || 1;
+    return Math.round(BM.enemyBaseCurve(n) * (BM.EB_KIND[st.kind] || 1) * (st.ebBend || 1) / 50) * 50;
+  };
+  // K2 WAVE CADENCE (user 2026-10-11, all stages): (1) the trickle = `waves`; (2) timed BURST groups — 3–5 enemies at once
+  // every ~20–30 s; (3) HP-THRESHOLD counter-bursts when the enemy base drops below 75% / 50% / 25%, each with one strong
+  // WALL-BREAKER. Built from the stage's theme (its wave forms) unless `burst` overrides: { pool, carriers, breaker,
+  // first, every: [lo, hi], size: [lo, hi] }. `carriers` = AoE / status units mixed into later bursts to break up a stack
+  // camping the enemy base (one per burst from stage 9 on).
+  // Tiers (kid-fair ramp): stages 1–4 small late bursts, 5–10 medium, 11+ the full 3–5 (bonus stages use `curveAt`).
+  // The trickle's intervals stretch ×trickle while bursts are on (the pressure comes in waves instead of a steady stream).
+  BM.CADENCE = { every: [22, 30], thresholds: [0.75, 0.5, 0.25], breakerLv: 2, trickle: 1.5, burstLv: -3,
+    tier: (n) => (n <= 4 ? { first: 32, size: [2, 3], counterSize: 2, breakerHp: 1.5 } : n <= 12 ? { first: 30, size: [3, 3], counterSize: 3, breakerHp: 1.8 }
+      : n <= 18 ? { first: 36, size: [3, 3], counterSize: 3, breakerHp: 2, trickle: 1.8, burstLv: -5 } : { first: 40, size: [3, 4], counterSize: 3, breakerHp: 2.5, trickle: 2.1, burstLv: -5 }) };
+  // AoE / status carriers mixed into the bursts from stage 9 on (themed: the stage's own poisoners, sleepers, freezers…)
+  BM.STAGE_CARRIERS = {
+    kanto_09_vermilion: ['tentacool'], kanto_10_surge: ['voltorb'], kanto_11_lavender: ['haunter'], kanto_12_celadon: ['koffing'],
+    kanto_13_erika: ['oddish'], kanto_14_fuchsia: ['venonat'], kanto_15_koga: ['koffing'], kanto_16_saffron: ['arbok', 'koffing'],
+    kanto_17_sabrina: ['venonat'], kanto_18_cinnabar: ['koffing', 'ninetales'], kanto_19_blaine: ['ninetales'], kanto_20_giovanni: ['rhydon'],
+    kanto_21_lorelei: ['dewgong'], kanto_22_bruno: ['onix'], kanto_23_agatha: ['haunter', 'arbok'], kanto_24_lance: ['gyarados'],
+    kanto_25_champion: ['gyarados', 'alakazam'],
+  };
+  // Elite Four / Champion stages: their fodder are fully evolved Lv 51–60 Pokémon, as strong as yours — fewer of them
+  BM.CADENCE.e4 = { trickle: 4, size: [2, 3], counterSize: 2 };
+  BM.waveCadence = function (st) {
+    const K = BM.CADENCE, o = st.burst || {}, forms = [...new Set((st.waves || []).map((w) => w.form))];
+    const T0 = K.tier(st.curveAt || st.num || 1), lv = st.level + (o.burstLv != null ? o.burstLv : T0.burstLv != null ? T0.burstLv : K.burstLv), pool = (o.pool || forms).map((f) => (typeof f === 'string' ? { form: f, level: lv } : f));
+    const strongest = () => { let best = null, bv = -1; for (const p of pool) { const f = BM.FORMS[p.form], v = f ? f.bst + f.baseHP : 0; if (v > bv) { bv = v; best = p.form; } } return best; };
+    const T = { ...K.tier(st.curveAt || st.num || 1), ...(['e4', 'champion'].includes(st.kind) ? K.e4 : {}) };
+    return {
+      trickle: o.trickle || T.trickle || K.trickle, first: o.first != null ? o.first : T.first, every: o.every || K.every, size: o.size || T.size, pool, counterSize: o.counterSize || T.counterSize, breakerHp: o.breakerHp || T.breakerHp,
+      carriers: (o.carriers || BM.STAGE_CARRIERS[st.id] || []).map((f) => (typeof f === 'string' ? { form: f, level: lv } : f)),
+      breaker: o.breaker ? (typeof o.breaker === 'string' ? { form: o.breaker, level: st.level + K.breakerLv } : o.breaker) : { form: strongest(), level: st.level + K.breakerLv },
+      thresholds: o.thresholds || K.thresholds,
+    };
+  };
   BM.stageById = (id) => BM.STAGES.find((s) => s.id === id);
   BM.KANTO_STAGES = BM.STAGES.filter((s) => !s.dev); // campaign order, 25
   BM.isPlayable = (st) => !!st && !st.locked && Array.isArray(st.waves);
@@ -143,6 +222,10 @@ window.BM = window.BM || {};
   // Champion 50 · any replay win 2. §4.3 team XP: every line that BATTLED gets 4 × level² (first) / 2 × level² (replay).
   const FIRST_TICKETS = { wild: 10, trainer: 10, gym: 20, e4: 25, champion: 50 };
   BM.stageRewards = function (st, first) {
+    // BONUS ZONE stages (data/bonus.js): the §4.5 grind ticket (1 per win), the tier's bonus team XP (XP stages) or 2 × L²
+    // (treasure stages), the XP stage's candy every win, and a treasure stage's HEADLINE item guaranteed on its first clear
+    if (st.bonus) return { first, tickets: 1, xp: st.bonusXp || 2 * st.level * st.level, gift: null,
+      item: first && st.headline ? st.headline : null, candy: st.candy || null };
     return {
       first,
       tickets: first ? FIRST_TICKETS[st.kind] || 10 : 2,

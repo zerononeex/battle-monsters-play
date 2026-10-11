@@ -12,6 +12,7 @@
 //   straight into the wallet.
 window.BM = window.BM || {};
 BM.CHALLENGE = {
+  DUCK_RUN: 0.1, DUCK_SPEAK: 0.02, // P2: music gain during a run / while a word is spoken
   GOAL: 10,                 // auto-clear: correct in a row
   TICKET: 1, BONUS: 5, BONUS_EVERY: 10, // ticket mode (§4.5)
   GRADE_UP: 2,              // auto-clear grade = own grade + 2 (generator capped at 7)

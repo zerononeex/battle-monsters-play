@@ -196,6 +196,7 @@ button { font: inherit; color: inherit; border: 0; cursor: pointer; touch-action
 .ap-icon img { height: 34px; width: auto; vertical-align: -6px; }
 
 /* All Characters + Team (Phase 2, reworked Phase 4 for playtest F2/F3: nothing scrolls — cards are sized to fit) */
+#scr-team { justify-content: space-between; }
 #scr-collection, #scr-team { background: linear-gradient(#7ec8f5, #b6e3a0); padding: 8px calc(12px + var(--safe-r)) 8px calc(12px + var(--safe-l));
   overflow: hidden; display: flex; flex-direction: column; gap: 6px; }
 .sub-head { display: flex; align-items: center; gap: 12px; flex: 0 0 auto; }
@@ -607,3 +608,163 @@ button { font: inherit; color: inherit; border: 0; cursor: pointer; touch-action
 .slider input { width: 100%; height: 34px; accent-color: var(--accent2); touch-action: pan-x; }
 .result-art { position: relative; }
 .ra-tag { position: absolute; left: 10px; bottom: 8px; background: var(--ink); color: #ffd83a; font-size: 20px; font-weight: 900; border-radius: 12px; padding: 2px 12px; }
+
+/* ---------- Phase 7 N1: Poké Ball AP icons + the generator ball ladder (CSS balls until the icon art lands) ---------- */
+.ball { --top: #e8463c; --bot: #fff; display: inline-block; position: relative; width: 1em; height: 1em; border-radius: 50%; flex: 0 0 auto;
+  border: .08em solid #1c1c28; vertical-align: -.14em; overflow: hidden;
+  background: linear-gradient(to bottom, var(--top) 0 44%, #1c1c28 44% 56%, var(--bot) 56%); }
+.ball::after { content: ''; position: absolute; left: 50%; top: 50%; width: .34em; height: .34em; transform: translate(-50%, -50%); border-radius: 50%;
+  background: #fff; border: .07em solid #1c1c28; box-sizing: border-box; }
+.ball::before { content: ''; position: absolute; inset: 0; }
+.ball.b-great_ball { --top: #2f6fd8; }
+.ball.b-great_ball::before { background: radial-gradient(ellipse .22em .14em at 22% 26%, #e8463c 98%, transparent), radial-gradient(ellipse .22em .14em at 78% 26%, #e8463c 98%, transparent); }
+.ball.b-quick_ball { --top: #2f8fe0; --bot: #2f8fe0; }
+.ball.b-quick_ball::before { background: conic-gradient(from 45deg at 50% 50%, #ffd23a 0 12%, transparent 12% 25%, #ffd23a 25% 37%, transparent 37% 100%); opacity: .9; }
+.ball.b-ultra_ball { --top: #2a2a2a; }
+.ball.b-ultra_ball::before { background: linear-gradient(to right, transparent 20%, #ffd23a 20% 34%, transparent 34% 66%, #ffd23a 66% 80%, transparent 80%); clip-path: inset(0 0 56% 0); }
+.ball.b-luxury_ball { --top: #2a2a2a; --bot: #2a2a2a; }
+.ball.b-luxury_ball::before { background: linear-gradient(to bottom, transparent 30%, #e8463c 30% 40%, #ffd23a 40% 44%, transparent 44%); }
+.ball.b-premier_ball { --top: #fdfdfd; }
+.ball.b-premier_ball::before { background: linear-gradient(to bottom, transparent 44%, #e8463c 44% 56%, transparent 56%); }
+.ball.b-cherish_ball { --top: #c0242e; --bot: #c0242e; }
+.ball.b-cherish_ball::before { background: radial-gradient(circle at 30% 24%, #ff8a8a .06em, transparent .07em), radial-gradient(circle at 66% 30%, #ff8a8a .05em, transparent .06em); }
+.ball.b-master_ball { --top: #7a3fc0; }
+.ball.b-master_ball::before { background: radial-gradient(circle at 24% 28%, #f07ad0 .09em, transparent .1em), radial-gradient(circle at 76% 28%, #f07ad0 .09em, transparent .1em); }
+.ball-img { height: 1em; width: auto; vertical-align: -.14em; }
+.ap-icon .ball, .ap-icon .ball-img { font-size: 30px; }
+.ccost .ball, .ccost .ball-img, .dcost .ball, .dcost .ball-img, .gen-cost .ball, .gen-cost .ball-img { font-size: .85em; margin-right: .12em; }
+.gen-btn .gen-icon .gen-ball, .gen-btn .gen-icon img { font-size: calc(var(--hud-h, 170px) * .2); height: calc(var(--hud-h, 170px) * .2); width: auto; }
+.gen-btn .gen-icon .ball.gen-ball { width: calc(var(--hud-h, 170px) * .2); }
+
+/* ---------- Phase 7 TA team builder: fixed bands (header · 10 slots · PC Box strip); only the strip scrolls ---------- */
+.ta-head { gap: clamp(6px, 1vw, 12px); }
+.ta-head .ta-arrow { width: clamp(38px, 6.4vh, 56px); height: clamp(38px, 6.4vh, 56px); }
+.ta-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; max-width: 32vw; }
+.ta-count, .ta-presets { font-size: clamp(12px, 2.2vh, 17px); font-weight: 900; background: rgba(255,255,255,.75); border-radius: 12px; padding: 3px 9px; -webkit-text-stroke: 0; white-space: nowrap; }
+.ta-buy { margin-left: auto; display: flex; align-items: center; gap: 4px; white-space: nowrap; }
+.ta-buy img { height: 1.2em; }
+.ta-buy.maxed { opacity: .6; }
+.ta-mid { flex: 0 0 auto; display: flex; flex-direction: column; gap: clamp(4px, 1vh, 10px); }
+.ta-deck { height: clamp(96px, 33vh, 270px); padding-top: 10px; }
+.deck-slot.sel { outline: 5px solid var(--accent); outline-offset: 1px; box-shadow: 0 0 14px 6px rgba(255,203,61,.85); }
+.deck-slot.empty.sel { background: rgba(255,240,180,.75); }
+.ta-box { flex: 0 1 auto; min-height: 0; display: flex; flex-direction: column; gap: 4px; background: rgba(255,255,255,.45); border: 3px solid var(--ink); border-radius: 16px; padding: 4px 8px 6px; }
+.ta-box-head { flex: 0 0 auto; display: flex; align-items: center; gap: 8px; }
+.ta-box-title { font-weight: 900; font-size: clamp(12px, 2.2vh, 17px); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ta-box .ta-filter { margin-left: auto; min-height: 0; padding: 2px 10px; font-size: clamp(12px, 2vh, 15px); border-width: 2px; }
+.ta-strip { flex: 0 1 auto; height: clamp(76px, 22vh, 170px); min-height: 0; display: flex; flex-direction: row; gap: 8px; overflow-x: auto; overflow-y: hidden; touch-action: pan-x; scrollbar-width: none; align-items: stretch; }
+.ta-strip::-webkit-scrollbar { display: none; }
+.ta-block { position: relative; flex: 0 0 auto; aspect-ratio: .82; height: 100%; border-radius: 14px; background: var(--panel); border: 3px solid var(--ink);
+  display: flex; flex-direction: column; align-items: center; justify-content: flex-end; padding: 2px; box-shadow: 0 3px 0 rgba(0,0,0,.25); touch-action: pan-x; }
+.ta-block > * { pointer-events: none; }
+.ta-block canvas { flex: 1; min-height: 0; width: 100%; object-fit: contain; }
+.ta-block .lv { position: absolute; top: 2px; left: 4px; font-size: clamp(9px, 1.6vh, 13px); font-weight: 900; background: rgba(28,28,40,.75); color: #fff; border-radius: 7px; padding: 0 5px; }
+.ta-block .tb-name { font-size: clamp(9px, 1.9vh, 15px); font-weight: 900; line-height: 1.05; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ta-block.on-team { outline: 4px solid #1e6fd8; }
+.ta-block .on-team-tag { font-size: clamp(8px, 1.5vh, 12px); }
+.peek-panel { min-width: min(560px, 92vw); }
+.peek-body { display: flex; gap: 18px; align-items: center; }
+.peek-left { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.peek-stats { min-width: 260px; }
+.rename-panel { align-items: center; gap: 14px; }
+/* J1 hidden enemy intel: black silhouettes + "?" until the first attempt; type icons after */
+.foe { position: relative; }
+.foe.hidden-foe { background: #e8ecf5; }
+.foe.hidden-foe canvas { filter: brightness(0); opacity: .85; }
+.foe .fq { position: absolute; top: 18%; left: 0; right: 0; text-align: center; font-size: clamp(28px, 5vh, 46px); font-weight: 900; color: #ffd83a; -webkit-text-stroke: 3px var(--ink); paint-order: stroke fill; pointer-events: none; }
+.foe .ftypes { display: flex; gap: 2px; justify-content: center; }
+.foe .ftypes img { height: 16px; width: auto; }
+.foe .ftypes i { font-style: normal; font-size: 10px; font-weight: 900; color: #fff; border-radius: 6px; padding: 0 4px; text-transform: capitalize; }
+
+/* ---------- Phase 7 gacha reveal R2 Spotlight Stage + S4 Elemental Burst (CSS rays until #259 art lands) ---------- */
+.reveal-ov { background: #0c1022; }
+.rv-stage { --rv-tint: #9ad0ff; position: absolute; inset: 0; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.rv-burst { position: absolute; left: 50%; top: 46%; width: 260vmax; height: 260vmax; transform: translate(-50%, -50%);
+  background: repeating-conic-gradient(from 0deg, var(--rv-tint) 0deg 7deg, color-mix(in srgb, var(--rv-tint) 35%, #10142a) 7deg 15deg);
+  animation: rvspin 40s linear infinite; }
+.rv-burst::after { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 50% 50%, rgba(255,255,255,.95) 0, rgba(255,255,255,.55) 4%, transparent 14%); }
+.rv-burst.art { width: 100%; height: 100%; left: 0; top: 0; transform: none; animation: none; background-size: cover; background-position: center; }
+.rv-burst.art::after { background: radial-gradient(circle at 50% 46%, color-mix(in srgb, var(--rv-tint) 40%, transparent) 0, transparent 40%); }
+@keyframes rvspin { to { transform: translate(-50%, -50%) rotate(360deg); } }
+.rv-spot { position: absolute; left: 50%; top: -10%; width: min(70vw, 120vh); height: 110%; transform: translateX(-50%); pointer-events: none;
+  background: radial-gradient(ellipse 34% 58% at 50% 100%, rgba(255,255,230,.55), transparent 70%), linear-gradient(to bottom, rgba(255,255,230,.32), rgba(255,255,230,.08));
+  clip-path: polygon(42% 0, 58% 0, 86% 100%, 14% 100%); }
+.rv-ribbon { position: absolute; top: max(10px, 3vh); left: 50%; transform: translateX(-50%); z-index: 2; padding: 6px 34px; font-weight: 900; font-size: clamp(18px, 4.4vh, 34px);
+  color: #fff; background: color-mix(in srgb, var(--rv-tint) 80%, #1c1c28); border: 4px solid var(--ink); border-radius: 10px; -webkit-text-stroke: 2px var(--ink); paint-order: stroke fill;
+  box-shadow: 0 4px 0 rgba(0,0,0,.35); white-space: nowrap; }
+.rv-legendary .rv-ribbon { animation: rvglow 1s ease-in-out infinite alternate; }
+@keyframes rvglow { to { box-shadow: 0 0 26px 10px rgba(255,210,63,.9); } }
+.rv-count { position: absolute; top: max(14px, 3.5vh); right: calc(18px + var(--safe-r)); z-index: 2; color: #fff; font-weight: 900; font-size: clamp(16px, 3vh, 24px); -webkit-text-stroke: 2px var(--ink); paint-order: stroke fill; }
+.rv-center { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; margin-top: 4vh; }
+.rv-figure { height: clamp(140px, 44vh, 340px); display: flex; align-items: flex-end; justify-content: center; position: relative; z-index: 1; }
+.rv-figure.in { animation: rvin .55s cubic-bezier(.2, 1.6, .4, 1); }
+@keyframes rvin { from { transform: scale(.2) translateY(30%); opacity: 0; } to { transform: none; opacity: 1; } }
+.rv-mon { height: 100%; width: auto; image-rendering: auto; filter: drop-shadow(0 0 18px rgba(255,255,255,.7)); }
+.rv-item { display: block; font-size: clamp(70px, 22vh, 170px); line-height: 1; margin-bottom: 4vh; animation: rvbounce 1.6s ease-in-out infinite; }
+.rv-item img { height: clamp(80px, 24vh, 190px); width: auto; filter: drop-shadow(0 0 16px rgba(255,255,255,.8)); }
+@keyframes rvbounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-9%); } }
+.rv-podium { width: clamp(180px, 34vh, 320px); height: clamp(26px, 6vh, 46px); margin-top: -2vh; border-radius: 50%; border: 4px solid var(--ink);
+  background: radial-gradient(ellipse at 50% 30%, #fff8e8, #c9b48a); box-shadow: 0 10px 0 #7a6440, 0 16px 24px rgba(0,0,0,.5); }
+.rv-plate { position: relative; z-index: 2; margin-top: 2.2vh; display: flex; flex-direction: column; align-items: center; gap: 3px; background: rgba(255,248,232,.95);
+  border: 4px solid var(--ink); border-radius: 18px; padding: 6px 26px; min-width: min(360px, 70vw); text-align: center; }
+.rv-pname { font-size: clamp(22px, 5vh, 40px); font-weight: 900; line-height: 1; }
+.rv-pstars { font-size: clamp(16px, 3vh, 24px); -webkit-text-stroke: 1px var(--ink); }
+.rv-chips { justify-content: center; }
+.rv-ptag { font-weight: 900; font-size: clamp(13px, 2.4vh, 18px); }
+.rv-ptag.new { color: #c2410c; }
+.rv-btns { position: absolute; z-index: 3; right: calc(16px + var(--safe-r)); bottom: calc(14px + var(--safe-b)); display: flex; gap: 10px; }
+.rv-btns .big-btn { min-width: 0; min-height: 0; padding: 8px 20px; font-size: clamp(18px, 3.4vh, 26px); }
+
+/* Phase 7: Mewtwo celebration on the result screen + the region ending screen */
+.result-cele { display: flex; align-items: center; gap: 14px; padding: 6px 16px; border-radius: 18px; border: 4px solid var(--ink);
+  background: radial-gradient(circle at 20% 50%, #fff7c2, #c9a7ff 70%); box-shadow: 0 0 24px 8px rgba(196,140,255,.8); animation: rvglow 1s ease-in-out infinite alternate; }
+.result-cele canvas { width: clamp(80px, 16vh, 150px); height: auto; filter: drop-shadow(0 0 12px #fff); }
+.result-cele .rc-text { display: flex; flex-direction: column; gap: 4px; max-width: 420px; }
+.result-cele b { font-size: clamp(20px, 4vh, 30px); }
+.reward.legend { background: #e9d8ff; }
+.overlay.ending { background: radial-gradient(circle at 50% 40%, #3a2a6a, #0c1022 70%); z-index: 25; }
+.ending-panel { align-items: center; text-align: center; gap: 10px; background: linear-gradient(#fff8e8, #ffe7a0); }
+.end-trophy { font-size: clamp(48px, 12vh, 96px); line-height: 1; animation: rvbounce 1.6s ease-in-out infinite; }
+.ending-panel h2 { font-size: clamp(30px, 7vh, 54px); margin: 0; }
+.end-stats { display: flex; gap: 14px; }
+.end-stats .es { display: flex; flex-direction: column; background: #fff; border: 3px solid var(--ink); border-radius: 14px; padding: 6px 16px; }
+.end-stats b { font-size: clamp(22px, 5vh, 36px); }
+.end-legends { display: flex; gap: 8px; justify-content: center; min-height: 10px; }
+.end-legends canvas { width: clamp(56px, 11vh, 96px); height: auto; }
+.end-next { font-weight: 900; color: #7a4f2f; }
+.region-tile.complete .rt-sub { background: #ffd84a; color: var(--ink); }
+
+/* ---------- Phase 7 Bonus Zone ---------- */
+.bonus-banner { position: absolute; left: calc(14px + var(--safe-l)); bottom: calc(14px + var(--safe-b)); z-index: 4; padding: 8px 18px; border-radius: 16px;
+  border: 4px solid var(--ink); background: linear-gradient(#ffe36a, #ff9f3a); font-weight: 900; font-size: clamp(16px, 3vh, 24px); box-shadow: 0 4px 0 rgba(0,0,0,.35);
+  animation: pulse 1.6s infinite; }
+.bonus-banner.locked { filter: grayscale(.8); animation: none; opacity: .8; }
+#scr-bonus { background: radial-gradient(circle at 50% 30%, #6a4fc0, #241a4a 75%); background-size: cover; background-position: center; display: flex; align-items: center; justify-content: center; }
+.bz-panel { width: min(1240px, 98vw); display: flex; flex-direction: column; gap: 8px; padding: 10px 14px; }
+.bz-panel .sub-head h2 { color: #ffd84a; }
+.bz-h { margin: 4px 0 0; color: #fff; font-size: clamp(16px, 3vh, 24px); -webkit-text-stroke: 1px var(--ink); }
+.bz-h small { font-size: .6em; -webkit-text-stroke: 0; opacity: .85; font-weight: 700; }
+.bz-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.bz-row.treasure-row { grid-template-columns: repeat(8, 1fr); }
+.bz-card { position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 4px; border-radius: 16px; border: 4px solid var(--ink);
+  background: var(--panel); box-shadow: 0 4px 0 rgba(0,0,0,.35); min-width: 0; text-align: center; }
+.bz-card > * { pointer-events: none; }
+.bz-card.xp { background: linear-gradient(#fff8e8, #ffe7a0); }
+.bz-card.tier-great { background: linear-gradient(#e8f2ff, #9cc4ff); } .bz-card.tier-ultra { background: linear-gradient(#fff6c8, #d9c25a); } .bz-card.tier-master { background: linear-gradient(#f3e6ff, #c49cf0); }
+.bz-card.locked { filter: grayscale(.85); opacity: .75; }
+.bz-ball .ball, .bz-ball img { font-size: clamp(28px, 7vh, 54px); height: clamp(28px, 7vh, 54px); width: auto; }
+.bz-ball .ball { width: clamp(28px, 7vh, 54px); }
+.bz-icon { font-size: clamp(24px, 5vh, 40px); line-height: 1; } .bz-icon img { height: clamp(26px, 6vh, 46px); width: auto; }
+.bz-name { font-size: clamp(12px, 2.4vh, 19px); line-height: 1.05; }
+.bz-band { font-size: clamp(11px, 2vh, 15px); font-weight: 900; background: var(--ink); color: #fff; border-radius: 8px; padding: 0 6px; }
+.bz-pay { font-size: clamp(10px, 1.9vh, 14px); font-weight: 800; display: flex; align-items: center; gap: 2px; flex-wrap: wrap; justify-content: center; }
+.bz-pay img { height: 1.3em; }
+.bz-wins { position: absolute; top: 2px; right: 6px; font-size: 12px; font-weight: 900; color: #2f8f3a; }
+.bz-lock { position: absolute; top: 2px; right: 6px; }
+.bz-card.mega { grid-column: 1 / -1; flex-direction: row; justify-content: center; gap: 12px; background: repeating-linear-gradient(45deg, #e6e0f0 0 12px, #d6cfe6 12px 24px); }
+/* Phase 7 batch P: ticket mode on the gacha screen, the "turn sound on" notice, the neutral no-picture card */
+.side-btn.earn { background: linear-gradient(#c9f7c9, #6fd36f); font-weight: 900; }
+.ch-sound { position: absolute; top: 4px; left: 50%; transform: translateX(-50%); z-index: 5; background: #fff3b0; border: 3px solid var(--ink); border-radius: 14px;
+  padding: 6px 14px; font-weight: 900; font-size: clamp(13px, 2.4vh, 18px); max-width: 92%; text-align: center; }
+.ch-pic.no-pic { display: flex; flex-direction: column; align-items: center; justify-content: center; background: repeating-linear-gradient(45deg, #eef2fa 0 10px, #e2e8f4 10px 20px); }
+.ch-pic.no-pic small { font-size: .3em; font-weight: 900; }

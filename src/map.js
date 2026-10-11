@@ -124,11 +124,11 @@ BM.MapScreen = function (ui) {
     });
   }
   function onNode(st, s, i) {
-    if (walk.active) return;
     if (s === 'soon') { BM.Audio.sfx('deny'); toast(`${st.name} opens in a later update!`); return; }
     if (s === 'locked') { BM.Audio.sfx('deny'); toast(`Beat ${ST[i - 1].name} first!`); return; }
     BM.Audio.sfx('tap');
     // F7 (BR-020): the trainer walks along the path to the tapped node FIRST, then the pre-battle screen opens
+    if (walk.active) { if (walk.to !== st.id) startWalk(null, st.id, () => ui.openPrebattle(st.id)); return; } // J3: retarget now
     const at = tokenAt();
     if (at === st.id) { ui.openPrebattle(st.id); return; }
     startWalk(at, st.id, () => ui.openPrebattle(st.id));
@@ -165,18 +165,43 @@ BM.MapScreen = function (ui) {
     tokenEl.style.left = x * 100 + '%'; tokenEl.style.top = y * 100 + '%';
   }
 
-  // Walk the polyline from `fromId` to `toId` along the campaign path — forwards, or backwards to replay an earlier
-  // stage (several segments when it is more than one node away). `onEnd` runs when the token arrives.
+  // ---------- J3 TOKEN SPRINT (playtest batch 4): the token travels the campaign path at a run — ~0.25 s per node hop,
+  // total travel CAPPED at 2.0 s for any distance (speed scales with distance), a tap on another node mid-walk retargets
+  // at once from where the token is, and the pre-battle opens the moment he arrives (F7). The whole campaign path is one
+  // polyline; the token's position is a single number `s` along it (node i sits at NODE_S[i]).
+  BM.C.MAP_HOP_S = 0.25; BM.C.MAP_TRAVEL_CAP = 1.95; BM.C.MAP_RUN_FRAME_MS = 70; // cap 1.95 s → ≤ 2.0 s incl. the last frame
+  let PATH = null, NODE_S = null;
+  const segLen = (a, b) => Math.hypot((b[0] - a[0]) * 16, (b[1] - a[1]) * 9);
+  function buildPath() {
+    PATH = [{ p: M.nodes[ST[0].id], s: 0 }]; NODE_S = [0];
+    for (let i = 1; i < ST.length; i++) {
+      for (const q of BM.mapPath(ST[i].id).slice(1)) { const last = PATH[PATH.length - 1]; PATH.push({ p: q, s: last.s + segLen(last.p, q) }); }
+      NODE_S.push(PATH[PATH.length - 1].s);
+    }
+  }
+  function pointAt(sv) {
+    if (!PATH) buildPath();
+    for (let i = 1; i < PATH.length; i++) {
+      const a = PATH[i - 1], b = PATH[i];
+      if (sv <= b.s || i === PATH.length - 1) { const f = b.s > a.s ? Math.max(0, Math.min(1, (sv - a.s) / (b.s - a.s))) : 1; return [a.p[0] + (b.p[0] - a.p[0]) * f, a.p[1] + (b.p[1] - a.p[1]) * f]; }
+    }
+    return PATH[0].p;
+  }
+  // fractional node index of a path position (for the hop count)
+  function nodeIndexAt(sv) {
+    for (let i = 1; i < NODE_S.length; i++) if (sv <= NODE_S[i]) return i - 1 + (NODE_S[i] > NODE_S[i - 1] ? (sv - NODE_S[i - 1]) / (NODE_S[i] - NODE_S[i - 1]) : 1);
+    return NODE_S.length - 1;
+  }
+  BM.mapTravelSeconds = (hops) => Math.min(BM.C.MAP_TRAVEL_CAP, Math.max(0.15, hops * BM.C.MAP_HOP_S));
+  let tokenS = 0;
   function startWalk(fromId, toId, onEnd) {
-    const a = idx(fromId), z = idx(toId), lo = Math.min(a, z), hi = Math.max(a, z);
-    let pts = [M.nodes[ST[lo].id]];
-    for (let i = lo + 1; i <= hi; i++) pts = pts.concat(BM.mapPath(ST[i].id).slice(1));
-    if (a > z) pts.reverse();
+    if (!PATH) buildPath();
+    const s0 = walk.active ? tokenS : NODE_S[idx(fromId)], s1 = NODE_S[idx(toId)];
+    const hops = Math.abs(nodeIndexAt(s1) - nodeIndexAt(s0));
     walk.onEnd = onEnd || null;
-    let len = 0;
-    for (let i = 1; i < pts.length; i++) len += Math.hypot((pts[i][0] - pts[i - 1][0]) * 16, (pts[i][1] - pts[i - 1][1]) * 9);
-    Object.assign(walk, { active: true, pts, len, t0: performance.now(), dur: Math.min(3200, 900 + len * 260), from: fromId, to: toId });
+    Object.assign(walk, { active: true, s0, s1, t0: performance.now(), dur: BM.mapTravelSeconds(hops) * 1000, from: walk.active ? walk.from : fromId, to: toId, hops, started: walk.active ? walk.started : performance.now() });
     box.classList.add('walking');
+    tokenEl.classList.toggle('flip', s1 < s0);
     BM.Audio.sfx('tap');
   }
   let idleFrame = -1;
@@ -187,17 +212,14 @@ BM.MapScreen = function (ui) {
       return;
     }
     const k = Math.min(1, (now - walk.t0) / walk.dur);
-    let d = k * walk.len, i = 1;
-    for (; i < walk.pts.length; i++) {
-      const [ax, ay] = walk.pts[i - 1], [bx, by] = walk.pts[i], seg = Math.hypot((bx - ax) * 16, (by - ay) * 9);
-      if (d <= seg || i === walk.pts.length - 1) { const f = seg ? Math.min(1, d / seg) : 1; placeToken([ax + (bx - ax) * f, ay + (by - ay) * f]); tokenEl.classList.toggle('flip', bx < ax); break; }
-      d -= seg;
-    }
-    drawToken(Math.floor(now / 130)); // walk cycle while travelling
+    tokenS = walk.s0 + (walk.s1 - walk.s0) * Math.min(1, k * (2 - k));
+    placeToken(pointAt(tokenS));
+    drawToken(Math.floor(now / BM.C.MAP_RUN_FRAME_MS)); // sped-up run cycle while travelling
     if (k >= 1) {
       walk.active = false; box.classList.remove('walking');
+      tokenS = walk.s1;
       BM.Save.setMapAt(walk.to);
-      test.walks.push({ from: walk.from, to: walk.to });
+      test.walks.push({ from: walk.from, to: walk.to, ms: Math.round(now - walk.started), hops: walk.hops });
       tokenEl.classList.remove('flip'); drawToken(0);
       renderNodes();
       BM.Audio.sfx('upgrade');
@@ -205,7 +227,6 @@ BM.MapScreen = function (ui) {
       if (cb) cb();
     }
   }
-
   function render() {
     layout();
     renderNodes();
@@ -213,8 +234,9 @@ BM.MapScreen = function (ui) {
     queued = null;
     walk.active = false; walk.onEnd = null; box.classList.remove('walking');
     // after a FIRST clear the token walks on to the newly opened stage; otherwise it stays where the kid walked it (F7)
+    if (!PATH) buildPath();
     if (from && idx(from) >= 0 && idx(from) < idx(target)) { placeToken(M.nodes[from]); drawToken(0); startWalk(from, target); }
-    else { const at = tokenAt(); placeToken(M.nodes[at]); drawToken(0); BM.Save.setMapAt(at); }
+    else { const at = tokenAt(); tokenS = NODE_S[idx(at)]; placeToken(M.nodes[at]); drawToken(0); BM.Save.setMapAt(at); }
     const tk = BM.Sprites.artSrc('icons/battle_ticket');
     $('map-tickets').innerHTML = (tk ? `<img src="${tk}" alt="">` : '🎫') + `<b>${prof().tickets}</b>`;
   }

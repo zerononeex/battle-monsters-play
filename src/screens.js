@@ -80,7 +80,7 @@ BM.Screens = function (ui) {
   // ---------- Sort + filter (C4 tweak: one Filter button -> one popup; shared by All Characters and the team picker) ----
   const SORTS = [
     { id: 'rarity', name: '⭐ Rarity' }, { id: 'level', name: '📈 Level' }, { id: 'speed', name: '👟 Speed' },
-    { id: 'attack', name: '💥 Attack' }, { id: 'range', name: '🎯 Range' }, { id: 'cost', name: '⚡ AP cost' },
+    { id: 'attack', name: '💥 Attack' }, { id: 'range', name: '🎯 Range' }, { id: 'cost', name: BM.apIcon() + ' AP cost' },
   ];
   const ROLE_CHIPS = [
     ...Object.entries(BM.TRAITS).map(([id, t]) => ({ id, name: `${t.icon} ${t.name}`, test: (f) => f.trait === id })),
@@ -92,7 +92,7 @@ BM.Screens = function (ui) {
   const lineLevel = (id) => (prof().lines[id] ? prof().lines[id].level : 1);
   function sortValue(id, key) {
     const f = lineForm(id), st = BM.unitStats(f, lineLevel(id));
-    return { rarity: BM.rarityOf(id).stars, level: prof().lines[id] ? lineLevel(id) : 0, speed: st.speed, attack: st.dmg, range: st.range, cost: f.cost }[key];
+    return { rarity: BM.rarityOf(id).stars, level: prof().lines[id] ? lineLevel(id) : 0, speed: st.speed, attack: st.dmg, range: st.range, cost: BM.effCost(f, lineLevel(id)) }[key];
   }
   // Applies the filter + sort to a list of line ids. `ownedOnly` = the team picker (the Show section is hidden there).
   function applyFilter(ids, ownedOnly) {
@@ -198,6 +198,14 @@ BM.Screens = function (ui) {
     return card;
   }
 
+  // Battle numbers at the line's level: HP, damage, march speed, reach, EFFECTIVE AP cost (L1) and cooldown (fixed).
+  function battleRow(row, f, st, level) {
+    row.innerHTML = '';
+    const range = st.range > BM.C.MELEE_RANGE ? 'Far' : 'Close';
+    for (const [k, v, key] of [['❤️', st.hp], ['💥', st.dmg], ['👟', Math.round(st.speed)], ['🎯', range], [BM.apIcon(), BM.effCost(f, level), 'cost'], ['⏱', f.cd + 's']]) {
+      const s2 = document.createElement('span'); s2.className = 'stat'; if (key) s2.dataset.k = key; s2.innerHTML = `${k} <b>${v}</b>`; row.appendChild(s2);
+    }
+  }
   // ---------- character detail (D1 Pokédex Entry; F1: ✕ / tap outside / Close; fits the viewport) ----------
   const STAT_NAMES = ['HP', 'Attack', 'Defense', 'Sp. Atk', 'Sp. Def', 'Speed'];
   let openId = null, openForm = null;
@@ -232,10 +240,7 @@ BM.Screens = function (ui) {
     if (locked) { const h = document.createElement('div'); h.className = 'dex-locked'; h.textContent = `${unlockText(f)} to meet this character!`; info.appendChild(h); }
     else {
       const row = document.createElement('div'); row.className = 'stat-row battle-row';
-      const range = st.range > BM.C.MELEE_RANGE ? 'Far' : 'Close';
-      for (const [k, v] of [['❤️', st.hp], ['💥', st.dmg], ['👟', Math.round(st.speed)], ['🎯', range], ['⚡', f.cost], ['⏱', f.cd + 's']]) {
-        const s2 = document.createElement('span'); s2.className = 'stat'; s2.innerHTML = `${k} <b>${v}</b>`; row.appendChild(s2);
-      }
+      battleRow(row, f, st, l.level);
       info.appendChild(row);
       const cap = document.createElement('div'); cap.className = 'battle-cap'; cap.textContent = l.form === f.id ? 'In battle (this form battles)' : 'In battle';
       info.insertBefore(cap, row);
@@ -325,126 +330,153 @@ BM.Screens = function (ui) {
   $('scr-bag').addEventListener('pointerdown', (e) => { if (e.target.id === 'scr-bag') { e.preventDefault(); closeBag(); } });
   tap($('btn-coll-bag'), () => { BM.Audio.sfx('tap'); openBag(); });
 
-  // ---------- Team (T3 rail of preset circles; slots in ONE row; tap-to-place picker) ----------
+  // ---------- Team builder TA (Phase 7 fix-first; replaces the T3 circles + picker popup) ----------
+  // Header: ◀ name ▶ (preset arrows) + ✏️ rename + buy slot. Middle: the 10 slots (tap = select · tap the selected one
+  // again = next form · ✕ = off). Bottom: owned Pokémon strip, scrolling LEFT–RIGHT inside itself (tap = place in the
+  // selected slot). Press-and-hold a block or a slot = stats peek.
+  let selSlot = 0;
+  const HOLD_MS = 450;
+  // pointer helper: tap fires on release (so a press-and-hold can become a peek, and a horizontal drag scrolls the strip)
+  function tapOrHold(el, onTap, onHold) {
+    let t = 0, timer = 0, x0 = 0, y0 = 0, moved = false, held = false;
+    el.addEventListener('pointerdown', (e) => {
+      BM.Audio.unlock(); t = performance.now(); x0 = e.clientX; y0 = e.clientY; moved = false; held = false;
+      clearTimeout(timer); timer = setTimeout(() => { if (!moved) { held = true; onHold(e); } }, HOLD_MS);
+    });
+    el.addEventListener('pointermove', (e) => { if (Math.hypot(e.clientX - x0, e.clientY - y0) > 12) { moved = true; clearTimeout(timer); } });
+    el.addEventListener('pointerup', (e) => { clearTimeout(timer); if (t && !moved && !held) onTap(e); t = 0; });
+    for (const ev of ['pointercancel', 'pointerleave']) el.addEventListener(ev, () => { clearTimeout(timer); t = 0; });
+  }
   function renderTeam() {
     const p = prof(), deck = $('deck');
     deck.innerHTML = '';
-    $('team-name').textContent = `Team ${p.loadoutAt + 1}`;
+    if (selSlot > p.team.length) selSlot = p.team.length;
+    if (selSlot >= BM.TEAM_SIZE) selSlot = BM.TEAM_SIZE - 1;
+    $('team-name').textContent = BM.Save.loadoutName(p.loadoutAt);
     $('team-count').textContent = `${p.team.length} / ${BM.TEAM_SIZE}`;
+    $('team-presets').textContent = `${p.loadoutAt + 1} of ${p.loadoutSlots}`;
     for (let i = 0; i < BM.TEAM_SIZE; i++) {
       const id = p.team[i];
       const el = document.createElement('button'); el.dataset.slot = i;
+      const sel = i === selSlot ? ' sel' : '';
       if (!id) {
-        el.className = 'deck-slot empty'; el.innerHTML = '<span>＋</span>';
-        tap(el, () => { BM.Audio.sfx('tap'); openPicker(p.team.length); });
+        el.className = 'deck-slot empty' + sel; el.innerHTML = '<span>＋</span>';
+        tap(el, () => { BM.Audio.sfx('tap'); selSlot = Math.min(i, p.team.length); renderTeam(); });
         deck.appendChild(el); continue;
       }
       const line = BM.LINES[id], l = p.lines[id], f = BM.FORMS[l.form], rar = BM.rarityOf(id);
-      el.className = 'deck-slot rar-' + rar.id; el.dataset.line = id;
+      el.className = 'deck-slot rar-' + rar.id + sel; el.dataset.line = id;
       el.innerHTML = `<span class="slv">Lv ${l.level}</span>`;
       el.appendChild(thumb(f, 120, false));
       const n = document.createElement('span'); n.className = 'dname'; n.textContent = f.name; el.appendChild(n);
       const dots = document.createElement('span'); dots.className = 'dots';
       for (const lf of line.forms) { const d = document.createElement('i'); d.className = lf.id === l.form ? 'on' : l.unlocked.includes(lf.id) ? '' : 'lockd'; dots.appendChild(d); }
       el.appendChild(dots);
-      const c = document.createElement('span'); c.className = 'dcost'; c.textContent = '⚡' + f.cost; el.appendChild(c);
+      const c = document.createElement('span'); c.className = 'dcost'; c.innerHTML = BM.apIcon() + BM.effCost(f, l.level); el.appendChild(c);
       const rm = document.createElement('span'); rm.className = 'rm'; rm.textContent = '✕'; el.appendChild(rm);
-      el.addEventListener('pointerdown', (e) => {
-        e.preventDefault(); BM.Audio.unlock();
+      tapOrHold(el, (e) => {
         const r = rm.getBoundingClientRect(), pad = 6; // ✕ is a child with pointer-events: none — hit-test its box
-        if (e.clientX >= r.left - pad && e.clientX <= r.right + pad && e.clientY >= r.top - pad && e.clientY <= r.bottom + pad) removeFromTeam(id);
-        else { BM.Audio.sfx('tap'); openPicker(i); }
-      });
+        if (e.clientX >= r.left - pad && e.clientX <= r.right + pad && e.clientY >= r.top - pad && e.clientY <= r.bottom + pad) { removeFromTeam(id); return; }
+        if (selSlot === i) cycleForm(id); else { BM.Audio.sfx('tap'); selSlot = i; renderTeam(); }
+      }, () => peek(id));
       deck.appendChild(el);
     }
-    const total = p.team.reduce((a, id) => a + BM.FORMS[p.lines[id].form].cost, 0);
-    $('team-sum').textContent = `${p.team.length} Pokémon · ${total.toLocaleString()} AP to field everyone once`;
-    renderPresets();
+    const total = p.team.reduce((a, id) => a + BM.effCost(BM.FORMS[p.lines[id].form], p.lines[id].level), 0);
+    $('team-sum').innerHTML = `${p.team.length} Pokémon · ${BM.apIcon()} ${total.toLocaleString()} AP to field everyone once`;
+    const L = BM.Save.LOADOUT, tk = BM.Sprites.artSrc('icons/battle_ticket');
+    $('btn-buy-preset').innerHTML = p.loadoutSlots < L.MAX ? `＋ Team slot ${tk ? `<img src="${tk}" alt="">` : '🎫'}${L.PRICE}` : 'All 20 slots';
+    $('btn-buy-preset').classList.toggle('maxed', p.loadoutSlots >= L.MAX);
+    renderStrip();
   }
-  // Rail of preset circles: tap = switch to that team (the current one stays saved in its circle) · ＋ = buy a slot.
-  function renderPresets() {
-    const p = prof(), rail = $('presets'), L = BM.Save.LOADOUT;
-    rail.innerHTML = '';
-    p.loadouts.forEach((lo, i) => {
-      const b = document.createElement('button');
-      b.className = 'preset' + (lo ? ' full' : '') + (i === p.loadoutAt ? ' cur' : ''); b.dataset.slot = i;
-      b.textContent = i + 1;
-      tap(b, () => {
-        if (i === p.loadoutAt) return;
-        BM.Save.switchLoadout(i); BM.Audio.sfx('tap'); toast(lo ? `Team ${i + 1}!` : `Team ${i + 1} — a copy to change as you like`); renderTeam();
-      });
-      rail.appendChild(b);
-    });
-    if (p.loadoutSlots < L.MAX) {
-      const tk = BM.Sprites.artSrc('icons/battle_ticket');
-      const b = document.createElement('button'); b.className = 'preset buy'; b.id = 'btn-buy-preset';
-      b.innerHTML = `＋<small>${tk ? `<img src="${tk}" alt="">` : '🎫'}${L.PRICE}</small>`;
-      tap(b, () => {
-        const r = BM.Save.buyLoadoutSlot();
-        if (r === 'ok') { BM.Audio.sfx('upgrade'); toast(`Team slot ${p.loadoutSlots} unlocked!`); renderTeam(); }
-        else { BM.Audio.sfx('deny'); toast(r === 'tickets' ? `A new team slot costs ${L.PRICE} tickets — you have ${p.tickets}.` : 'All 20 team slots unlocked!'); }
-      });
-      rail.appendChild(b);
-    }
-    const cur = rail.querySelector('.preset.cur'); if (cur && cur.scrollIntoView) cur.scrollIntoView({ block: 'nearest' });
+  // Tap the selected slot again = the next unlocked form battles (Battle Cats form cycle).
+  function cycleForm(id) {
+    const l = prof().lines[id], forms = BM.LINES[id].forms.filter((g) => l.unlocked.includes(g.id));
+    if (forms.length < 2) { BM.Audio.sfx('tap'); toast('Hold to see stats · ✕ takes it off'); return; }
+    const g = forms[(forms.findIndex((x) => x.id === l.form) + 1) % forms.length];
+    BM.Save.setForm(id, g.id); BM.Audio.cry(g.id, g.size, 1, 'ui'); toast(`${g.name} will battle!`); renderTeam();
   }
-  // ---------- tap-to-place picker ----------
-  let pickSlot = 0;
-  const PICKER_TABLET_MIN = 24;
-  function openPicker(slot) {
-    pickSlot = slot;
-    show('scr-picker', true);
-    renderPicker();
-  }
-  function renderPicker() {
-    const p = prof(), occ = p.team[pickSlot];
-    $('picker-title').textContent = occ ? `Slot ${pickSlot + 1}: swap ${BM.FORMS[p.lines[occ].form].name} for…` : `Slot ${pickSlot + 1}: choose from your PC Box`;
-    // the occupant's unlocked forms — which form battles (form choice lives here now that a tap opens the picker)
-    const pf = $('picker-forms'); pf.innerHTML = '';
-    if (occ) {
-      const l = p.lines[occ], forms = BM.LINES[occ].forms.filter((g) => l.unlocked.includes(g.id));
-      if (forms.length > 1) {
-        const lab = document.createElement('span'); lab.className = 'pf-lbl'; lab.textContent = 'Battles as:'; pf.appendChild(lab);
-        for (const g of forms) {
-          const b = document.createElement('button'); b.className = 'pf-form' + (g.id === l.form ? ' on' : ''); b.dataset.form = g.id;
-          b.appendChild(thumb(g, 44, false)); b.append(g.name);
-          tap(b, () => { BM.Save.setForm(occ, g.id); BM.Audio.cry(g.id, g.size, 1, 'ui'); toast(`${g.name} will battle!`); renderPicker(); renderTeam(); });
-          pf.appendChild(b);
-        }
-      }
-    }
+  // Bottom strip: every owned Pokémon (after the Filter) as a block — image + name + level. Only the strip scrolls.
+  function renderStrip() {
+    const p = prof(), strip = $('ta-strip'), keep = strip.scrollLeft;
+    strip.innerHTML = '';
     updateFilterBadges();
-    const grid = $('picker-grid'); grid.innerHTML = '';
+    const occ = p.team[selSlot];
+    $('ta-box-title').textContent = occ ? `PC Box — tap to swap slot ${selSlot + 1} (${BM.FORMS[p.lines[occ].form].name})` : `PC Box — tap to put in slot ${selSlot + 1}`;
     const ids = applyFilter(ownedLines(), true);
-    // H4: on tablet widths the grid is sized for 24+ cards (a denser grid: 12+ visible, still easy to tap); phones keep 8
-    const tablet = Math.min(window.innerWidth, window.innerHeight) >= 600;
-    const w = fitGrid(grid, Math.max(ownedLines().length, tablet ? PICKER_TABLET_MIN : 8), 1.22, 6, 12);
-    const ts = Math.max(40, Math.min(110, Math.round(w * 0.8)));
-    if (!ids.length) { const d = document.createElement('div'); d.className = 'bench-empty'; d.textContent = 'Nobody matches — tap Filter → Reset.'; grid.appendChild(d); }
+    const ts = Math.max(44, Math.min(110, Math.round(strip.clientHeight * 0.62)));
+    if (!ids.length) { const d = document.createElement('div'); d.className = 'bench-empty'; d.textContent = 'Nobody matches — tap Filter → Reset.'; strip.appendChild(d); }
     for (const id of ids) {
-      const card = lineCard(id, ts, 'coll-card pick-card');
+      const l = p.lines[id], f = BM.FORMS[l.form], rar = BM.rarityOf(id);
+      const b = document.createElement('button'); b.className = 'ta-block rar-' + rar.id; b.dataset.line = id;
+      b.innerHTML = `<span class="lv">Lv ${l.level}</span>`;
+      b.appendChild(thumb(f, ts, false));
+      const n = document.createElement('span'); n.className = 'tb-name'; n.textContent = f.name; b.appendChild(n);
       const at = p.team.indexOf(id);
-      if (at >= 0) { card.classList.add('on-team'); const t = document.createElement('span'); t.className = 'on-team-tag'; t.textContent = at === pickSlot ? 'here' : `slot ${at + 1}`; card.appendChild(t); }
-      tap(card, () => place(id));
-      grid.appendChild(card);
+      if (at >= 0) { b.classList.add('on-team'); const t = document.createElement('span'); t.className = 'on-team-tag'; t.textContent = `slot ${at + 1}`; b.appendChild(t); }
+      tapOrHold(b, () => place(id), () => peek(id));
+      strip.appendChild(b);
     }
+    strip.scrollLeft = keep;
   }
   function place(id) {
-    const r = BM.Save.placeInTeam(pickSlot, id);
-    if (r === 'none') { BM.Audio.sfx('deny'); return; }
-    show('scr-picker', false);
-    if (r === 'ok') { const f = BM.FORMS[prof().lines[id].form]; BM.Audio.cry(f.id, f.size, 1, 'ui'); toast(`${f.name} joins slot ${Math.min(pickSlot, prof().team.indexOf(id)) + 1}!`); }
+    const p = prof(), r = BM.Save.placeInTeam(selSlot, id);
+    if (r === 'none') { BM.Audio.sfx('deny'); toast('Your team is full — pick a slot to swap!'); return; }
+    if (r === 'same') { BM.Audio.sfx('tap'); return; }
+    const f = BM.FORMS[p.lines[id].form]; BM.Audio.cry(f.id, f.size, 1, 'ui');
+    toast(`${f.name} joins slot ${p.team.indexOf(id) + 1}!`);
+    if (p.team.length < BM.TEAM_SIZE && selSlot < BM.TEAM_SIZE - 1 && p.team[selSlot] === id && selSlot === p.team.length - 1) selSlot = p.team.length; // next empty slot
     renderTeam();
   }
-  const closePicker = () => show('scr-picker', false);
-  tap($('btn-picker-x'), closePicker);
-  $('scr-picker').addEventListener('pointerdown', (e) => { if (e.target.id === 'scr-picker') { e.preventDefault(); closePicker(); } });
-  tap($('btn-picker-filter'), () => { BM.Audio.sfx('tap'); openFilter({ ids: ownedLines(), ownedOnly: true, done: renderPicker }); });
+  // Stats peek (mini D1): press-and-hold a block or a slot.
+  function peek(id) {
+    const l = prof().lines[id], f = BM.FORMS[l.form], st = BM.unitStats(f, l.level), rar = BM.rarityOf(id);
+    BM.Audio.sfx('tap');
+    $('peek-title').textContent = `${f.name} · Lv ${l.level} · ${'★'.repeat(rar.stars)}`;
+    const left = $('peek-left'); left.innerHTML = '';
+    left.appendChild(thumb(f, 150, false)); left.appendChild(typePills(f.types));
+    const tc = traitChip(f, true); if (tc) left.appendChild(tc);
+    const box = $('peek-stats'); box.innerHTML = '';
+    const bs = BM.BASE_STATS[f.id] || [f.baseHP, 0, 0, 0, 0, f.baseSpe];
+    STAT_NAMES.forEach((name, i) => {
+      const row = document.createElement('div'); row.className = 'dex-stat';
+      row.innerHTML = `<span class="ds-n">${name}</span><span class="ds-v">${bs[i]}</span><span class="ds-bar"><i style="width:${Math.min(100, Math.round(bs[i] / 160 * 100))}%;background:${bs[i] >= 100 ? '#4cc25a' : bs[i] >= 70 ? '#f5c542' : '#f08a50'}"></i></span>`;
+      box.appendChild(row);
+    });
+    battleRow($('peek-battle'), f, st, l.level);
+    show('scr-peek', true); ui.fit($('scr-peek'));
+  }
+  const closePeek = () => show('scr-peek', false);
+  tap($('btn-peek-x'), closePeek);
+  $('scr-peek').addEventListener('pointerdown', (e) => { if (e.target.id === 'scr-peek') { e.preventDefault(); closePeek(); } });
+  function flipTeam(k) {
+    const p = prof(), n = p.loadoutSlots, i = (p.loadoutAt + k + n) % n, empty = !p.loadouts[i];
+    BM.Save.switchLoadout(i); BM.Audio.sfx('tap'); selSlot = 0;
+    toast(empty ? `${BM.Save.loadoutName(i)} — a copy to change as you like` : `${BM.Save.loadoutName(i)}!`); renderTeam();
+  }
+  tap($('btn-team-prev'), () => flipTeam(-1));
+  tap($('btn-team-next'), () => flipTeam(1));
+  tap($('btn-buy-preset'), () => {
+    const p = prof(), L = BM.Save.LOADOUT, r = BM.Save.buyLoadoutSlot();
+    if (r === 'ok') { BM.Audio.sfx('upgrade'); toast(`Team slot ${p.loadoutSlots} unlocked! Use ▶ to get there.`); renderTeam(); }
+    else { BM.Audio.sfx('deny'); toast(r === 'tickets' ? `A new team slot costs ${L.PRICE} tickets — you have ${p.tickets}.` : 'All 20 team slots unlocked!'); }
+  });
+  tap($('btn-team-rename'), () => {
+    BM.Audio.sfx('tap'); $('rename-input').value = BM.Save.loadoutName(prof().loadoutAt);
+    show('scr-rename', true); ui.fit($('scr-rename'));
+  });
+  function doRename() {
+    $('rename-input').blur(); BM.Save.renameLoadout(prof().loadoutAt, $('rename-input').value);
+    show('scr-rename', false); BM.Audio.sfx('upgrade'); renderTeam();
+  }
+  tap($('btn-rename-ok'), doRename);
+  tap($('btn-rename-cancel'), () => { $('rename-input').blur(); show('scr-rename', false); });
+  $('rename-input').addEventListener('keydown', (e) => { if (e.key === 'Enter') doRename(); });
+  tap($('btn-team-filter'), () => { BM.Audio.sfx('tap'); openFilter({ ids: ownedLines(), ownedOnly: true, done: renderStrip }); });
   function removeFromTeam(id) {
     if (!BM.Save.removeFromTeam(id)) { BM.Audio.sfx('deny'); toast('Your team needs at least one Pokémon!'); return; }
     BM.Audio.sfx('tap'); renderTeam();
   }
   tap($('btn-team-back'), () => { BM.Audio.sfx('tap'); ui.teamBack(); });
 
-  return { renderCollection, renderTeam, openPicker, applyFilter, filterState: F, thumb, openBag, openLine, traitChip, itemIcon, xpFrac };
+  return { renderCollection, renderTeam, place, peek, selectSlot: (i) => { selSlot = i; renderTeam(); }, get selSlot() { return selSlot; }, applyFilter, filterState: F, thumb, openBag, openLine, traitChip, itemIcon, xpFrac };
 };

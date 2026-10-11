@@ -30,7 +30,7 @@ BM.ITEM_INFO = {
   speed_up: { name: 'Speed Up', kind: 'battle', battle: true, emoji: '⏩', blurb: 'The battle runs 1.5× faster' },
   gen_lv8: { name: 'Generator Lv 8', kind: 'battle', battle: true, emoji: '🔋', blurb: 'Start with the AP Generator at Lv 8' },
   xp_bonus: { name: 'XP Bonus', kind: 'battle', battle: true, emoji: '✨', blurb: '+50% team XP from the win' },
-  full_ap: { name: 'Full AP Start', kind: 'battle', battle: true, emoji: '⚡', blurb: 'Start the battle with full AP' },
+  full_ap: { name: 'Full AP Start', kind: 'battle', battle: true, emoji: '💯', blurb: 'Start the battle with full AP' },
   dowsing_machine: { name: 'Dowsing Machine', kind: 'dowsing', battle: true, emoji: '📡', blurb: 'Win to find the stage\'s rarest treasure' },
 };
 for (const [id, it] of Object.entries(BM.ITEM_INFO)) { it.id = id; it.blurb = it.blurb || 'Helps a character evolve'; }

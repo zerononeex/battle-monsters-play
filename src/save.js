@@ -4,7 +4,7 @@
 window.BM = window.BM || {};
 BM.Save = (function () {
   const KEY = 'battle-monsters.save';
-  const VERSION = 6;
+  const VERSION = 7;
   const SLOTS = 3;
   const GRADES = [2, 3, 4, 5, 6, 7]; // grade drives the Phase 6 math difficulty; set at creation only
   // MIGRATIONS[n] upgrades a WHOLE save from version n to n+1. Never edit a shipped step; append.
@@ -87,6 +87,17 @@ BM.Save = (function () {
       }
       return d;
     },
+    // v7 (Phase 7): J1 hidden enemy intel — `attempted` {stageId: 1} = the profile has started that stage at least once
+    // (a cleared stage was attempted, so it starts revealed); TA team names live on each preset (`name`, optional).
+    6: (d) => {
+      for (const p of d.profiles) {
+        if (!p) continue;
+        p.attempted = {};
+        for (const sid of Object.keys(p.cleared || {})) if (p.cleared[sid] > 0) p.attempted[sid] = 1;
+        p.regionsDone = {}; // regions fully beaten (the Champion's first clear) — the home carousel shows them complete
+      }
+      return d;
+    },
   };
   const MISTAKES = { mathMistakes: { def: 2, min: 2, max: 10 }, spellMistakes: { def: 3, min: 3, max: 10 } }; // = BM.CHALLENGE.SLIDERS
   const START_TICKETS = 30; // §4.5: a new profile starts with 3 pulls
@@ -109,6 +120,8 @@ BM.Save = (function () {
       pity: {},                  // bannerId -> pulls since that banner's last legendary (§4.5 pity at 40)
       pulls: {},                 // bannerId -> total pulls
       armed: [],                 // battle items armed for the next battle (consumed only on a WIN)
+      regionsDone: {},           // Phase 7: regions fully beaten (the Champion's first clear: Mewtwo + Master Ball + ending)
+      attempted: {},             // J1: stageId -> 1 once a battle there started (or a challenge cleared it): enemies revealed
     };
     for (const id of BM.DEFAULT_TEAM) giveLine(p, id);
     p.loadouts[0] = { team: p.team.slice(), forms: Object.fromEntries(p.team.map((id) => [id, p.lines[id].form])) };
@@ -166,11 +179,15 @@ BM.Save = (function () {
       const team = [...new Set(lo.team)].filter((id) => p.lines[id]).slice(0, BM.TEAM_SIZE);
       const forms = {};
       for (const id of team) { const f = lo.forms && lo.forms[id]; if (f && p.lines[id].unlocked.includes(f)) forms[id] = f; }
-      return team.length ? { team, forms } : null;
+      if (!team.length) return null;
+      const name = typeof lo.name === 'string' ? lo.name.trim().slice(0, 14) : '';
+      return name ? { team, forms, name } : { team, forms };
     });
     p.loadoutAt = Math.max(0, Math.min(p.loadoutSlots - 1, p.loadoutAt | 0));
     const counts = (o) => Object.fromEntries(Object.entries(o && typeof o === 'object' ? o : {}).filter(([k, v]) => BM.BANNERS && BM.BANNERS.some((b) => b.id === k) && v >= 0).map(([k, v]) => [k, Math.floor(v)]));
     p.pity = counts(p.pity); p.pulls = counts(p.pulls);
+    p.regionsDone = Object.fromEntries(Object.keys(p.regionsDone && typeof p.regionsDone === 'object' ? p.regionsDone : {}).map((k) => [k, 1]));
+    p.attempted = Object.fromEntries(Object.keys(p.attempted && typeof p.attempted === 'object' ? p.attempted : {}).filter((k) => BM.stageById(k)).map((k) => [k, 1]));
     p.armed = [...new Set(Array.isArray(p.armed) ? p.armed : [])].filter((id) => BM.ITEM_INFO[id] && BM.ITEM_INFO[id].battle && p.items[id] > 0);
     return p;
   }
@@ -340,6 +357,7 @@ BM.Save = (function () {
     if (!p || !st) return null;
     const first = !(p.cleared[stageId] > 0);
     p.cleared[stageId] = (p.cleared[stageId] || 0) + 1;
+    p.attempted[stageId] = 1; // J1: a win (incl. a challenge auto-clear) always counts as an attempt
     const r = BM.stageRewards(st, first);
     if (st.dev) { r.tickets = 0; r.xp = 0; }
     r.used = (used || []).filter((id) => BM.ITEM_INFO[id] && BM.ITEM_INFO[id].battle && p.items[id] > 0);
@@ -356,12 +374,17 @@ BM.Save = (function () {
       if (!pend && pendingEvolution(id, p)) r.evolve.push(id);
     }
     if (r.item) give(p, r.item);
+    if (r.candy) for (const [id, n] of Object.entries(r.candy)) give(p, id, n); // Bonus Zone XP stage: an XP candy every win
     r.drops = st.dev ? [] : BM.rollDrops(st, first, rnd);
     if (r.used.includes('dowsing_machine') && !st.dev) {
       const rare = BM.rarestDrop(st);
       if (rare) { const o = r.drops.find((d) => d.item === rare); if (o) o.n++; else r.drops.push({ item: rare, n: 1 }); r.dowsed = rare; }
     }
     for (const d of r.drops) { if (d.item === 'tickets') p.tickets += d.n; else give(p, d.item, d.n); }
+    // REGION COMPLETE (Phase 7): the region's final stage (the Champion) on its FIRST clear grants the region's Master Ball
+    // (§4 economy: 1 per region fully beaten) — the Mewtwo line comes as the stage gift below (rewardOnly, joins at Lv 1).
+    // A replay never re-grants (first only); the ending screen plays from the result screen.
+    if (first && st.regionFinal) { give(p, 'master_ball'); r.masterBall = 1; r.regionComplete = st.region || 'kanto'; p.regionsDone = { ...(p.regionsDone || {}), [r.regionComplete]: 1 }; }
     if (r.gift) {
       r.giftNew = giveLine(p, r.gift);
       if (r.giftNew && p.team.length < BM.TEAM_SIZE) { p.team.push(r.gift); r.giftOnTeam = true; saveTeam(); }
@@ -370,11 +393,37 @@ BM.Save = (function () {
     return r;
   }
 
+  // M1 LOSS XP (user 2026-10-11, "it's a kids game"): a LOST battle still pays the team — 30% of the XP a win would pay
+  // now, + 1% for every 2% of the enemy base's HP destroyed, capped at 50%. Only lines that battled; no tickets, no drops,
+  // no clear (armed items were never touched). Campaign + Bonus Zone battles; challenge runs never call this.
+  BM.LOSS_XP = { base: 0.3, per2: 0.01, cap: 0.5 };
+  function recordLoss(stageId, battled, destroyedFrac) {
+    const p = profile(), st = BM.stageById(stageId);
+    if (!p || !st || st.dev) return null;
+    const first = !(p.cleared[stageId] > 0), win = winXp(st, first);
+    const pct = Math.min(BM.LOSS_XP.cap, BM.LOSS_XP.base + Math.floor(Math.max(0, Math.min(1, destroyedFrac)) * 100 / 2 + 1e-9) * BM.LOSS_XP.per2);
+    const xp = Math.round(win * pct);
+    const r = { loss: true, pct, xp, winXp: win, xpLines: [], evolve: [] };
+    p.attempted[stageId] = 1;
+    for (const id of new Set(battled || [])) {
+      if (!p.lines[id] || !xp) continue;
+      const pend = pendingEvolution(id, p);
+      r.xpLines.push(addXp(p, id, xp));
+      if (!pend && pendingEvolution(id, p)) r.evolve.push(id);
+    }
+    persist();
+    return r;
+  }
+  // the team XP a WIN of this stage pays now (campaign §4.3; Bonus Zone XP stages pay their tier's XP)
+  function winXp(st, first) { return st.bonusXp || BM.stageRewards(st, first).xp; }
+
   // ---------- preset teams (F4) ----------
   function saveLoadout(i) {
     const p = profile();
     if (!(i >= 0 && i < p.loadoutSlots)) return false;
+    const name = p.loadouts[i] && p.loadouts[i].name;
     p.loadouts[i] = { team: p.team.slice(), forms: Object.fromEntries(p.team.map((id) => [id, p.lines[id].form])) };
+    if (name) p.loadouts[i].name = name;
     persist(); return true;
   }
   function loadLoadout(i) {
@@ -439,6 +488,19 @@ BM.Save = (function () {
     p.settings[key] = Math.max(r.min, Math.min(r.max, Math.round(Number(v)) || r.def)); persist();
     return p.settings[key];
   }
+  // TA: rename the current preset (✏️). Empty = back to the default "Team N".
+  function renameLoadout(i, name) {
+    const p = profile(); if (!(i >= 0 && i < p.loadoutSlots)) return false;
+    if (!p.loadouts[i]) saveLoadout(i);
+    const n = String(name || '').trim().slice(0, 14);
+    if (n) p.loadouts[i].name = n; else delete p.loadouts[i].name;
+    persist(); return true;
+  }
+  const loadoutName = (i, p = profile()) => (p.loadouts[i] && p.loadouts[i].name) || `Team ${i + 1}`;
+  // J1: the profile has now ATTEMPTED this stage (a battle started; a challenge auto-clear also counts) -> its enemies
+  // show fully on the pre-battle screen from now on.
+  function markAttempted(stageId) { const p = profile(); if (p && !p.attempted[stageId]) { p.attempted[stageId] = 1; persist(); } }
+  const attempted = (stageId, p = profile()) => !!(p && p.attempted && p.attempted[stageId]);
   function setMapAt(stageId) { const p = profile(); if (p && p.mapAt !== stageId) { p.mapAt = stageId; persist(); } }
 
   // Dev/test only (hidden dev mode): own every Kanto line, unlock every form, set levels.
@@ -458,5 +520,5 @@ BM.Save = (function () {
 
   return { load, persist, profile, list, select, create, finishSetup, eraseProfile, exportCode, decodeCode, importCode,
     setForm, devUnlockAll, devGrantItems, giveLine, recordWin, setMapAt, addXpTo: (p, id, n) => addXp(p, id, n), addXp: (id, n) => { const r = addXp(profile(), id, n); persist(); return r; },
-    pendingEvolution, evolve, useItem, saveLoadout, loadLoadout, buyLoadoutSlot, saveTeam, switchLoadout, placeInTeam, removeFromTeam, toggleArmed, setMistakes, MISTAKES, LOADOUT, START_TICKETS, VERSION, SLOTS, GRADES, KEY, get memoryOnly() { return memoryOnly; } };
+    pendingEvolution, evolve, useItem, saveLoadout, loadLoadout, buyLoadoutSlot, saveTeam, switchLoadout, placeInTeam, removeFromTeam, toggleArmed, setMistakes, recordLoss, winXp, renameLoadout, loadoutName, markAttempted, attempted, MISTAKES, LOADOUT, START_TICKETS, VERSION, SLOTS, GRADES, KEY, get memoryOnly() { return memoryOnly; } };
 })();

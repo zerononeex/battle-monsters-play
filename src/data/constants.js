@@ -16,6 +16,10 @@ BM.C = {
   baseHP: (stageLevel) => 1000 + 300 * stageLevel,
   ACE_BASE_FRAC: 0.7,       // a leader's ace comes out when the enemy base drops below 70%...
   ACE_TIME: 90,             // ...or at 90 s, whichever is first (§4.4)
+  // §4.4 giant boss (Phase 7): 2× sprite. §4.4 proposed HP ×6 / damage ×2 — the Phase 7 sim found Sabrina, Lorelei, Lance
+  // and the Champion unwinnable at expected levels with those, so: HP ×4 / damage ×1.5 (flagged for the user, §4.4)
+  GIANT: { hp: 4, dmg: 1.5, size: 2 },
+  SIG: { first: 3, every: 10 }, // K4 signature special move: first after 3 s on the field, then every 10 s
   // Stat formula (§4.2). Role multipliers below.
   MELEE_RANGE: 60,
   RANGED_RANGE: 250,
@@ -50,6 +54,12 @@ BM.sizeClass = function (form) {
 };
 // Supplied-sound keys (G8). Cries: art-src/cries/<cryKey>.mp3 — the species name (branch variants of one species share
 // its cry: every typed Eevee = 'eevee'). Reserved SFX: art-src/sfx/<key>.mp3 replaces that synth sound when present.
+// L1 COST SCALING (user, REVISED 2026-10-11 — gentle): effective AP cost = the form's audited base cost (L2, `form.cost`)
+// × (1 + 0.01 × (level − 1)), hard-capped at ×1.5. Cooldown never scales. Cards / detail / team show this number.
+BM.C.COST_PER_LEVEL = 0.01; BM.C.COST_CAP = 1.5;
+BM.C.COST_MAX = 150; // Q1 kids' fun rule: no form ever costs more than 150 AP, at any level
+BM.costMul = (level) => Math.min(BM.C.COST_CAP, 1 + BM.C.COST_PER_LEVEL * (Math.max(1, level) - 1));
+BM.effCost = (form, level) => Math.min(BM.C.COST_MAX, Math.round(form.cost * BM.costMul(level || 1)));
 BM.cryKey = (form) => form.cry || form.id;
 BM.SFX_KEYS = ['super_effective'];
 
@@ -57,13 +67,13 @@ BM.SFX_KEYS = ['super_effective'];
 // DATA on a form (`trait: 'swift'`, Dodger also `dodge: 0.15–0.30`), never code per species; it applies to every unit
 // of that form, player or enemy. Stacks on top of the §4.2 role multipliers.
 BM.TRAITS = {
-  swift:  { name: 'Swift',  icon: '⚡', interval: 0.7, text: 'attacks 30% faster' },
+  swift:  { name: 'Swift',  icon: '💫', interval: 0.7, text: 'attacks 30% faster' },
   tank:   { name: 'Tank',   icon: '🛡️', hp: 1.5, kbResist: true, text: '1.5× HP and can\'t be knocked back' },
   flyer:  { name: 'Flyer',  icon: '🕊️', immune: ['ground'], text: 'Ground attacks can\'t hit it' },
   dodger: { name: 'Dodger', icon: '💨', dodge: 0.2, text: 'dodges some hits' },          // species value 15–30% in data
   rusher: { name: 'Rusher', icon: '👟', speed: 1.4, text: 'marches 40% faster' },
   sniper: { name: 'Sniper', icon: '🎯', range: 1.6, text: 'reaches 60% farther' },
-  splash: { name: 'Splash', icon: '💦', splash: { radius: 70, frac: 0.5 }, text: 'hits also splash foes next to the target' },
+  splash: { name: 'Splash', icon: '💦', text: 'hits every foe in a small area' }, // K3: Splash = an area attack (combat.js aoe, 70 by default)
 };
 // Role label words (playtest H3: the gacha banner shows each legendary's ROLE as a chip, docs/ROLE_TRAITS.md). A form's
 // trait wins (Swift, Tank…); otherwise its role + reach style ("Legend · Ranged").
@@ -98,7 +108,8 @@ BM.unitStats = function (form, level) {
     hits: cb ? cb.hits : 1,
     dodge: t.dodge ? form.dodge || t.dodge : 0,
     immune: t.immune || null,
-    splash: t.splash || null,
+    aoe: form.aoe != null ? form.aoe : cb ? cb.aoe : 0,                       // K3 area-attack radius (0 = single target)
+    status: cb ? cb.status : null, statusChance: cb ? cb.statusChance : 0,   // K4
     kbResist: !!t.kbResist,
   };
 };
