@@ -2499,6 +2499,7 @@ BM.ART = {
  "ui/regionw_kanto": "art/ui/regionw_kanto.png",
  "ui/regionw_sinnoh": "art/ui/regionw_sinnoh.png",
  "ui/reveal_burst": "art/ui/reveal_burst.png",
+ "ui/safari_zone": "art/ui/safari_zone.png",
  "ui/title_key_art": "art/ui/title_key_art.png"
 };
 BM.MUSIC_FILES = {
