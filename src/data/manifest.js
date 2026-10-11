@@ -700,9 +700,9 @@ BM.SPRITE_FILES = {
  "ivysaur": {
   "attack": {
    "src": "sprites/ivysaur.attack.png",
-   "cellW": 159,
+   "cellW": 199,
    "cellH": 130,
-   "anchorX": 79,
+   "anchorX": 99,
    "anchorY": 129,
    "frames": [
     0,
@@ -711,9 +711,9 @@ BM.SPRITE_FILES = {
   },
   "run": {
    "src": "sprites/ivysaur.run.png",
-   "cellW": 97,
+   "cellW": 135,
    "cellH": 130,
-   "anchorX": 48,
+   "anchorX": 67,
    "anchorY": 129,
    "frames": [
     0,
