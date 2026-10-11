@@ -1679,9 +1679,9 @@ BM.SPRITE_FILES = {
  "voltorb": {
   "run": {
    "src": "sprites/voltorb.run.png",
-   "cellW": 113,
+   "cellW": 110,
    "cellH": 130,
-   "anchorX": 56,
+   "anchorX": 55,
    "anchorY": 129,
    "frames": [
     0,
