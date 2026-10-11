@@ -1809,9 +1809,9 @@ BM.SPRITE_FILES = {
   },
   "run": {
    "src": "sprites/zapdos.run.png",
-   "cellW": 122,
+   "cellW": 121,
    "cellH": 130,
-   "anchorX": 61,
+   "anchorX": 60,
    "anchorY": 129,
    "frames": [
     0,
