@@ -31,6 +31,7 @@ window.BM = window.BM || {};
     cubone: ['Bonemerang', 'bone', 150, 2], marowak: ['Bonemerang', 'bone', 170, 2],
     eevee_water: ['Water Gun', 'water', 150], vaporeon: ['Hydro Pump', 'water', 220],
     eevee_electric: ['Thunder Shock', 'bolt', 150], jolteon: ['Pin Missile', 'needle', 200, 3],
+    oddish_bellossom: ['Absorb', 'leaf', 170], gloom_bellossom: ['Mega Drain', 'leaf', 190], bellossom: ['Petal Dance', 'leaf', 210], // EEE1
     eevee_fire: ['Ember', 'flame', 140], flareon: ['Fire Fang', 'fang', 60],
     eevee_psychic: ['Confusion', 'psy', 200], espeon: ['Psychic', 'psy', 260],
     eevee_dark: ['Bite', 'fang', 60], umbreon: ['Bite', 'fang', 60],
@@ -60,7 +61,7 @@ window.BM = window.BM || {};
     tangela: ['Vine Whip', 'vine', 120, 2], rhyhorn: ['Horn Attack', 'horn', 60], venonat: ['Sleep Powder', 'psy', 180],
     venomoth: ['Psybeam', 'psy', 230], mr_mime: ['Psychic', 'psy', 220], ponyta: ['Flame Wheel', 'flame', 60],
     rapidash: ['Flame Wheel', 'flame', 70], dewgong: ['Aurora Beam', 'ice', 220], cloyster: ['Spike Cannon', 'needle', 150, 3],
-    hitmonlee: ['Double Kick', 'kick', 60, 2], dugtrio: ['Dig (three heads)', 'rock', 60, 3],
+    hitmonlee: ['Double Kick', 'kick', 60, 2], diglett: ['Dig', 'rock', 60], dugtrio: ['Dig (three heads)', 'rock', 60, 3],
     onix: ['Rock Slide', 'rock', 110], starmie: ['Swift', 'star', 230], vileplume: ['Petal Blizzard', 'leaf', 220],
     weezing: ['Sludge Bomb', 'poison', 200], rhydon: ['Earthquake', 'rock', 80],
     // Phase 7.5 EE1 / CC1 / CC2
@@ -89,6 +90,7 @@ window.BM = window.BM || {};
     venusaur: 90, charizard: 90, ninetales: 70, gyarados: 100, magikarp: 60, lapras: 80, jigglypuff: 70, wigglytuff: 100,
     snorlax: 50, dragonite: 80, porygon_z: 80, aerodactyl: 80, kleavor: 60,
     articuno: 140, zapdos: 110, moltres: 140, mew: 100, mewtwo: 160,
+    bellossom: 70, // EEE1: Petal Dance swirls
     onix: 70, vileplume: 100, weezing: 110, rhydon: 120, koffing: 50, cloyster: 0,
     golem: 80, steelix: 70, rhyperior: 110, tentacruel: 60, butterfree: 50,
   };

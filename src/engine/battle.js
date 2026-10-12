@@ -11,13 +11,16 @@ BM.Battle = function (stage, profile, opts = {}) {
   const baseHP = stage.baseHP || C.baseHP(stage.level);
   const enemyHP = stage.baseHP || (BM.enemyBaseHP ? BM.enemyBaseHP(stage) : baseHP);
 
+  // VV1 (Phase 7.6): stage restrictions (restrictions.js) — a field-cap override for both sides and an AP cost ceiling
+  const CAP = BM.fieldCap ? BM.fieldCap(stage) : C.MAX_PER_SIDE;
   const S = {
     stage, t: 0, ap: C.START_AP, gen: 1, units: [], nextId: 1, events: [], result: null, speedMul: 1,
     playerBase: { hp: baseHP, max: baseHP }, enemyBase: { hp: enemyHP, max: enemyHP },
     team: profile.team.filter((id) => profile.lines[id]).map((id) => ({
       line: id, form: BM.FORMS[profile.lines[id].form], level: profile.lines[id].level, cd: 0,
       cost: BM.effCost(BM.FORMS[profile.lines[id].form], profile.lines[id].level), // L1: +1%/Lv, cap ×1.5
-    })),
+    })).map((c) => ({ ...c, rule: BM.cardRuleWhy ? BM.cardRuleWhy(stage, c.cost) : null })), // VV1: why it may not deploy here
+    cap: CAP,
     waves: stage.waves.map((w) => ({ ...w, next: w.start, spawned: 0 })),
     ace: stage.ace ? { ...stage.ace, out: false } : null, // leader's ace: once, at enemy base < 70% or 90 s (§4.4)
     battled: [],                                           // line ids fielded at least once (team XP, §4.3)
@@ -59,7 +62,8 @@ BM.Battle = function (stage, profile, opts = {}) {
   function canSpawn(slot) {
     const c = S.team[slot];
     if (!c || S.result) return 'none';
-    if (count(1) >= C.MAX_PER_SIDE) return 'full';
+    if (c.rule) return 'rule'; // VV1: this stage's AP ceiling
+    if (count(1) >= CAP) return 'full';
     if (c.cd > 0) return 'cooldown';
     if (S.ap < c.cost) return 'ap';
     return 'ok';
@@ -174,7 +178,7 @@ BM.Battle = function (stage, profile, opts = {}) {
     if (carriers.length) list[list.length - 1] = carriers[Math.floor(rnd() * carriers.length)];
     let made = 0;
     for (const w of list) {
-      if (count(-1) >= C.MAX_PER_SIDE) break;
+      if (count(-1) >= CAP) break;
       makeUnit(BM.FORMS[w.form], w.level, -1, C.ENEMY_BASE_FRONT + 8 - made * 14 - rnd() * 8); made++;
     }
     let breaker = null;
@@ -215,14 +219,14 @@ BM.Battle = function (stage, profile, opts = {}) {
       S.events.push({ type: 'gate', by: G.by });
       if (G.by === 'hp') for (const w of S.waves) {
         if (!G.forms.has(w.form)) continue;
-        if (count(-1) < C.MAX_PER_SIDE + 2) { makeUnit(BM.FORMS[w.form], w.level, -1, C.ENEMY_BASE_FRONT + 4 - rnd() * 12); w.spawned++; }
+        if (count(-1) < CAP + 2) { makeUnit(BM.FORMS[w.form], w.level, -1, C.ENEMY_BASE_FRONT + 4 - rnd() * 12); w.spawned++; }
         w.next = Math.max(w.next, S.t + w.every);
       }
     }
     for (const w of S.waves) {
       if (gated(w.form)) continue;
       if (S.t < w.next || (w.count != null && w.spawned >= w.count)) continue;
-      if (count(-1) >= C.MAX_PER_SIDE) { w.next = S.t + 1; continue; }
+      if (count(-1) >= CAP) { w.next = S.t + 1; continue; }
       makeUnit(BM.FORMS[w.form], w.level, -1, C.ENEMY_BASE_FRONT + 8 - rnd() * 16);
       w.spawned++; w.next += w.every;
     }

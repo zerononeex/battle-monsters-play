@@ -230,7 +230,7 @@ BM.WORDS_POKEMON = [
   ['venomoth', 'venomoth', 'Venomoth flaps dusty wings.'], ['ponyta', 'ponyta', 'Ponyta has a mane of fire.'],
   ['rapidash', 'rapidash', 'Rapidash gallops very fast.'], ['dewgong', 'dewgong', 'Dewgong swims in icy water.'],
   ['cloyster', 'cloyster', 'Cloyster hides inside a hard shell.'], ['hitmonlee', 'hitmonlee', 'Hitmonlee has super long legs for kicking.'],
-  ['dugtrio', 'dugtrio', 'Dugtrio is three heads in one hole.'], ['starmie', 'starmie', 'Starmie has a glowing red core.'],
+  ['diglett', 'diglett', 'Diglett pops up out of the ground.'], ['dugtrio', 'dugtrio', 'Dugtrio is three heads in one hole.'], ['starmie', 'starmie', 'Starmie has a glowing red core.'],
   ['vileplume', 'vileplume', 'Vileplume has a giant flower on its head.'], ['weezing', 'weezing', 'Weezing has two heads.'],
   ['rhydon', 'rhydon', 'Rhydon has a drill on its horn.'],
   // new enemy species (V2)

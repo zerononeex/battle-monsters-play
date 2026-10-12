@@ -134,7 +134,7 @@ window.BM = window.BM || {};
       ace: { form: 'arcanine', level: 47, giant: true, sig: { move: 'Flamethrower', aoe: 150, reach: 200 } } },
     { id: 'kanto_20_giovanni', num: 20, name: 'Viridian Gym', leader: 'Giovanni', drops: D('late', { black_augurite: 2, metal_coat: 1, moon_stone: 1 }), kind: 'gym', level: 50,
       background: 'viridian_city', bgArt: 'gym_giovanni', music: 'battle_gym', townMusic: 'town_viridian',
-      waves: [W('rhyhorn', 45, 4, 12), W('dugtrio', 46, 12, 13), W('marowak', 46, 26, 16), W('rhyhorn', 47, 80, 12), W('golem', 47, 50, 24), W('rhyperior', 49, 80, 34)],
+      waves: [W('rhyhorn', 45, 4, 12), W('diglett', 44, 7, 15), W('dugtrio', 46, 12, 13), W('marowak', 46, 26, 16), W('rhyhorn', 47, 80, 12), W('golem', 47, 50, 24), W('rhyperior', 49, 80, 34)],
       ace: { form: 'rhydon', level: 50, giant: true, sig: { move: 'Earthquake', aoe: 170 } } },
     { id: 'kanto_21_lorelei', num: 21, name: 'Elite Four Lorelei', leader: 'Lorelei', drops: D('late', { ice_stone: 3, water_stone: 1 }), kind: 'e4', level: 56,
       background: 'indigo_plateau', bgArt: 'e4_hall', music: 'battle_elitefour', townMusic: 'town_indigo',

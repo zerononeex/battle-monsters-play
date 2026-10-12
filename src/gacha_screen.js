@@ -18,6 +18,10 @@ BM.GachaScreen = function (ui) {
     for (const bb of BM.BANNERS) {
       const t = document.createElement('button'); t.className = 'banner-tab' + (bb.id === bannerId ? ' on' : ''); t.dataset.banner = bb.id;
       t.innerHTML = `<span class="bt-name">${bb.name.replace('Kanto ', '')}</span><span class="bt-leg">${bb.legendaries.map((id) => BM.LINES[id].name).join(' + ')}</span>`;
+      // SS1 (Phase 7.6): the banner's legendaries as their real in-game battle sprites, big — kids pick a banner by who they see
+      const spr = document.createElement('span'); spr.className = 'bt-sprites';
+      for (const id of bb.legendaries) { const c = ui.thumb(BM.LINES[id].forms[0], 112, false); c.className = 'leg-sprite'; c.dataset.line = id; spr.appendChild(c); }
+      t.insertBefore(spr, t.firstChild);
       tap(t, () => { bannerId = bb.id; BM.Audio.sfx('tap'); render(); });
       tabs.appendChild(t);
     }
@@ -39,10 +43,13 @@ BM.GachaScreen = function (ui) {
     }
     card.appendChild(stage);
     const info = document.createElement('div'); info.className = 'bc-info'; info.id = 'bc-info';
-    const names = document.createElement('div'); names.className = 'bc-names';
+    const names = document.createElement('div'); names.className = 'bc-names ss1';
     for (const id of b.legendaries) {
       const d = document.createElement('div'); d.className = 'bc-leg-info'; d.dataset.line = id;
-      const n = document.createElement('span'); n.className = 'bc-name'; n.textContent = BM.LINES[id].name + (p.lines[id] ? ' ✓' : ''); d.appendChild(n);
+      // SS1: the legendary's battle sprite leads its name row (key art above stays uncropped; this is UI below it)
+      const sp = ui.thumb(BM.LINES[id].forms[0], 128, false); sp.className = 'leg-sprite'; sp.dataset.line = id; d.appendChild(sp);
+      const tx = document.createElement('div'); tx.className = 'bc-leg-text'; d.appendChild(tx);
+      const n = document.createElement('span'); n.className = 'bc-name'; n.textContent = BM.LINES[id].name + (p.lines[id] ? ' ✓' : ''); tx.appendChild(n);
       // H3: TYPE icons + ROLE label as chips beside each legendary
       const f = BM.LINES[id].forms[0], chips = document.createElement('div'); chips.className = 'bc-chips'; chips.dataset.line = id;
       for (const t of f.types) {
@@ -51,7 +58,7 @@ BM.GachaScreen = function (ui) {
         c.innerHTML = (ic ? `<img src="${ic}" alt="">` : '') + t; chips.appendChild(c);
       }
       const rl = BM.roleLabel(f), rc = document.createElement('span'); rc.className = 'bc-chip role'; rc.textContent = `${rl.icon} ${rl.text}`; chips.appendChild(rc);
-      d.appendChild(chips);
+      tx.appendChild(chips);
       names.appendChild(d);
     }
     info.appendChild(names);
@@ -144,6 +151,7 @@ BM.GachaScreen = function (ui) {
   // (Skip ▸▸ jumps to the end), then the recap grid. The burst is the generated art when DONE, else CSS rays.
   let lastResults = [], rvAt = 0, rvRaf = 0;
   const TINT = { legendary: '#ffcf3a', super: '#c46bff', rare: '#4aa8ff', basic: '#9ad0ff', item: '#7fe0a8', new: '#ff9a3a' };
+  // GGG1 (Phase 7.6): no "(pity)" stamp anywhere the player looks — the guarantee mechanic + its banner counter are unchanged
   function reveal(results) {
     lastResults = results; rvAt = 0;
     BM.Audio.playMusic('gacha_fanfare');
@@ -171,10 +179,11 @@ BM.GachaScreen = function (ui) {
       rvRaf = requestAnimationFrame(draw);
       plate.innerHTML = `<span class="rv-pname">${line.name}</span><span class="rv-pstars" style="color:${rar.color}">${'★'.repeat(rar.stars)}</span>`;
       const chips = document.createElement('div'); chips.className = 'bc-chips rv-chips';
-      for (const t of f.types) { const ic = BM.Sprites.artSrc('icons/type_' + t), c = document.createElement('span'); c.className = 'bc-chip type'; c.dataset.type = t; c.style.background = BM.TYPE_COLORS[t]; c.innerHTML = (ic ? `<img src="${ic}" alt="">` : '') + t; chips.appendChild(c); }
+      // DDD1 (Phase 7.6): the type is its icon + the plain word — no coloured highlight box behind the word (the icon already says it)
+      for (const t of f.types) chips.appendChild(BM.typeLabel(t, 'rv-type'));
       const rl = BM.roleLabel(f), rc = document.createElement('span'); rc.className = 'bc-chip role'; rc.textContent = `${rl.icon} ${rl.text}`; chips.appendChild(rc);
       plate.appendChild(chips);
-      plate.insertAdjacentHTML('beforeend', r.dupe ? '<span class="rv-ptag">Already a friend! +XP</span>' : `<span class="rv-ptag new">NEW FRIEND!${r.pity ? ' (pity)' : ''}</span>`);
+      plate.insertAdjacentHTML('beforeend', r.dupe ? '<span class="rv-ptag">Already a friend! +XP</span>' : '<span class="rv-ptag new">NEW FRIEND!</span>');
       setTimeout(() => BM.Audio.cry(f.id, f.size, 1, 'ui'), 350);
     } else {
       const it = BM.ITEM_INFO[r.item];
@@ -207,7 +216,7 @@ BM.GachaScreen = function (ui) {
         c.dataset.line = r.line; c.classList.add('rar-' + rar.id);
         c.appendChild(ui.thumb(line.forms[0], 110, false));
         c.insertAdjacentHTML('beforeend', `<span class="rv-stars">${'★'.repeat(rar.stars)}</span><span class="rv-name">${line.name}</span>` +
-          (r.dupe ? `<span class="rv-tag">Already a friend! +XP</span>` : `<span class="rv-tag new">NEW!${r.pity ? ' (pity)' : ''}</span>`));
+          (r.dupe ? `<span class="rv-tag">Already a friend! +XP</span>` : '<span class="rv-tag new">NEW!</span>'));
       } else {
         const it = BM.ITEM_INFO[r.item]; c.dataset.item = r.item;
         c.insertAdjacentHTML('beforeend', `<span class="rv-icon">${ui.itemIcon(r.item)}</span><span class="rv-name">${it.name}</span><span class="rv-tag">${r.kind === 'battle' ? 'battle item' : r.kind === 'evo' ? 'evolution item' : 'XP'}</span>`);

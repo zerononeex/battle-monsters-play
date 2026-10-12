@@ -231,7 +231,7 @@ BM.Audio = (function () {
         step++; nextTime += stepDur;
       }
     }, 25);
-    return { key, stop() { clearInterval(timer); out.gain.setValueAtTime(0, ac.currentTime); setTimeout(() => out.disconnect(), 300); } };
+    return { key, stepDur, stop() { clearInterval(timer); out.gain.setValueAtTime(0, ac.currentTime); setTimeout(() => out.disconnect(), 300); } };
   }
   function stopMusic() { if (current) { current.stop(); current = null; } }
 
@@ -248,6 +248,8 @@ BM.Audio = (function () {
   return { unlock, sfx, cry, preloadCries, playMusic, stopMusic, setMusic, setSound, suspend, resume, duck,
     get duckLevel() { return duckLevel; }, get ctx() { return ac; }, get masterBus() { ensure(); return master; }, // tests: GG1 synth audibility
     get currentKey() { return current && current.key; },
+    // XX1 test hook: the music clock — an MP3's playbackRate / the synth's step length (the battle speed button never touches it)
+    get tempo() { return current ? { rate: current.el ? current.el.playbackRate : 1, stepDur: current.stepDur || null, t: current.el ? current.el.currentTime : (ac ? ac.currentTime : 0) } : null; },
     get soundOn() { return soundOn; }, get musicOn() { return musicOn; }, stats,
     // what is playing now: 'mp3' (a supplied art-src/music file) or 'synth' (the WebAudio fallback) — tests + dev
     get currentSource() { return current ? (current.el ? 'mp3' : 'synth') : null; },

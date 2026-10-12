@@ -17,15 +17,34 @@ BM.Screens = function (ui) {
     if (locked) { g.globalCompositeOperation = 'source-in'; g.fillStyle = 'rgba(40,40,60,.55)'; g.fillRect(0, 0, size, size); }
     return c;
   }
+  // LL1 (Phase 7.6): the visible form-cycle button — a YELLOW circle, bottom-right of a card, recycle-style two curved
+  // arrows. Shown ONLY on lines with more than one unlocked form. It is a child with pointer-events: none, so the card's
+  // own tap handler hit-tests its box (same pattern as the team slot's ✕).
+  const CYC_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.5 9.5A8 8 0 0 0 5.2 7.4" /><path d="M4.5 14.5a8 8 0 0 0 14.3 2.1" />' +
+    '<path class="hd" d="M3.2 3.6 5.2 7.9 9.6 6.4z" /><path class="hd" d="M20.8 20.4 18.8 16.1 14.4 17.6z" /></svg>';
+  function multiForm(id) { const l = prof().lines[id]; return !!l && BM.LINES[id].forms.filter((g) => l.unlocked.includes(g.id)).length > 1; }
+  function addCycle(card, id) {
+    if (!multiForm(id)) return null;
+    const b = document.createElement('span'); b.className = 'cyc'; b.dataset.cycle = id; b.setAttribute('aria-label', 'Change form'); b.innerHTML = CYC_SVG;
+    card.appendChild(b); return b;
+  }
+  function hitCycle(card, e, pad = 6) {
+    const c = card.querySelector('.cyc'); if (!c || e.clientX == null) return false;
+    const r = c.getBoundingClientRect();
+    return e.clientX >= r.left - pad && e.clientX <= r.right + pad && e.clientY >= r.top - pad && e.clientY <= r.bottom + pad;
+  }
+  // flips a line to its next unlocked form (wrapping); the line's level is shared by every form
+  function nextForm(id) {
+    const l = prof().lines[id], forms = BM.LINES[id].forms.filter((g) => l.unlocked.includes(g.id));
+    if (forms.length < 2) return null;
+    const g = forms[(forms.findIndex((x) => x.id === l.form) + 1) % forms.length];
+    BM.Save.setForm(id, g.id); BM.Audio.cry(g.id, g.size, 1, 'ui'); toast(`${g.name} will battle!`);
+    return g;
+  }
+  // DDD1 (Phase 7.6): icon + plain type word (was a coloured pill behind the word)
   function typePills(types) {
     const d = document.createElement('div'); d.className = 'types';
-    for (const t of types) {
-      const p = document.createElement('span'), icon = BM.Sprites.artSrc('icons/type_' + t);
-      p.className = 'type-pill' + (icon ? '' : ' noicon');
-      p.style.background = BM.TYPE_COLORS[t];
-      p.innerHTML = (icon ? `<img src="${icon}" alt="">` : '') + t;
-      d.appendChild(p);
-    }
+    for (const t of types) d.appendChild(BM.typeLabel(t, 'type-pill'));
     return d;
   }
   const itemIcon = (id) => { const i = BM.Sprites.artSrc('icons/' + id); return i ? `<img src="${i}" alt="">` : `<span class="emo">${BM.ITEM_INFO[id].emoji}</span>`; };
@@ -41,6 +60,7 @@ BM.Screens = function (ui) {
   function unlockText(form) {
     const e = form.evo;
     if (!e) return '';
+    if (e.requiresRegion && !BM.evoGateOpen(form, prof())) return BM.evoLockText(form); // EEE1: honest region lock
     if (e.item) return `${BM.ITEMS[e.item]} at Lv ${e.minLevel}+`;
     return `Evolves at Lv ${e.level}`;
   }
@@ -163,6 +183,7 @@ BM.Screens = function (ui) {
     for (const lf of line.forms) { const d = document.createElement('i'); d.className = lf.id === l.form ? 'on' : l.unlocked.includes(lf.id) ? '' : 'lockd'; dots.appendChild(d); }
     if (line.forms.length > 1) foot.appendChild(dots);
     card.appendChild(foot);
+    addCycle(card, id);
     return card;
   }
 
@@ -182,7 +203,7 @@ BM.Screens = function (ui) {
       if (!p.lines[id]) { grid.appendChild(unownedCard(BM.LINES[id], ts)); continue; }
       const card = lineCard(id, ts, 'coll-card');
       if (BM.Save.pendingEvolution(id)) { const b = document.createElement('span'); b.className = 'evo-badge'; b.textContent = 'EVOLVE!'; card.appendChild(b); }
-      tap(card, () => { BM.Audio.sfx('tap'); openLine(id, p.lines[id].form); });
+      tap(card, (e) => { if (hitCycle(card, e)) { nextForm(id); renderCollection(); return; } BM.Audio.sfx('tap'); openLine(id, p.lines[id].form); });
       grid.appendChild(card);
     }
   }
@@ -278,7 +299,11 @@ BM.Screens = function (ui) {
     const pend = BM.Save.pendingEvolution(id);
     if (pend) btn(`✨ EVOLVE! → ${pend.name}`, 'evolve', () => ui.playEvolution([{ line: id, from: l.form, to: pend.id }], () => { reopen(); }));
     const next = line.forms.find((f, i) => i > 0 && !l.unlocked.includes(f.id) && l.unlocked.includes(line.forms[i - 1].id));
-    if (next && next.evo && next.evo.item) {
+    if (next && next.evo && next.evo.requiresRegion && !BM.evoGateOpen(next, p)) {
+      // EEE1: a region-gated evolution shows its lock, honestly — no item button to press
+      const d = document.createElement('div'); d.className = 'item-btn region-lock'; d.dataset.lock = next.id;
+      d.innerHTML = `🔒 ${itemIcon(next.evo.item)} ${BM.evoLockText(next)}`; box.appendChild(d);
+    } else if (next && next.evo && next.evo.item) {
       const n = p.items[next.evo.item] || 0;
       btn(`${itemIcon(next.evo.item)} Use ${BM.ITEMS[next.evo.item]} <small>×${n}</small>`, 'stone' + (n ? '' : ' none'), () => use(id, next.evo.item));
     }
@@ -349,6 +374,11 @@ BM.Screens = function (ui) {
   function renderTeam() {
     const p = prof(), deck = $('deck');
     deck.innerHTML = '';
+    // QQ1 (Phase 7.6): the team screen sits inside a Pokémon Center (assets/ui/pokemon_center.png, ASSET_PROMPTS #330) —
+    // a light wash keeps the cards readable over it; the sky-to-grass gradient stays until the art lands
+    const pc = BM.Sprites.artSrc('ui/pokemon_center');
+    $('scr-team').style.backgroundImage = pc ? `linear-gradient(rgba(255,250,240,.28), rgba(255,250,240,.28)), url("${pc}")` : '';
+    $('scr-team').classList.toggle('has-center', !!pc);
     if (selSlot > p.team.length) selSlot = p.team.length;
     if (selSlot >= BM.TEAM_SIZE) selSlot = BM.TEAM_SIZE - 1;
     $('team-name').textContent = BM.Save.loadoutName(p.loadoutAt);
@@ -373,9 +403,11 @@ BM.Screens = function (ui) {
       el.appendChild(dots);
       const c = document.createElement('span'); c.className = 'dcost'; c.innerHTML = BM.apIcon() + BM.effCost(f, l.level); el.appendChild(c);
       const rm = document.createElement('span'); rm.className = 'rm'; rm.textContent = '✕'; el.appendChild(rm);
+      addCycle(el, id);
       tapOrHold(el, (e) => {
         const r = rm.getBoundingClientRect(), pad = 6; // ✕ is a child with pointer-events: none — hit-test its box
         if (e.clientX >= r.left - pad && e.clientX <= r.right + pad && e.clientY >= r.top - pad && e.clientY <= r.bottom + pad) { removeFromTeam(id); return; }
+        if (hitCycle(el, e)) { nextForm(id); renderTeam(); return; }
         if (selSlot === i) cycleForm(id); else { BM.Audio.sfx('tap'); selSlot = i; renderTeam(); }
       }, () => peek(id));
       deck.appendChild(el);
@@ -388,11 +420,10 @@ BM.Screens = function (ui) {
     renderStrip();
   }
   // Tap the selected slot again = the next unlocked form battles (Battle Cats form cycle).
+  // (kept as the shortcut — LL1's yellow ⟳ button is the visible way)
   function cycleForm(id) {
-    const l = prof().lines[id], forms = BM.LINES[id].forms.filter((g) => l.unlocked.includes(g.id));
-    if (forms.length < 2) { BM.Audio.sfx('tap'); toast('Hold to see stats · ✕ takes it off'); return; }
-    const g = forms[(forms.findIndex((x) => x.id === l.form) + 1) % forms.length];
-    BM.Save.setForm(id, g.id); BM.Audio.cry(g.id, g.size, 1, 'ui'); toast(`${g.name} will battle!`); renderTeam();
+    if (!nextForm(id)) { BM.Audio.sfx('tap'); toast('Hold to see stats · ✕ takes it off'); return; }
+    renderTeam();
   }
   // Bottom strip: every owned Pokémon (after the Filter) as a block — image + name + level. Only the strip scrolls.
   function renderStrip() {
@@ -412,7 +443,8 @@ BM.Screens = function (ui) {
       const n = document.createElement('span'); n.className = 'tb-name'; n.textContent = f.name; b.appendChild(n);
       const at = p.team.indexOf(id);
       if (at >= 0) { b.classList.add('on-team'); const t = document.createElement('span'); t.className = 'on-team-tag'; t.textContent = `slot ${at + 1}`; b.appendChild(t); }
-      tapOrHold(b, () => place(id), () => peek(id));
+      addCycle(b, id);
+      tapOrHold(b, (e) => { if (hitCycle(b, e)) { nextForm(id); renderTeam(); return; } place(id); }, () => peek(id));
       strip.appendChild(b);
     }
     strip.scrollLeft = keep;

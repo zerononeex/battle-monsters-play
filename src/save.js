@@ -4,7 +4,7 @@
 window.BM = window.BM || {};
 BM.Save = (function () {
   const KEY = 'battle-monsters.save';
-  const VERSION = 8;
+  const VERSION = 9;
   const SLOTS = 3;
   const GRADES = [2, 3, 4, 5, 6, 7]; // grade drives the Phase 6 math difficulty; set at creation only
   // MIGRATIONS[n] upgrades a WHOLE save from version n to n+1. Never edit a shipped step; append.
@@ -105,6 +105,12 @@ BM.Save = (function () {
       for (const p of d.profiles) if (p) delete p.attempted;
       return d;
     },
+    // v9 (Phase 7.6): XX1 — the battle speed button remembers its last choice per profile (`settings.battleSpeed`, 1 | 2 | 3).
+    // Existing profiles start at 1×. Nothing else changes (lossless).
+    8: (d) => {
+      for (const p of d.profiles) if (p) p.settings = { ...(p.settings || {}), battleSpeed: 1 };
+      return d;
+    },
   };
   const MISTAKES = { mathMistakes: { def: 2, min: 2, max: 10 }, spellMistakes: { def: 3, min: 3, max: 10 } }; // = BM.CHALLENGE.SLIDERS
   const START_TICKETS = 30; // §4.5: a new profile starts with 3 pulls
@@ -114,7 +120,7 @@ BM.Save = (function () {
   function newProfile(slot, name, grade) {
     const p = {
       slot, name: name || 'Player ' + (slot + 1), grade: grade || null, created: Date.now(),
-      settings: { music: true, sound: true, mathMistakes: MISTAKES.mathMistakes.def, spellMistakes: MISTAKES.spellMistakes.def },
+      settings: { music: true, sound: true, mathMistakes: MISTAKES.mathMistakes.def, spellMistakes: MISTAKES.spellMistakes.def, battleSpeed: 1 },
       cleared: {},               // stageId -> number of wins
       lines: {},                 // lineId -> { level, xp (total, L³ curve), form (fielded), unlocked: [formIds] }
       team: BM.DEFAULT_TEAM.slice(),
@@ -160,6 +166,7 @@ BM.Save = (function () {
   function sanitize(p, slot) {
     p.slot = slot;
     p.settings = { music: true, sound: true, ...(p.settings || {}) };
+    p.settings.battleSpeed = [1, 2, 3].includes(p.settings.battleSpeed) ? p.settings.battleSpeed : 1; // XX1 (v9)
     for (const [k, r] of Object.entries(MISTAKES)) { const v = Number(p.settings[k]); p.settings[k] = Number.isFinite(v) ? Math.max(r.min, Math.min(r.max, Math.round(v))) : r.def; }
     p.cleared = p.cleared || {};
     p.tickets = Math.max(0, Number.isFinite(p.tickets) ? Math.floor(p.tickets) : START_TICKETS);
@@ -332,6 +339,7 @@ BM.Save = (function () {
       if (!target) return { ok: false, msg: `${line.name} can't use a ${it.name}.` };
       if (l.unlocked.includes(target.id)) return { ok: false, msg: `${target.name} is already your friend!` };
       if (next !== target) return { ok: false, msg: `Evolve into ${next ? next.name : 'the form before'} first!` };
+      if (!BM.evoGateOpen(target, p)) return { ok: false, msg: BM.evoLockText(target) }; // EEE1: region gate (Bellossom → Johto)
       if (l.level < target.evo.minLevel) { const k = target.evo.minLevel - l.level; return { ok: false, msg: `${target.name} needs Lv ${target.evo.minLevel} — ${k} more level${k === 1 ? '' : 's'}!` }; }
       if (!have) return { ok: false, msg: `You need a ${it.name} — win stages to find one!` };
       take(p, itemId); evolve(id, target.id);

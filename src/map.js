@@ -241,6 +241,9 @@ BM.MapScreen = function (ui) {
   }
   tap($('btn-map-back'), () => { BM.Audio.sfx('tap'); ui.go('title'); });
   tap($('btn-map-dev'), () => { BM.Audio.sfx('tap'); ui.openPrebattle('dev_types'); });
+  // VV1 dev: each tap opens the next restriction test stage (Small Field · Small Cards · Both Rules)
+  let ruleAt = 0;
+  tap($('btn-map-dev-rules'), () => { BM.Audio.sfx('tap'); const ids = ['dev_rule_cap', 'dev_rule_ap', 'dev_rule_both']; ui.openPrebattle(ids[ruleAt++ % ids.length]); });
 
   let queued = null; // stage id just cleared for the first time: walk from it to the next stage on the next render
   return { render, queueWalk: (id) => { queued = id; }, tokenAt, layout: () => { if (bw) { layout(); renderNodes(); } }, tick: walkTick, nodeState, tokenTarget, walk, test };

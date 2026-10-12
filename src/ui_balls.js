@@ -31,3 +31,12 @@ BM.pcIcon = function (cls = '') {
   const src = BM.Sprites && BM.Sprites.artSrc('icons/pc_box');
   return src ? `<img class="pc-img ${cls}" src="${src}" alt="" data-pc="1">` : `<span class="pc-emo ${cls}" data-pc="1">📦</span>`;
 };
+
+// DDD1 (Phase 7.6): a type shown as its icon art + the plain word — no highlight box. Without the icon art (fallback) the word
+// gets a small dot in the type colour so the type still reads at a glance.
+BM.typeLabel = function (t, cls) {
+  const ic = BM.Sprites.artSrc('icons/type_' + t), s = document.createElement('span');
+  s.className = 'type-label ' + (cls || ''); s.dataset.type = t;
+  s.innerHTML = (ic ? `<img src="${ic}" alt="">` : `<i class="tl-dot" style="background:${BM.TYPE_COLORS[t]}"></i>`) + `<span class="tl-t">${t}</span>`;
+  return s;
+};

@@ -56,9 +56,9 @@ BM.SPRITE_FILES = {
  "alakazam": {
   "attack": {
    "src": "sprites/alakazam.attack.png",
-   "cellW": 150,
+   "cellW": 154,
    "cellH": 130,
-   "anchorX": 75,
+   "anchorX": 77,
    "anchorY": 129,
    "frames": [
     0,
@@ -119,9 +119,9 @@ BM.SPRITE_FILES = {
   },
   "run": {
    "src": "sprites/arcanine.run.png",
-   "cellW": 199,
+   "cellW": 205,
    "cellH": 130,
-   "anchorX": 99,
+   "anchorX": 102,
    "anchorY": 129,
    "frames": [
     0,
@@ -148,6 +148,32 @@ BM.SPRITE_FILES = {
    "cellW": 116,
    "cellH": 130,
    "anchorX": 58,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1,
+    2,
+    3
+   ]
+  }
+ },
+ "bellossom": {
+  "attack": {
+   "src": "sprites/bellossom.attack.png",
+   "cellW": 142,
+   "cellH": 130,
+   "anchorX": 71,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1
+   ]
+  },
+  "run": {
+   "src": "sprites/bellossom.run.png",
+   "cellW": 113,
+   "cellH": 130,
+   "anchorX": 56,
    "anchorY": 129,
    "frames": [
     0,
@@ -238,9 +264,9 @@ BM.SPRITE_FILES = {
  "caterpie": {
   "attack": {
    "src": "sprites/caterpie.attack.png",
-   "cellW": 197,
+   "cellW": 175,
    "cellH": 130,
-   "anchorX": 98,
+   "anchorX": 87,
    "anchorY": 129,
    "frames": [
     0,
@@ -431,9 +457,9 @@ BM.SPRITE_FILES = {
   },
   "run": {
    "src": "sprites/crobat.run.png",
-   "cellW": 112,
+   "cellW": 122,
    "cellH": 130,
-   "anchorX": 56,
+   "anchorX": 61,
    "anchorY": 129,
    "frames": [
     0,
@@ -1148,9 +1174,9 @@ BM.SPRITE_FILES = {
   },
   "run": {
    "src": "sprites/ivysaur.run.png",
-   "cellW": 135,
+   "cellW": 139,
    "cellH": 130,
-   "anchorX": 67,
+   "anchorX": 69,
    "anchorY": 129,
    "frames": [
     0,
@@ -1241,9 +1267,9 @@ BM.SPRITE_FILES = {
  "kleavor": {
   "attack": {
    "src": "sprites/kleavor.attack.png",
-   "cellW": 161,
+   "cellW": 137,
    "cellH": 130,
-   "anchorX": 80,
+   "anchorX": 68,
    "anchorY": 129,
    "frames": [
     0,
@@ -1460,9 +1486,9 @@ BM.SPRITE_FILES = {
   },
   "run": {
    "src": "sprites/marowak.run.png",
-   "cellW": 101,
+   "cellW": 116,
    "cellH": 130,
-   "anchorX": 50,
+   "anchorX": 58,
    "anchorY": 129,
    "frames": [
     0,
@@ -1527,9 +1553,9 @@ BM.SPRITE_FILES = {
  "metapod": {
   "attack": {
    "src": "sprites/metapod.attack.png",
-   "cellW": 134,
+   "cellW": 104,
    "cellH": 130,
-   "anchorX": 67,
+   "anchorX": 52,
    "anchorY": 129,
    "frames": [
     0,
@@ -1590,9 +1616,9 @@ BM.SPRITE_FILES = {
   },
   "run": {
    "src": "sprites/mewtwo.run.png",
-   "cellW": 120,
+   "cellW": 130,
    "cellH": 130,
-   "anchorX": 60,
+   "anchorX": 65,
    "anchorY": 129,
    "frames": [
     0,
@@ -1642,9 +1668,9 @@ BM.SPRITE_FILES = {
   },
   "run": {
    "src": "sprites/mr_mime.run.png",
-   "cellW": 80,
+   "cellW": 83,
    "cellH": 130,
-   "anchorX": 40,
+   "anchorX": 41,
    "anchorY": 129,
    "frames": [
     0,
@@ -1943,9 +1969,9 @@ BM.SPRITE_FILES = {
  "porygon": {
   "attack": {
    "src": "sprites/porygon.attack.png",
-   "cellW": 222,
+   "cellW": 131,
    "cellH": 130,
-   "anchorX": 111,
+   "anchorX": 65,
    "anchorY": 129,
    "frames": [
     0,
@@ -1954,9 +1980,9 @@ BM.SPRITE_FILES = {
   },
   "run": {
    "src": "sprites/porygon.run.png",
-   "cellW": 216,
+   "cellW": 129,
    "cellH": 130,
-   "anchorX": 108,
+   "anchorX": 64,
    "anchorY": 129,
    "frames": [
     0,
@@ -2032,9 +2058,9 @@ BM.SPRITE_FILES = {
   },
   "run": {
    "src": "sprites/psyduck.run.png",
-   "cellW": 84,
+   "cellW": 86,
    "cellH": 130,
-   "anchorX": 42,
+   "anchorX": 43,
    "anchorY": 129,
    "frames": [
     0,
@@ -2058,7 +2084,7 @@ BM.SPRITE_FILES = {
   },
   "run": {
    "src": "sprites/raichu.run.png",
-   "cellW": 90,
+   "cellW": 91,
    "cellH": 130,
    "anchorX": 45,
    "anchorY": 129,
@@ -2110,9 +2136,9 @@ BM.SPRITE_FILES = {
   },
   "run": {
    "src": "sprites/raticate.run.png",
-   "cellW": 191,
+   "cellW": 213,
    "cellH": 130,
-   "anchorX": 95,
+   "anchorX": 106,
    "anchorY": 129,
    "frames": [
     0,
@@ -2162,7 +2188,7 @@ BM.SPRITE_FILES = {
   },
   "run": {
    "src": "sprites/rhydon.run.png",
-   "cellW": 94,
+   "cellW": 95,
    "cellH": 130,
    "anchorX": 47,
    "anchorY": 129,
@@ -2292,9 +2318,39 @@ BM.SPRITE_FILES = {
   },
   "run": {
    "src": "sprites/scyther_kleavor.run.png",
-   "cellW": 113,
+   "cellW": 119,
    "cellH": 130,
-   "anchorX": 56,
+   "anchorX": 59,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1,
+    2,
+    3
+   ]
+  }
+ },
+ "seel": {
+  "run": {
+   "src": "sprites/seel.run.png",
+   "cellW": 129,
+   "cellH": 130,
+   "anchorX": 64,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1,
+    2,
+    3
+   ]
+  }
+ },
+ "shellder": {
+  "run": {
+   "src": "sprites/shellder.run.png",
+   "cellW": 134,
+   "cellH": 130,
+   "anchorX": 67,
    "anchorY": 129,
    "frames": [
     0,
@@ -2344,9 +2400,9 @@ BM.SPRITE_FILES = {
   },
   "run": {
    "src": "sprites/squirtle.run.png",
-   "cellW": 114,
+   "cellW": 117,
    "cellH": 130,
-   "anchorX": 57,
+   "anchorX": 58,
    "anchorY": 129,
    "frames": [
     0,
@@ -2593,9 +2649,9 @@ BM.SPRITE_FILES = {
   },
   "run": {
    "src": "sprites/umbreon.run.png",
-   "cellW": 130,
+   "cellW": 135,
    "cellH": 130,
-   "anchorX": 65,
+   "anchorX": 67,
    "anchorY": 129,
    "frames": [
     0,
@@ -2608,9 +2664,9 @@ BM.SPRITE_FILES = {
  "vaporeon": {
   "attack": {
    "src": "sprites/vaporeon.attack.png",
-   "cellW": 137,
+   "cellW": 161,
    "cellH": 130,
-   "anchorX": 68,
+   "anchorX": 80,
    "anchorY": 129,
    "frames": [
     0,
@@ -3551,6 +3607,7 @@ BM.ART = {
  "icons/quick_ball": "art/icons/quick_ball.png",
  "icons/rare_candy": "art/icons/rare_candy.png",
  "icons/speed_up": "art/icons/speed_up.png",
+ "icons/sun_stone": "art/icons/sun_stone.png",
  "icons/thunder_stone": "art/icons/thunder_stone.png",
  "icons/type_bug": "art/icons/type_bug.png",
  "icons/type_dark": "art/icons/type_dark.png",
@@ -3582,6 +3639,7 @@ BM.ART = {
  "ui/banner_kanto_b": "art/ui/banner_kanto_b.png",
  "ui/bonus_zone": "art/ui/bonus_zone.png",
  "ui/logo": "art/ui/logo.png",
+ "ui/pokemon_center": "art/ui/pokemon_center.png",
  "ui/region_hoenn": "art/ui/region_hoenn.png",
  "ui/region_johto": "art/ui/region_johto.png",
  "ui/region_kanto": "art/ui/region_kanto.png",
@@ -3598,6 +3656,7 @@ BM.MUSIC_FILES = {
  "battle_champion": "music/battle_champion.mp3",
  "battle_elitefour": "music/battle_elitefour.mp3",
  "battle_gym": "music/battle_gym.mp3",
+ "battle_tower": "music/battle_tower.mp3",
  "battle_trainer": "music/battle_trainer.mp3",
  "battle_wild": "music/battle_wild.mp3",
  "credits": "music/credits.mp3",
@@ -3610,6 +3669,7 @@ BM.MUSIC_FILES = {
  "route": "music/route.mp3",
  "team": "music/team.mp3",
  "title": "music/title.mp3",
+ "tower": "music/tower.mp3",
  "town_celadon": "music/town_celadon.mp3",
  "town_cerulean": "music/town_cerulean.mp3",
  "town_cinnabar": "music/town_cinnabar.mp3",
@@ -3644,6 +3704,7 @@ BM.CRY_FILES = {
  "crobat": "cries/crobat.mp3",
  "cubone": "cries/cubone.mp3",
  "dewgong": "cries/dewgong.mp3",
+ "diglett": "cries/diglett.mp3",
  "ditto": "cries/ditto.mp3",
  "dragonair": "cries/dragonair.mp3",
  "dragonite": "cries/dragonite.mp3",

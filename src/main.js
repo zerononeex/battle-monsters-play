@@ -6,6 +6,7 @@
   const R = BM.Render(canvas);
   let B = null;            // current battle
   let paused = false;
+  let speed = 1;           // XX1: battle speed (1 | 2 | 3) — fixed sim steps per real second × speed
   let screen = 'profiles';
   let devMode = /[?&]dev\b/.test(location.search);
   let settingsFrom = null; // 'title' | 'battle'
@@ -31,7 +32,7 @@
     if (name === 'profiles') { BM.Audio.playMusic('title'); renderProfiles(); }
     if (name === 'title') { BM.Audio.playMusic('title'); renderChip(); renderRegions(); renderHomeTower(); }
     // music by screen: map = map_kanto, pre-battle = the stage's town key, battle = its category key (startBattle)
-    if (name === 'map') { BM.Audio.playMusic('map_kanto'); show('btn-map-dev', devMode); KMap.render(); renderBonusBtn(); }
+    if (name === 'map') { BM.Audio.playMusic('map_kanto'); show('btn-map-dev', devMode); show('btn-map-dev-rules', devMode); KMap.render(); renderBonusBtn(); }
     if (name === 'bonus') { BM.Audio.playMusic('tower'); Bonus.render(); } // FF3: the Tower's own theme
     if (name === 'prebattle') renderPrebattle();
     if (name === 'collection') { BM.Audio.playMusic('team'); Scr.renderCollection(); }
@@ -214,6 +215,8 @@
   const Chal = BM.ChallengeScreen({ $, tap, toast, show, fit, go: (n) => go(n), thumb: (...a) => Scr.thumb(...a), screen: () => screen,
     back: () => go('prebattle'), cleared: (run) => showChallengeResult(run) });
   let towerFrom = 'title'; // HH1: the Tower is entered from the pinned home slot (primary) or the map banner — back returns there
+  const Types = BM.TypeChart({ $, tap, show }); // CCC1
+  tap($('btn-types'), () => { BM.Audio.sfx('tap'); Types.open(); });
   const Bonus = BM.BonusScreen({ $, tap, toast, fit, go: (n) => go(n), from: () => towerFrom, itemIcon: (id) => Scr.itemIcon(id), openPrebattle: (id) => { preStage = id; go('prebattle'); } });
   // the map's ⭐ BONUS banner: opens after Brock
   function renderBonusBtn() { const p = prof(); $('btn-bonus').classList.toggle('locked', !(p && p.cleared[BM.BONUS_OPEN_AFTER] > 0)); }
@@ -343,6 +346,14 @@
     $('btn-pre-back').textContent = st.bonus ? '◀ Tower' : '◀ Map';
     $('pre-name').textContent = st.name;
     $('pre-sub').textContent = st.leader ? `Leader ${st.leader}` : st.place ? `at the ${st.place}` : '';
+    // VV1: a stage with special rules shows them as a badge (Kanto + the Prism Tower never have any)
+    const rules = BM.ruleBadges(st), rb = $('pre-rules');
+    rb.innerHTML = ''; show('pre-rules', rules.length > 0);
+    if (rules.length) {
+      rb.innerHTML = '<span class="rb-h">⚠ Special rules</span>' + rules.map((r) => `<span class="rb-r" data-rule="${r.type}">${r.icon === 'ap' ? BM.apIcon() : r.icon} ${r.text}</span>`).join('');
+      const { out } = BM.legalTeam(st, p);
+      if (out.length) rb.insertAdjacentHTML('beforeend', `<span class="rb-out">Can't battle here: ${out.map((id) => BM.FORMS[p.lines[id].form].name).join(', ')}</span>`);
+    }
     const foes = $('pre-foes'); foes.innerHTML = '';
     // X1 HIDDEN ENEMY INTEL (amends J1): until the profile has DEFEATED this stage once (a challenge auto-clear counts) the
     // preview is black silhouettes + "?" (count visible, species/types hidden); a loss reveals nothing.
@@ -422,8 +433,11 @@
       const lv = document.createElement('span'); lv.className = 'clv'; lv.textContent = 'Lv ' + c.level; el.appendChild(lv);
       const name = document.createElement('span'); name.className = 'cname'; name.textContent = c.form.name; el.appendChild(name);
       const cost = document.createElement('span'); cost.className = 'ccost'; cost.innerHTML = BM.apIcon() + c.cost; el.appendChild(cost);
+      // VV1: a card this stage's rule keeps out is greyed for the whole battle and SAYS why, in kid words
+      if (c.rule) { el.classList.add('rule'); el.dataset.rule = c.rule; const w = document.createElement('span'); w.className = 'crule'; w.innerHTML = `🚫 Costs ${c.cost}<br>Max ${B.S.stage.restrict.apMax} here`; el.appendChild(w); }
       tap(el, () => {
         if (paused) return;
+        if (c.rule) { BM.Audio.sfx('deny'); toast(`${c.form.name}: ${c.rule}.`); return; }
         const r = B.spawn(i);
         if (r === 'ok') dismissHint('spawn'); // the spawn event plays the cry (G8)
         else { BM.Audio.sfx('deny'); el.classList.remove('denied'); void el.offsetWidth; el.classList.add('denied'); }
@@ -444,6 +458,7 @@
     const st = BM.stageById(stageId);
     if (!BM.isPlayable(st)) return;
     preStage = stageId; genShown = 0;
+    speed = [1, 2, 3].includes(prof().settings.battleSpeed) ? prof().settings.battleSpeed : 1; showSpeed();
     layout();
     R.clearFx();
     B = BM.Battle(st, prof(), { items: prof().armed.filter((id) => prof().items[id] > 0) });
@@ -676,6 +691,16 @@
     if (settingsFrom === 'battle') { paused = false; BM.Audio.resume(); }
   }
   tap($('btn-pause'), () => { if (B && !B.S.result) openSettings('battle'); });
+  // XX1 (Phase 7.6): 1× → 2× → 3× → 1×. The battle runs `speed` × as many FIXED 1/30 s steps per real second — every system
+  // (marching, attacks, cooldowns, AP generation, waves, gates) scales together and the simulation is step-for-step identical
+  // at any speed, so balance per battle-second is unchanged. Music is never touched (its clock is the audio element's own).
+  // The choice is remembered per profile (settings.battleSpeed, save v9).
+  function showSpeed() { $('speed-num').textContent = speed + '×'; $('btn-speed').dataset.speed = speed; }
+  tap($('btn-speed'), () => {
+    if (!B || B.S.result) return;
+    speed = speed % 3 + 1; BM.Audio.sfx('tap'); showSpeed();
+    if (prof()) { prof().settings.battleSpeed = speed; BM.Save.persist(); }
+  });
   tap($('btn-resume'), closeSettings);
   tap($('btn-close-settings'), () => { BM.Audio.sfx('tap'); closeSettings(); });
   // DD1: quitting a started battle is a FORFEIT — it counts as a loss for XP (the defeat screen shows what the team earned)
@@ -705,7 +730,7 @@
     if (screen === 'map') KMap.tick(tms);
     if (screen === 'battle' && B) {
       if (!paused) {
-        acc += dt;
+        acc += dt * speed; // XX1: more fixed steps per real second, never a bigger step
         while (acc >= DT) { B.step(DT); acc -= DT; }
         onBattleEvents();
         tutorialTick();
@@ -739,6 +764,6 @@
   });
   // first tap anywhere unlocks audio on iOS and starts the title music
   document.addEventListener('pointerdown', () => { BM.Audio.unlock(); if ((screen === 'title' || screen === 'profiles') && !BM.Audio.currentKey) BM.Audio.playMusic('title'); }, { once: false });
-  window.BM.debug = { get battle() { return B; }, startBattle, go, get screen() { return screen; }, map: KMap, bonus: Bonus, render: R, evo: Evo, screens: Scr, gacha: Gacha, challenge: Chal, fit, openPrebattle: (id) => { preStage = id; go('prebattle'); },
+  window.BM.debug = { types: Types, get battle() { return B; }, get speed() { return speed; }, startBattle, go, get screen() { return screen; }, map: KMap, bonus: Bonus, render: R, evo: Evo, screens: Scr, gacha: Gacha, challenge: Chal, fit, openPrebattle: (id) => { preStage = id; go('prebattle'); },
     get preStage() { return preStage; }, showEnding, get lastRewards() { return lastRewards; } };
 })();

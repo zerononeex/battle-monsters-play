@@ -64,6 +64,7 @@
     <button id="btn-map-back" class="icon-btn" aria-label="Back">◀</button>
   </div>
   <button id="btn-map-dev" class="dev-btn map-dev hidden">DEV: Type Test</button>
+  <button id="btn-map-dev-rules" class="dev-btn map-dev map-dev2 hidden">DEV: Rule Tests</button>
   <button id="btn-bonus" class="bonus-banner">🗼 PRISM TOWER</button>
 </section>
 
@@ -90,6 +91,7 @@
     <div class="pre-kicker" id="pre-kicker"></div>
     <h2 id="pre-name" class="pre-name"></h2>
     <div id="pre-sub" class="pre-sub"></div>
+    <div id="pre-rules" class="pre-rules hidden"></div>
     <h3 class="pre-h" id="pre-foes-h">Who you'll meet</h3>
     <div id="pre-foes" class="pre-foes"></div>
     <h3 class="pre-h" id="pre-rew-h">Rewards</h3>
@@ -190,6 +192,8 @@
 <!-- Battle HUD -->
 <section id="scr-battle" class="screen hidden">
   <button id="btn-pause" class="icon-btn corner-tl" aria-label="Pause">❚❚</button>
+  <!-- XX1 (Phase 7.6): battle speed 1× → 2× → 3× → 1× (the whole simulation, AP included; music never speeds up) -->
+  <button id="btn-speed" class="icon-btn speed-btn" aria-label="Battle speed"><span class="sp-arrows">▶</span><b id="speed-num">1×</b></button>
   <div id="ap-pill" class="ap-pill"><span class="ap-icon"></span><span id="ap-num">0</span><span class="ap-cap">/ <span id="ap-cap">0</span></span><span id="armed-icons" class="armed-icons"></span></div>
   <div id="hint" class="hint hidden"></div>
   <div id="hud" class="hud">
@@ -219,10 +223,28 @@
       <label class="slider"><span>🧮 Math mistakes allowed: <b id="sl-math-v">2</b></span><input id="sl-math" type="range" min="2" max="10" step="1" value="2"></label>
       <label class="slider"><span>🔤 Spelling mistakes allowed: <b id="sl-spell-v">3</b></span><input id="sl-spell" type="range" min="3" max="10" step="1" value="3"></label>
     </div>
+    <button id="btn-types" class="toggle types-btn">🔥💧🌿 Type Chart</button>
     <button id="btn-export" class="toggle share-btn">📤 Share my save code</button>
     <button id="btn-dev-music" class="dev-btn hidden">DEV: play next music key</button>
     <button id="btn-erase" class="erase-btn"><span class="erase-fill"></span><span class="erase-label">Hold 3 s to erase this profile</span></button>
     <button id="btn-close-settings" class="big-btn alt hidden">Done</button>
+  </div>
+</section>
+
+<!-- CCC1 Type Chart (Settings → Type Chart): rendered from BM.typeMultiplier, fits the screen, no scrolling -->
+<section id="scr-types" class="overlay hidden">
+  <div class="panel types-panel">
+    <button id="btn-types-x" class="panel-x" aria-label="Close">✕</button>
+    <div id="tc-body" class="tc-body">
+      <div id="tc-side" class="tc-side">
+        <h2>Type Chart</h2>
+        <div class="tc-key"><span class="tc-m strong">▲</span> Strong</div>
+        <div class="tc-key"><span class="tc-m weak">▼</span> Weak</div>
+        <div class="tc-key"><span class="tc-m none">✕</span> No effect</div>
+        <div class="tc-how"><b>⚔</b> attacker ▶<br><b>🛡</b> defender ▼<br>Tap a type!</div>
+      </div>
+      <div id="tc-grid" class="tc-grid"></div>
+    </div>
   </div>
 </section>
 
@@ -447,6 +469,7 @@
 <script src="src/data/combat.js"></script>
 <script src="src/data/stages.js"></script>
 <script src="src/data/bonus.js"></script>
+<script src="src/data/restrictions.js"></script>
 <script src="src/data/kanto_map.js"></script>
 <script src="src/data/banners.js"></script>
 <script src="src/data/math_gen.js"></script>
@@ -468,6 +491,7 @@
 <script src="src/gacha_screen.js"></script>
 <script src="src/challenge_screen.js"></script>
 <script src="src/bonus_screen.js"></script>
+<script src="src/typechart_screen.js"></script>
 <script src="src/main.js"></script>
 <!-- /BM:SCRIPTS -->
 </body>

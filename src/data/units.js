@@ -173,6 +173,20 @@ BM.addLine({ id: 'moltres', name: 'Moltres', legendary: true, gachaOnly: true, f
   { id: evoId, name: evoName, types: [type], bst: 525, baseHP: hp, baseSpe: spe, role, cost: 520, cd: 20, evo },
 ] }));
 
+// EEE1 (Phase 7.6, user 2026-10-11): BELLOSSOM — Gloom's Gen 2 Sun Stone branch, added as its OWN line from its own Oddish
+// base variant (the standing branch rule: Eevee / Ralts / Scyther-Kleavor). The base variants draw the canonical Oddish /
+// Gloom sheets (II1-style: art shared, data differs) and carry the branch's typing — pure Grass, like Bellossom (the typed-Eevee
+// rule). The evolution is GATED: a Sun Stone AND `requiresRegion: 'johto'` — nothing in Kanto can satisfy it (BM.regionReached:
+// a region counts as reached only once it ships). It is Johto-era content: not in BM.KANTO_LINES (so not in the Kanto PC Box
+// count), on no banner, in no Kanto wave, and no Sun Stone drops anywhere yet. Stats: PokéAPI. Vileplume's Leaf Stone path
+// (enemy data) is untouched.
+BM.addLine({ id: 'oddish_bellossom', name: 'Oddish (Bellossom)', branch: 'oddish', region: 'johto', forms: [
+  { id: 'oddish_bellossom', name: 'Oddish', cry: 'oddish', sprite: 'oddish', types: ['grass'], bst: 320, baseHP: 45, baseSpe: 30, role: 'ranged', cost: 75, cd: 4, size: 0.9 },
+  { id: 'gloom_bellossom', name: 'Gloom', cry: 'gloom', sprite: 'gloom', types: ['grass'], bst: 395, baseHP: 60, baseSpe: 40, role: 'ranged', cost: 180, cd: 8, size: 1, evo: { level: 21 } },
+  { id: 'bellossom', name: 'Bellossom', types: ['grass'], bst: 490, baseHP: 75, baseSpe: 50, role: 'ranged', cost: 500, cd: 18, size: 1.1, evo: { item: 'sun_stone', minLevel: 36, requiresRegion: 'johto' } },
+] });
+BM.JOHTO_LINES = ['oddish_bellossom']; // data-only until Johto ships
+
 // The 37 Kanto unit lines in collection order (Build 1's 20 first, then the rest; the 3 birds added in Phase 3).
 BM.KANTO_LINES = ['bulbasaur', 'charmander', 'squirtle', 'pikachu', 'magikarp', 'gastly', 'abra', 'machop', 'vulpix',
   'lapras', 'jigglypuff', 'cubone', 'eevee_water', 'snorlax', 'dratini',

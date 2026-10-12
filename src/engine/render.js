@@ -181,6 +181,7 @@ BM.Render = function (canvas) {
   }
 
   // ---------- units ----------
+  const facing = (u) => (u.side === -1 ? -1 : 1);
   function drawUnit(u) {
     const sp = BM.Sprites.get(u.form);
     let frame;
@@ -198,7 +199,10 @@ BM.Render = function (canvas) {
     // shadow
     ctx.fillStyle = 'rgba(0,0,0,.18)'; ctx.beginPath(); ctx.ellipse(x, y, h * 0.32, h * 0.07, 0, 0, 7); ctx.fill();
     ctx.translate(x, y);
-    if (u.side === -1) ctx.scale(-1, 1);
+    // TT1 (Phase 7.6): every sheet is authored facing RIGHT. Facing is a function of the SIDE only — player units face right,
+    // enemies are mirrored to face left — never of the state (march / windup / strike / hold) or the frame, so a unit can
+    // never snap round. Only the sprite is mirrored: HP bars, status icons, markers and floating text are drawn after restore().
+    ctx.scale(facing(u), 1);
     if (u.dead) ctx.translate(0, u.deadT * h * 0.4);
     if (u.st && (u.st.type === 'freeze' || u.st.type === 'sleep')) ctx.filter = u.st.type === 'freeze' ? 'saturate(.4) brightness(1.25) hue-rotate(160deg)' : 'brightness(.8)';
     else if (u.st && u.st.type === 'poison') ctx.filter = 'hue-rotate(250deg) saturate(1.4)';
@@ -230,12 +234,7 @@ BM.Render = function (canvas) {
         ctx.lineWidth = 4; ctx.strokeStyle = '#2a1a3a'; ctx.fillStyle = '#ff7a59';
         ctx.strokeText('💥 BREAKER', x, y - h - (u.st ? 40 : 14)); ctx.fillText('💥 BREAKER', x, y - h - (u.st ? 40 : 14)); ctx.restore();
       }
-      if (u.side === 1) { // small Lv tag under your units (Phase 4)
-        ctx.save(); ctx.font = `800 ${Math.round(Math.max(10, h * 0.13))}px system-ui, sans-serif`; ctx.textAlign = 'center';
-        ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(20,28,50,.85)'; ctx.fillStyle = '#ffe14a';
-        const ty = y + Math.max(11, h * 0.13) + (sp.placeholder ? h * 0.16 : 2);
-        ctx.strokeText('Lv ' + u.level, x, ty); ctx.fillText('Lv ' + u.level, x, ty); ctx.restore();
-      }
+      // UU1 (Phase 7.6): no "Lv N" text under field units — levels live on cards, detail screens and results
       const ly = y + h * 0.2, lw = h * 0.9;
       if (sp.placeholder && !labels.some((r) => Math.abs(r[0] - x) < (r[2] + lw) / 2 && Math.abs(r[1] - ly) < 16)) {
         labels.push([x, ly, lw]);
@@ -448,5 +447,5 @@ BM.Render = function (canvas) {
       return { x: Math.min(x + bw * 0.05, (side === 1 ? bw * 0.55 : W - bw * 0.55) - 60), y: top, w: Math.max(bw * 0.9, 120), h: Math.max(TOP_SAFE + 8, gy - bh - 30) + 15 - top };
     });
   }
-  return { resize, draw, onEvent, clearFx, hpBarRects, get fieldH() { return fieldH; } };
+  return { resize, draw, onEvent, clearFx, hpBarRects, facing, get fieldH() { return fieldH; } };
 };

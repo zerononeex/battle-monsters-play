@@ -101,6 +101,7 @@ BM.BASE_STATS = {
   dewgong: [90, 70, 80, 70, 95, 70],
   cloyster: [50, 95, 180, 85, 45, 70],
   hitmonlee: [50, 120, 53, 35, 110, 87],
+  diglett: [10, 55, 25, 35, 45, 95], // FFF1 (PokéAPI)
   dugtrio: [35, 100, 50, 50, 70, 120],
   onix: [35, 45, 160, 30, 45, 70],
   starmie: [60, 75, 85, 100, 85, 115],
@@ -117,6 +118,8 @@ BM.BASE_STATS = {
   golem: [80, 120, 130, 55, 65, 45],
   clefable: [95, 70, 73, 95, 90, 60],
   gloom: [60, 65, 70, 85, 75, 40],
+  // EEE1: the Bellossom line (PokéAPI) — its Oddish / Gloom variants keep the species' real stats
+  oddish_bellossom: [45, 50, 55, 75, 65, 30], gloom_bellossom: [60, 65, 70, 85, 75, 40], bellossom: [75, 80, 95, 90, 100, 50],
   tentacruel: [80, 70, 65, 80, 120, 100],
   electrode: [60, 50, 70, 80, 80, 150],
   crobat: [85, 90, 80, 70, 80, 130],

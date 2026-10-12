@@ -18,6 +18,7 @@ BM.ITEM_INFO = {
   fire_stone: { name: 'Fire Stone', kind: 'evo', emoji: '🔥' },
   water_stone: { name: 'Water Stone', kind: 'evo', emoji: '💧' },
   moon_stone: { name: 'Moon Stone', kind: 'evo', emoji: '🌙' },
+  sun_stone: { name: 'Sun Stone', kind: 'evo', emoji: '☀️', region: 'johto' }, // EEE1: defined now; drops arrive with Johto (none in Kanto / the Tower)
   leaf_stone: { name: 'Leaf Stone', kind: 'evo', emoji: '🍃' },
   ice_stone: { name: 'Ice Stone', kind: 'evo', emoji: '❄️' },
   metal_coat: { name: 'Metal Coat', kind: 'evo', emoji: '🔩' },
@@ -43,3 +44,18 @@ BM.BATTLE_ITEM_FX = { speedMul: 1.5, xpMul: 1.5 };
 // XP curve (§4.3): total XP to reach Lv L = L³, capped at BM.C.LEVEL_CAP (60 → 216,000).
 BM.xpForLevel = (lv) => Math.pow(lv, 3);
 BM.levelFromXp = (xp) => Math.max(1, Math.min(BM.C.LEVEL_CAP, Math.floor(Math.cbrt(Math.max(1, xp)) + 1e-9)));
+
+// EEE1 (Phase 7.6): REGION GATES on evolutions. A region counts as REACHED only once it has shipped AND the region before it is
+// beaten (beating Kanto will unlock Johto). Johto has not shipped, so `requiresRegion: 'johto'` cannot be met by any Kanto
+// play — the evolve UI shows the lock honestly instead.
+BM.SHIPPED_REGIONS = ['kanto'];
+BM.REGION_ORDER = ['kanto', 'johto', 'hoenn', 'sinnoh', 'unova', 'kalos', 'alola', 'galar', 'paldea'];
+BM.REGION_NAMES = { kanto: 'Kanto', johto: 'Johto', hoenn: 'Hoenn', sinnoh: 'Sinnoh', unova: 'Unova', kalos: 'Kalos', alola: 'Alola', galar: 'Galar', paldea: 'Paldea' };
+BM.regionReached = (region, p) => {
+  if (!BM.SHIPPED_REGIONS.includes(region)) return false;
+  const i = BM.REGION_ORDER.indexOf(region);
+  return i <= 0 || !!(p && p.regionsDone && p.regionsDone[BM.REGION_ORDER[i - 1]]);
+};
+BM.evoGateOpen = (form, p) => !(form.evo && form.evo.requiresRegion) || BM.regionReached(form.evo.requiresRegion, p);
+// the honest lock label, in kid words: "Needs a Sun Stone · Unlocks when you reach Johto."
+BM.evoLockText = (form) => `Needs a ${BM.ITEMS[form.evo.item] || 'special item'} · Unlocks when you reach ${BM.REGION_NAMES[form.evo.requiresRegion]}.`;

@@ -34,6 +34,8 @@ window.BM = window.BM || {};
     E('cloyster', 'Cloyster', ['water', 'ice'], 525, 50, 70, 'tank', { attackType: 'ice', size: 1.3 }),
     E('hitmonlee', 'Hitmonlee', ['fighting'], 455, 50, 87, 'bruiser', { size: 1.25 }),
     // Phase 4: Giovanni's Dugtrio — the user's locked Dodger example (25%)
+    // FFF1 (Phase 7.6): Diglett — Dugtrio's pre-evolution was missing from the game entirely (found by the user's gallery audit)
+    E('diglett', 'Diglett', ['ground'], 265, 10, 95, 'rusher', { trait: 'dodger', dodge: 0.2, size: 0.8 }),
     E('dugtrio', 'Dugtrio', ['ground'], 425, 35, 120, 'rusher', { trait: 'dodger', dodge: 0.25, size: 1.1 }),
     // Phase 7.5 EE1 evolution sweep (missing stages of in-game species; canon stats PokéAPI) + CC2 Electrode + the two
     // Gen 1 stages the sweep's additions imply (Butterfree after Metapod, Golem after Graveler — chain test, BR-068)
@@ -90,10 +92,11 @@ BM.EVO_CANON = {
   porygon: ['porygon2'], porygon2: ['porygon_z'], eevee: ['vaporeon', 'jolteon', 'flareon', 'espeon', 'umbreon', 'leafeon', 'glaceon', 'sylveon'],
   pidgey: ['pidgeotto'], pidgeotto: ['pidgeot'], rattata: ['raticate'], caterpie: ['metapod'], metapod: ['butterfree'],
   geodude: ['graveler'], graveler: ['golem'], zubat: ['golbat'], golbat: ['crobat'], clefairy: ['clefable'],
-  oddish: ['gloom'], gloom: ['vileplume', 'bellossom'], staryu: ['starmie'], tentacool: ['tentacruel'], voltorb: ['electrode'], ekans: ['arbok'],
+  diglett: ['dugtrio'], oddish: ['gloom'], gloom: ['vileplume', 'bellossom'], staryu: ['starmie'], tentacool: ['tentacruel'], voltorb: ['electrode'], ekans: ['arbok'],
   koffing: ['weezing'], tangela: ['tangrowth'], rhyhorn: ['rhydon'], rhydon: ['rhyperior'], venonat: ['venomoth'], ponyta: ['rapidash'],
   onix: ['steelix'], mr_mime: [], hitmonlee: [], hitmonchan: [], snorlax: [], lapras: [], ditto: [], pinsir: [], aerodactyl: [],
   // final forms (nothing further in scope)
+  bellossom: [], // EEE1 (Phase 7.6): present, Johto-gated
   venusaur: [], charizard: [], blastoise: [], raichu: [], gyarados: [], gengar: [], alakazam: [], machamp: [], ninetales: [],
   wigglytuff: [], marowak: [], vaporeon: [], dragonite: [], golduck: [], persian: [], perrserker: [], arcanine: [], scizor: [],
   kleavor: [], porygon_z: [], mewtwo: [], mew: [], articuno: [], zapdos: [], moltres: [], jolteon: [], flareon: [],
@@ -101,6 +104,33 @@ BM.EVO_CANON = {
   dewgong: [], cloyster: [], dugtrio: [], raticate: [], butterfree: [], golem: [], clefable: [], tentacruel: [], electrode: [],
   crobat: [], steelix: [], tangrowth: [], rhyperior: [], starmie: [], vileplume: [], weezing: [],
 };
-BM.EVO_PENDING = { bellossom: 'Gloom → Bellossom (Gen 2 Sun Stone branch) — not listed by the EE1 sweep; add or exclude? (BR-068)' };
+// FFF1 (Phase 7.6): BACKWARD chain completeness — the canonical PRE-evolution of every species in the game (PokéAPI; null = a
+// first stage). The 7.5 test only checked forward, so Diglett (Dugtrio's pre-evolution) slipped through. `PRE_EXCLUDED` = the
+// standing roster exclusion (baby pre-evolutions). `PRE_PENDING` = gaps the backward test found that wait on art + a user call.
+BM.PRE_CANON = {
+  bulbasaur: null, ivysaur: 'bulbasaur', venusaur: 'ivysaur', charmander: null, charmeleon: 'charmander', charizard: 'charmeleon',
+  squirtle: null, wartortle: 'squirtle', blastoise: 'wartortle', pikachu: 'pichu', raichu: 'pikachu', magikarp: null, gyarados: 'magikarp',
+  gastly: null, haunter: 'gastly', gengar: 'haunter', abra: null, kadabra: 'abra', alakazam: 'kadabra', machop: null, machoke: 'machop',
+  machamp: 'machoke', vulpix: null, ninetales: 'vulpix', lapras: null, jigglypuff: 'igglybuff', wigglytuff: 'jigglypuff', cubone: null,
+  marowak: 'cubone', eevee: null, vaporeon: 'eevee', jolteon: 'eevee', flareon: 'eevee', espeon: 'eevee', umbreon: 'eevee', leafeon: 'eevee',
+  glaceon: 'eevee', sylveon: 'eevee', snorlax: 'munchlax', dratini: null, dragonair: 'dratini', dragonite: 'dragonair', growlithe: null,
+  arcanine: 'growlithe', psyduck: null, golduck: 'psyduck', meowth: null, persian: 'meowth', meowth_galar: null, perrserker: 'meowth_galar',
+  scyther: null, scizor: 'scyther', kleavor: 'scyther', aerodactyl: null, ditto: null, pinsir: null, porygon: null, porygon2: 'porygon',
+  porygon_z: 'porygon2', articuno: null, zapdos: null, moltres: null, mew: null, mewtwo: null,
+  pidgey: null, pidgeotto: 'pidgey', pidgeot: 'pidgeotto', rattata: null, raticate: 'rattata', caterpie: null, metapod: 'caterpie',
+  butterfree: 'metapod', geodude: null, graveler: 'geodude', golem: 'graveler', zubat: null, golbat: 'zubat', crobat: 'golbat',
+  clefairy: 'cleffa', clefable: 'clefairy', oddish: null, gloom: 'oddish', vileplume: 'gloom', bellossom: 'gloom', staryu: null,
+  starmie: 'staryu', tentacool: null, tentacruel: 'tentacool', voltorb: null, electrode: 'voltorb', ekans: null, arbok: 'ekans',
+  koffing: null, weezing: 'koffing', tangela: null, tangrowth: 'tangela', rhyhorn: null, rhydon: 'rhyhorn', rhyperior: 'rhydon',
+  venonat: null, venomoth: 'venonat', ponyta: null, rapidash: 'ponyta', seel: null, dewgong: 'seel', shellder: null, cloyster: 'shellder',
+  hitmonlee: 'tyrogue', hitmonchan: 'tyrogue', diglett: null, dugtrio: 'diglett', onix: null, steelix: 'onix', mr_mime: 'mime_jr',
+};
+BM.PRE_EXCLUDED = { pichu: 'baby', igglybuff: 'baby', cleffa: 'baby', munchlax: 'baby', tyrogue: 'baby', mime_jr: 'baby' };
+BM.PRE_PENDING = {
+  seel: 'Dewgong\'s pre-evolution — found by the FFF1 backward test (Phase 7.6); needs a run sheet (ASSET_PROMPTS #335) + the user\'s OK to add',
+  shellder: 'Cloyster\'s pre-evolution — found by the FFF1 backward test (Phase 7.6); needs a run sheet (ASSET_PROMPTS #336) + the user\'s OK to add',
+};
+// EEE1 (Phase 7.6): Bellossom was the last pending evolution — added as its own Johto-gated line (units.js). Nothing pending.
+BM.EVO_PENDING = {};
 // species key of a form: branch variants share their species (every typed Eevee = eevee, Kleavor's Scyther = scyther)
-BM.speciesOf = (f) => (f.line && f.line.startsWith('eevee_') && f.stage === 0 ? 'eevee' : f.id === 'scyther_kleavor' ? 'scyther' : f.id);
+BM.speciesOf = (f) => (f.line && f.line.startsWith('eevee_') && f.stage === 0 ? 'eevee' : f.id === 'scyther_kleavor' ? 'scyther' : f.id === 'oddish_bellossom' ? 'oddish' : f.id === 'gloom_bellossom' ? 'gloom' : f.id);
