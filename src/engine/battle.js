@@ -11,6 +11,10 @@ BM.Battle = function (stage, profile, opts = {}) {
   const baseHP = stage.baseHP || C.baseHP(stage.level);
   const enemyHP = stage.baseHP || (BM.enemyBaseHP ? BM.enemyBaseHP(stage) : baseHP);
 
+  // PHASE 11 LIVE FRIEND BATTLES (opts.pvp = { teams: [hostEntries, guestEntries], cap }): BOTH sides are players. Side 1 = the
+  // HOST (its AP / generator / team live on S as always), side -1 = the GUEST (S.foe, the same shape). No waves, aces, bursts,
+  // gates or items; bounty pays the killer's side. Every campaign path below is unchanged when opts.pvp is absent.
+  const PV = opts.pvp || null;
   // VV1 (Phase 7.6): stage restrictions (restrictions.js) — a field-cap override for both sides and an AP cost ceiling
   const CAP = BM.fieldCap ? BM.fieldCap(stage) : C.MAX_PER_SIDE;
   const S = {
@@ -31,6 +35,17 @@ BM.Battle = function (stage, profile, opts = {}) {
     battled: [],                                           // line ids fielded at least once (team XP, §4.3)
     bursts: [],                                            // K2 log: { kind: 'timer' | 'threshold', t, at, n }
   };
+  // PvP: both teams come from the HELLO snapshots ({ line, form, level }); in a capped battle the FIGHT level (BM.Pvp.fightLevel)
+  // replaces the true level for ALL battle math — stats AND AP cost. Nobody is "away" (the arena has no region).
+  if (PV) {
+    const card = (e) => { const form = BM.FORMS[e.form], fl = BM.Pvp.fightLevel(e.level, PV.cap);
+      return { line: e.line, form, level: e.level, cd: 0, cost: BM.effCost(form, fl), fightLv: fl, rule: null }; };
+    S.pvp = true; S.tick = 0;
+    S.team = PV.teams[0].map(card);
+    S.foe = { ap: C.START_AP, gen: 1, team: PV.teams[1].map(card), bountyPaid: 0 };
+  }
+  // the AP / generator / team pocket of a side: side 1 = S itself (the campaign shape), side -1 = S.foe (PvP only)
+  const pocket = (side = 1) => (side === -1 && S.foe ? S.foe : S);
   // K2 wave cadence: timed bursts + HP-threshold counter-bursts (with a wall-breaker)
   const CAD = BM.waveCadence && stage.waves && stage.waves.length && !stage.noBursts ? BM.waveCadence(stage) : null;
   const rint = (lo, hi) => lo + Math.floor(rnd() * (hi - lo + 1));
@@ -80,35 +95,37 @@ BM.Battle = function (stage, profile, opts = {}) {
   }
 
   // ---- player actions ----
-  function canSpawn(slot) {
-    const c = S.team[slot];
+  // `side` (PvP): which player acts — 1 by default (the campaign player / the host), -1 = the guest
+  function canSpawn(slot, side = 1) {
+    const P = pocket(side), c = P.team[slot];
     if (!c || S.result) return 'none';
     if (c.rule) return 'rule'; // VV1: this stage's AP ceiling
-    if (count(1) >= CAP) return 'full';
+    if (count(side) >= CAP) return 'full';
     if (c.cd > 0) return 'cooldown';
-    if (S.ap < c.cost) return 'ap';
+    if (P.ap < c.cost) return 'ap';
     return 'ok';
   }
-  function spawn(slot) {
-    const why = canSpawn(slot);
+  function spawn(slot, side = 1) {
+    const why = canSpawn(slot, side);
     if (why !== 'ok') return why;
-    const c = S.team[slot];
-    S.ap -= c.cost;
+    const P = pocket(side), c = P.team[slot];
+    P.ap -= c.cost;
     c.cd = c.form.cd;
-    makeUnit(c.form, c.level, 1, C.PLAYER_BASE_FRONT - 8 + rnd() * 16, c.fightLv); // jitter: BR-001
-    if (!S.battled.includes(c.line)) S.battled.push(c.line);
+    if (side === -1) makeUnit(c.form, c.level, -1, C.ENEMY_BASE_FRONT + 8 - rnd() * 16, c.fightLv); // PvP guest: the mirror of the line below
+    else makeUnit(c.form, c.level, 1, C.PLAYER_BASE_FRONT - 8 + rnd() * 16, c.fightLv); // jitter: BR-001
+    if (side === 1 && !S.battled.includes(c.line)) S.battled.push(c.line);
     return 'ok';
   }
-  function genInfo() {
-    const g = C.GEN[S.gen];
-    return { level: S.gen, rate: g[0], cap: g[1], cost: g[2], max: S.gen >= C.GEN_MAX };
+  function genInfo(side = 1) {
+    const P = pocket(side), g = C.GEN[P.gen];
+    return { level: P.gen, rate: g[0], cap: g[1], cost: g[2], max: P.gen >= C.GEN_MAX };
   }
-  function upgradeGen() {
-    const g = genInfo();
+  function upgradeGen(side = 1) {
+    const P = pocket(side), g = genInfo(side);
     if (S.result || g.max) return 'max';
-    if (S.ap < g.cost) return 'ap';
-    S.ap -= g.cost; S.gen++;
-    S.events.push({ type: 'upgrade' });
+    if (P.ap < g.cost) return 'ap';
+    P.ap -= g.cost; P.gen++;
+    S.events.push(S.pvp ? { type: 'upgrade', side } : { type: 'upgrade' });
     return 'ok';
   }
 
@@ -161,7 +178,7 @@ BM.Battle = function (stage, profile, opts = {}) {
     const dmg = mult === 0 ? 0 : Math.max(1, Math.round(raw * mult));
     tgt.hp -= dmg;
     S.events.push({ type: 'hit', attacker: u, target: tgt, mult, dmg, splash, k });
-    if (tgt.hp <= 0 && !tgt.dead) { tgt.dead = true; tgt.hp = 0; tgt.st = null; S.events.push({ type: 'faint', unit: tgt }); if (tgt.side === -1) bounty(tgt); return; }
+    if (tgt.hp <= 0 && !tgt.dead) { tgt.dead = true; tgt.hp = 0; tgt.st = null; S.events.push({ type: 'faint', unit: tgt }); if (tgt.side === -1 || S.pvp) bounty(tgt); return; }
     if (dmg > 0 && tgt.st && BM.STATUS[tgt.st.type].wakeOnHit && tgt.st.from !== u) clearStatus(tgt);
     if (dmg > 0 && k === 0) {
       if (u.sigNow && u.sig.status) inflict(tgt, u.sig.status, u);
@@ -179,12 +196,13 @@ BM.Battle = function (stage, profile, opts = {}) {
   function clearStatus(t) { const type = t.st && t.st.type; t.st = null; if (type) S.events.push({ type: 'statusEnd', unit: t, status: type }); }
   // G3 AP BOUNTY: a defeated enemy pays AP at once by its size class — up to the current cap, never above it (and never
   // takes AP away if a Full-AP start already sits at the cap). The event carries what was really paid for "+N AP".
+  // PvP: the KILLER's side is paid (the side opposite the fallen unit); in the campaign that is always the player (S).
   function bounty(u) {
-    const cls = u.ace ? 'boss' : BM.sizeClass(u.form), n = C.BOUNTY[cls] || 0, cap = genInfo().cap;
-    const before = S.ap;
-    S.ap = Math.max(S.ap, Math.min(cap, S.ap + n));
-    S.bountyPaid = (S.bountyPaid || 0) + (S.ap - before);
-    S.events.push({ type: 'bounty', unit: u, cls, n, paid: Math.round(S.ap - before) });
+    const P = pocket(-u.side), cls = u.ace ? 'boss' : BM.sizeClass(u.form), n = C.BOUNTY[cls] || 0, cap = genInfo(-u.side).cap;
+    const before = P.ap;
+    P.ap = Math.max(P.ap, Math.min(cap, P.ap + n));
+    P.bountyPaid = (P.bountyPaid || 0) + (P.ap - before);
+    S.events.push({ type: 'bounty', unit: u, cls, n, paid: Math.round(P.ap - before) });
   }
 
   // K2: a burst group spawns at once at the enemy base. Timer bursts: 3–5 from the stage's theme (+ one AoE / status
@@ -233,6 +251,11 @@ BM.Battle = function (stage, profile, opts = {}) {
     const g = genInfo();
     S.ap = Math.min(g.cap, S.ap + g.rate * dt);
     for (const c of S.team) if (c.cd > 0) c.cd = Math.max(0, c.cd - dt);
+    if (S.foe) { // PvP: the guest's AP + cooldowns tick exactly like the host's
+      const fg = genInfo(-1);
+      S.foe.ap = Math.min(fg.cap, S.foe.ap + fg.rate * dt);
+      for (const c of S.foe.team) if (c.cd > 0) c.cd = Math.max(0, c.cd - dt);
+    }
 
     // Y1: open the gate (timer or base HP); a base-HP gate sends one of each gated form at once (an early reinforcement)
     if (G && !G.open && ((G.by === 'time' && S.t >= G.at) || (G.by === 'hp' && S.enemyBase.hp <= S.enemyBase.max * G.at))) {
@@ -295,7 +318,7 @@ BM.Battle = function (stage, profile, opts = {}) {
       u.st.t -= dt;
       if (u.st.dps) {
         u.hp -= u.st.dps * dt;
-        if (u.hp <= 0) { u.hp = 0; u.dead = true; S.events.push({ type: 'faint', unit: u }); if (u.side === -1) bounty(u); continue; }
+        if (u.hp <= 0) { u.hp = 0; u.dead = true; S.events.push({ type: 'faint', unit: u }); if (u.side === -1 || S.pvp) bounty(u); continue; }
       }
       if (u.st.t <= 0) clearStatus(u);
     }
@@ -329,5 +352,8 @@ BM.Battle = function (stage, profile, opts = {}) {
   // and a timed burst on demand.
   const devSpawnEnemy = (formId, level) => (count(-1) < CAP ? makeUnit(BM.FORMS[formId], level, -1, C.ENEMY_BASE_FRONT + 8 - rnd() * 16) : null);
   const devBurst = () => { if (CAD) spawnBurst('timer', null); };
-  return { S, step, spawn, canSpawn, upgradeGen, genInfo, count, hitUnitForTest: (u, tgt, raw) => hitUnit(u, tgt, raw, false), devSpawnEnemy, devBurst };
+  // PvP lockstep: one fixed tick (the tick counter is the input clock) + the RNG state for snapshots (BM.Pvp)
+  const tick = () => { step(1 / C.TICK_HZ); if (S.pvp && !S.result) S.tick++; };
+  const rng = { get: () => seed, set: (v) => { seed = v | 0; } };
+  return { S, step, tick, rng, pocket, spawn, canSpawn, upgradeGen, genInfo, count, hitUnitForTest: (u, tgt, raw) => hitUnit(u, tgt, raw, false), devSpawnEnemy, devBurst };
 };

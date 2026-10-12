@@ -8,6 +8,10 @@ BM.Render = function (canvas) {
   let lastBig = -1;
   const TOP_SAFE = 104; // below the pause button / AP pill row
   let labels = [];      // placeholder name tags drawn this frame (skip overlapping ones)
+  // PHASE 11 friend battles: the GUEST's screen is drawn MIRRORED (its own base on the left, its units marching right). The sim
+  // is the same on both iPads; only the drawing flips. `ms` = the screen direction of side 1 (1 normally, -1 mirrored).
+  let ms = 1;
+  const scr = (side) => side * ms; // a sim side → its screen side (1 = left base, -1 = right base)
 
   function resize(hudH) {
     dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -20,7 +24,7 @@ BM.Render = function (canvas) {
   const L = {
     ground: () => fieldH * 0.84,
     baseW: () => Math.min(W * 0.13, fieldH * 0.42),
-    sx(x) { const bw = L.baseW(), l = bw * 0.55, r = W - bw * 0.55; return l + (x / BM.C.LANE) * (r - l); },
+    sx(x) { const bw = L.baseW(), l = bw * 0.55, r = W - bw * 0.55; return l + ((ms === 1 ? x : BM.C.LANE - x) / BM.C.LANE) * (r - l); },
     unitH: (form) => fieldH * 0.17 * form.size,
     depth: (u) => u.yOff * fieldH * 0.035,
   };
@@ -131,12 +135,14 @@ BM.Render = function (canvas) {
     ctx.save();
     ctx.lineWidth = 4; ctx.strokeStyle = '#1c1c28';
     // Z1: gym / Elite Four / Champion stages draw their own base art (`stage.baseArt`) once DONE — same box, anchor and HP bar
-    const img = BM.Sprites.art(side === 1 ? 'bases/player_base' : (stage && stage.baseArt && BM.Sprites.art('bases/' + stage.baseArt) ? 'bases/' + stage.baseArt : 'bases/enemy_wild_den'));
+    const img = BM.Sprites.art(side === 1 || (stage && stage.pvp) ? 'bases/player_base' : (stage && stage.baseArt && BM.Sprites.art('bases/' + stage.baseArt) ? 'bases/' + stage.baseArt : 'bases/enemy_wild_den'));
     if (img) {
       const s = Math.min(bw * 1.15 / img.width, bh * 1.05 / img.height), w = img.width * s, h = img.height * s;
-      ctx.drawImage(img, x + bw / 2 - w / 2, gy - h, w, h);
-    } else if (side === 1) {
-      // player: trainer tower, blue roof, ball emblem
+      // friend battles: both bases are trainer towers; the right-hand one is mirrored to face the lane
+      if (side === -1 && stage && stage.pvp) { ctx.save(); ctx.translate(x + bw / 2, 0); ctx.scale(-1, 1); ctx.drawImage(img, -w / 2, gy - h, w, h); ctx.restore(); }
+      else ctx.drawImage(img, x + bw / 2 - w / 2, gy - h, w, h);
+    } else if (side === 1 || (stage && stage.pvp)) {
+      // player: trainer tower (friend battles: both), blue roof, ball emblem
       ctx.fillStyle = '#f5f1e6'; ctx.fillRect(x + bw * 0.12, gy - bh * 0.78, bw * 0.76, bh * 0.78); ctx.strokeRect(x + bw * 0.12, gy - bh * 0.78, bw * 0.76, bh * 0.78);
       ctx.fillStyle = '#3d6fd1'; ctx.beginPath(); ctx.moveTo(x, gy - bh * 0.76); ctx.lineTo(x + bw / 2, gy - bh); ctx.lineTo(x + bw, gy - bh * 0.76); ctx.closePath(); ctx.fill(); ctx.stroke();
       const cx = x + bw / 2, cy = gy - bh * 0.5, r = bw * 0.2;
@@ -172,7 +178,7 @@ BM.Render = function (canvas) {
     ctx.save(); ctx.font = `800 ${Math.round(Math.max(13, bw * 0.13))}px system-ui, sans-serif`; ctx.textAlign = 'center';
     ctx.lineWidth = 4; ctx.strokeStyle = 'rgba(0,0,0,.7)'; ctx.fillStyle = '#fff';
     for (const [side, b] of [[1, S.playerBase], [-1, S.enemyBase]]) {
-      const cx = side === 1 ? bw * 0.55 : W - bw * 0.55;
+      const cx = scr(side) === 1 ? bw * 0.55 : W - bw * 0.55;
       const t = `${Math.ceil(b.hp)} / ${b.max}`;
       const ly = Math.max(TOP_SAFE, gy - bh - 38);
       ctx.strokeText(t, cx, ly); ctx.fillText(t, cx, ly);
@@ -181,7 +187,7 @@ BM.Render = function (canvas) {
   }
 
   // ---------- units ----------
-  const facing = (u) => (u.side === -1 ? -1 : 1);
+  const facing = (u) => (u.side === -1 ? -1 : 1) * ms;
   // K4 status tints (frozen / asleep / poisoned). Phase 8 perf: a canvas `filter` per draw was the battle's most expensive
   // operation with statuses on screen (≈ 2× the frame time at 3× speed), so each sprite frame is tinted ONCE per status into a
   // cached canvas (same filter strings, same pixels) and then drawn plainly. Where canvas filters are unsupported the cached
@@ -207,7 +213,7 @@ BM.Render = function (canvas) {
     let x = L.sx(u.x);
     const y = L.ground() + L.depth(u);
     // run-only sprites "lunge" on the strike (enemy wave fodder: run sheet + type effect only)
-    if (u.strikeT > 0 && sp.attack.length === 1) x += u.side * h * 0.15;
+    if (u.strikeT > 0 && sp.attack.length === 1) x += facing(u) * h * 0.15;
     ctx.save();
     if (u.dead) ctx.globalAlpha = Math.max(0, 1 - u.deadT / 0.6);
     // shadow
@@ -231,7 +237,7 @@ BM.Render = function (canvas) {
       if (u.hp < u.maxHp) {
         const bw = h * 0.6, by = y - h - 8;
         ctx.fillStyle = 'rgba(0,0,0,.55)'; ctx.fillRect(x - bw / 2 - 1, by - 1, bw + 2, 7);
-        ctx.fillStyle = u.side === 1 ? '#5ad35a' : '#f05050'; ctx.fillRect(x - bw / 2, by, bw * (u.hp / u.maxHp), 5);
+        ctx.fillStyle = scr(u.side) === 1 ? '#5ad35a' : '#f05050'; ctx.fillRect(x - bw / 2, by, bw * (u.hp / u.maxHp), 5);
       }
       // K4 status icon over the unit (❄ ⚡ 💤 ☠) + a tint while frozen / asleep
       if (u.st) {
@@ -264,7 +270,7 @@ BM.Render = function (canvas) {
       if (!texts.some((x) => x.text === 'Dodged!' && now - x.t0 < 0.5)) texts.push({ text: 'Dodged!', x: Math.min(Math.max(L.sx(t.x), 120), W - 120), y: ty, t0: now, dur: 0.8, size: 24, color: '#bff5ff' });
     } else if (ev.type === 'hit' && ev.splash) { // Splash trait: a small burst on the neighbour, no projectile
       const t = ev.target, ty = L.ground() + L.depth(t) - L.unitH(t.form) * 0.5;
-      fx.push({ kind: 'burst', x: L.sx(t.x), y: ty, color: BM.TYPE_COLORS[ev.attacker.form.attackType] || '#fff', art: null, dir: ev.attacker.side, t0: now + 0.12, dur: 0.25 });
+      fx.push({ kind: 'burst', x: L.sx(t.x), y: ty, color: BM.TYPE_COLORS[ev.attacker.form.attackType] || '#fff', art: null, dir: scr(ev.attacker.side), t0: now + 0.12, dur: 0.25 });
       if (ev.mult === 0) addText(0, L.sx(t.x), ty - L.unitH(t.form) * 0.6, now);
     } else if (ev.type === 'hit') {
       const a = ev.attacker, t = ev.target, cb = BM.combatOf(a.form), dt = (ev.k || 0) * 0.11; // multi-hit: staggered
@@ -277,7 +283,7 @@ BM.Render = function (canvas) {
       if (ev.mult !== 1) addText(ev.mult, L.sx(t.x), ty - L.unitH(t.form) * 0.6, now);
     } else if (ev.type === 'baseHit') {
       const bw = L.baseW(), a = ev.attacker;
-      const x = ev.side === -1 ? W - bw * 0.6 : bw * 0.6;
+      const x = scr(ev.side) === -1 ? W - bw * 0.6 : bw * 0.6;
       moveFx(BM.combatOf(a.form), a, L.sx(a.x), L.ground() + L.depth(a) - L.unitH(a.form) * 0.55,
         x + (Math.random() - 0.5) * bw * 0.4, L.ground() - bw * 0.5 + (Math.random() - 0.5) * bw * 0.4, BM.TYPE_COLORS[a.form.attackType], now + (ev.k || 0) * 0.11);
     } else if (ev.type === 'ace') {
@@ -293,12 +299,12 @@ BM.Render = function (canvas) {
     } else if (ev.type === 'status') { // K4: a puff of the status icon
       const t = ev.unit;
       if (!texts.some((x) => x.text === BM.STATUS[ev.status].name + '!' && now - x.t0 < 0.5)) texts.push({ text: BM.STATUS[ev.status].icon + ' ' + BM.STATUS[ev.status].name + '!', x: Math.min(Math.max(L.sx(t.x), 120), W - 120), y: L.ground() + L.depth(t) - L.unitH(t.form) * (t.boss ? 2.2 : 1.2), t0: now, dur: 0.9, size: 20, color: '#e0f4ff' });
-    } else if (ev.type === 'bounty' && ev.paid > 0) { // G3: "+N AP" floats up from the defeated enemy (nothing at the cap)
+    } else if (ev.type === 'bounty' && ev.paid > 0 && scr(-ev.unit.side) === 1) { // G3: "+N AP" floats up from the defeated enemy (nothing at the cap); friend battles: only YOUR bounty
       const t = ev.unit, ty = L.ground() + L.depth(t) - L.unitH(t.form) * (t.ace ? 1.1 : 0.9);
       if (texts.length > 10) texts.shift();
       texts.push({ text: ev.paid > 0 ? `+${ev.paid} AP` : 'AP full!', x: Math.min(Math.max(L.sx(t.x), 60), W - 60), y: ty, t0: now, dur: 1.0,
         size: ev.cls === 'boss' ? 34 : 22, color: ev.paid > 0 ? '#7ff5ff' : '#c9d6e8', bounty: true });
-    } else if (ev.type === 'upgrade') {
+    } else if (ev.type === 'upgrade' && (ev.side == null || scr(ev.side) === 1)) { // friend battles: only YOUR generator
       texts.push({ text: 'AP GENERATOR UP!', x: W * 0.5, y: fieldH * 0.3, t0: now, dur: 1.2, size: 34, color: '#7ff5ff' });
     }
   }
@@ -308,7 +314,7 @@ BM.Render = function (canvas) {
   // per-type effect sprite plays as the impact burst.
   function moveFx(cb, a, x0, y0, x1, y1, color, t0, impactType) {
     if (fx.length > 90) fx.splice(0, fx.length - 90);
-    const art = BM.Sprites.fx('move_' + cb.fx), impact = BM.Sprites.fx(impactType || a.form.attackType), dir = a.side;
+    const art = BM.Sprites.fx('move_' + cb.fx), impact = BM.Sprites.fx(impactType || a.form.attackType), dir = scr(a.side);
     const fly = cb.kind === 'projectile' ? Math.min(0.3, 0.12 + Math.abs(x1 - x0) / 2500) : cb.kind === 'stream' ? 0.16 : 0;
     if (art) fx.push({ kind: cb.kind === 'melee' ? 'burst' : 'shot', x0, y0, x1, y1, x: x1, y: y1, color, art, dir, t0, dur: fly || 0.3 });
     else if (cb.kind !== 'melee') fx.push({ kind: cb.kind, fxn: cb.fx, x0, y0, x1, y1, color, dir, t0, dur: fly + (cb.kind === 'stream' ? 0.12 : 0), seed: Math.random() });
@@ -442,8 +448,9 @@ BM.Render = function (canvas) {
     const key = S.stage.bgArt && BM.Sprites.bg(S.stage.bgArt) ? S.stage.bgArt : S.stage.background;
     if (!bgCanvas || bgKey !== key) { bgCanvas = drawBg(key); bgKey = key; }
     ctx.drawImage(bgCanvas, 0, 0, W, fieldH);
-    drawBase(1, S.playerBase.hp / S.playerBase.max);
-    drawBase(-1, S.enemyBase.hp / S.enemyBase.max, S.stage);
+    const [lb, rb] = ms === 1 ? [S.playerBase, S.enemyBase] : [S.enemyBase, S.playerBase];
+    drawBase(1, lb.hp / lb.max, S.stage);
+    drawBase(-1, rb.hp / rb.max, S.stage);
     labels = [];
     const order = S.units.slice().sort((a, b) => a.yOff - b.yOff);
     for (const u of order) drawUnit(u);
@@ -459,5 +466,7 @@ BM.Render = function (canvas) {
       return { x: Math.min(x + bw * 0.05, (side === 1 ? bw * 0.55 : W - bw * 0.55) - 60), y: top, w: Math.max(bw * 0.9, 120), h: Math.max(TOP_SAFE + 8, gy - bh - 30) + 15 - top };
     });
   }
-  return { resize, draw, onEvent, clearFx, hpBarRects, facing, get fieldH() { return fieldH; }, get fxCount() { return fx.length; }, get textCount() { return texts.length; }, get dpr() { return dpr; } };
+  // friend battles: draw mirrored (the guest) or not; the campaign never calls it (ms stays 1)
+  const setMirror = (on) => { ms = on ? -1 : 1; };
+  return { resize, draw, onEvent, clearFx, hpBarRects, facing, setMirror, get mirrored() { return ms === -1; }, get fieldH() { return fieldH; }, get fxCount() { return fx.length; }, get textCount() { return texts.length; }, get dpr() { return dpr; } };
 };

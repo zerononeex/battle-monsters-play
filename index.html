@@ -48,6 +48,8 @@
     <button id="btn-collection" class="home-btn"><span class="hb-i pc-ico">📦</span>PC Box</button>
     <button id="btn-items" class="home-btn"><span class="hb-i">🎒</span>Items</button>
     <button id="btn-gacha" class="home-btn gacha"><span class="hb-i safari-ico"></span>Safari Zone</button>
+    <!-- Phase 11: live friend battles (two iPads, peer-to-peer) — the two-Poké-Ball VS button -->
+    <button id="btn-friend" class="home-btn friend"><span class="hb-i vs-ico"></span>Battle a Friend</button>
   </div>
   <canvas id="title-sprite" width="200" height="140"></canvas>
 </section>
@@ -196,6 +198,74 @@
   </div>
 </section>
 
+<!-- PHASE 11 Battle a Friend: choose HOST / JOIN → host picks the battle level → room code / code entry → lobby (both teams,
+     the battle level BIG, READY) → 3-2-1 → the battle. Every panel fits the screen (no scrolling). -->
+<section id="scr-friend" class="screen hidden">
+  <div class="fr-top">
+    <button id="btn-fr-back" class="icon-btn" aria-label="Back">◀</button>
+    <h2 class="fr-title"><span class="vs-ico"></span>Battle a Friend</h2>
+    <span class="fr-sp"></span>
+  </div>
+  <div class="fr-body">
+    <!-- choose -->
+    <div id="fr-choose" class="fr-pane">
+      <p class="fr-lead">Two iPads, one battle! Each of you sends your own team down the lane.</p>
+      <div class="fr-choices">
+        <button id="btn-fr-host" class="fr-choice host"><span class="fc-i">🏠</span><b>Start a Battle</b><span>You get a code — your friend types it in</span></button>
+        <button id="btn-fr-join" class="fr-choice join"><span class="fc-i">🔑</span><b>Join a Battle</b><span>Type the code from your friend's screen</span></button>
+      </div>
+      <p id="fr-offline" class="fr-err hidden">📡 Needs internet to battle a friend</p>
+      <p class="fr-note">Just for fun — friend battles never win or lose anything.</p>
+    </div>
+    <!-- host: pick the battle level, then open the room -->
+    <div id="fr-host" class="fr-pane hidden">
+      <h3>Pick the battle level</h3>
+      <div id="fr-levels" class="fr-levels"></div>
+      <p id="fr-level-help" class="fr-help"></p>
+      <button id="btn-fr-open" class="big-btn mid">Open the room ▶</button>
+    </div>
+    <!-- host: waiting with the room code -->
+    <div id="fr-wait" class="fr-pane hidden">
+      <p class="fr-tell">Tell your brother or friend:</p>
+      <div id="fr-code" class="fr-code">······</div>
+      <p id="fr-wait-msg" class="fr-help">Opening the room…</p>
+      <p id="fr-wait-level" class="fr-wait-level"></p>
+    </div>
+    <!-- join: big-letter code entry -->
+    <div id="fr-join" class="fr-pane hidden">
+      <p class="fr-tell">Type your friend's code:</p>
+      <div id="fr-entry" class="fr-entry"></div>
+      <div id="fr-keys" class="fr-keys"></div>
+      <p id="fr-join-err" class="fr-err"></p>
+    </div>
+    <!-- lobby -->
+    <div id="fr-lobby" class="fr-pane hidden">
+      <div class="fr-vs">
+        <div id="fr-side-me" class="fr-side me"></div>
+        <div class="fr-mid">
+          <span class="fr-vs-word">VS</span>
+          <span class="fr-lv-h">Battle level</span>
+          <b id="fr-lv-big" class="fr-lv-big">Lv 50</b>
+          <div id="fr-lv-host" class="fr-levels small"></div>
+          <span id="fr-lv-note" class="fr-help small"></span>
+        </div>
+        <div id="fr-side-friend" class="fr-side friend"></div>
+      </div>
+      <div class="row-btns">
+        <button id="btn-fr-ready" class="big-btn mid">READY!</button>
+      </div>
+      <p id="fr-lobby-msg" class="fr-help"></p>
+    </div>
+    <!-- a message (errors, "Your friend left", "Connection lost — battle over") -->
+    <div id="fr-msg" class="fr-pane hidden">
+      <h3 id="fr-msg-title"></h3>
+      <p id="fr-msg-text" class="fr-help"></p>
+      <button id="btn-fr-msg-ok" class="big-btn mid">OK</button>
+    </div>
+  </div>
+  <div id="fr-count" class="fr-count hidden"><b id="fr-count-n">3</b></div>
+</section>
+
 <!-- Battle HUD -->
 <section id="scr-battle" class="screen hidden">
   <button id="btn-pause" class="icon-btn corner-tl" aria-label="Pause">❚❚</button>
@@ -203,6 +273,7 @@
   <button id="btn-speed" class="icon-btn speed-btn" aria-label="Battle speed"><span class="sp-arrows">▶</span><b id="speed-num">1×</b></button>
   <div id="ap-pill" class="ap-pill"><span class="ap-icon"></span><span id="ap-num">0</span><span class="ap-cap">/ <span id="ap-cap">0</span></span><span id="armed-icons" class="armed-icons"></span></div>
   <div id="hint" class="hint hidden"></div>
+  <div id="pvp-names" class="pvp-names hidden"></div>
   <div id="hud" class="hud">
     <button id="btn-gen" class="gen-btn">
       <span class="gen-icon" id="gen-icon"></span>
@@ -281,6 +352,29 @@
     <div class="row-btns">
       <button id="btn-chover-back" class="big-btn alt mid">◀ Back</button>
       <button id="btn-chover-again" class="big-btn mid">↻ Go again</button>
+    </div>
+  </div>
+</section>
+
+<!-- PHASE 11: friend-battle pause (shared by both iPads) and result (REMATCH / DONE) -->
+<section id="scr-fpause" class="overlay hidden">
+  <div class="panel fit">
+    <h2 id="fpause-title">Paused</h2>
+    <p id="fpause-sub"></p>
+    <div class="row-btns">
+      <button id="btn-fresume" class="big-btn mid">Resume</button>
+      <button id="btn-fleave" class="big-btn alt mid">Leave battle</button>
+    </div>
+  </div>
+</section>
+<section id="scr-fresult" class="overlay hidden">
+  <div class="panel fit">
+    <h2 id="fresult-title" class="result-title">YOU WIN!</h2>
+    <p id="fresult-sub"></p>
+    <p class="fr-note">Just for fun — nothing was won or lost.</p>
+    <div class="row-btns">
+      <button id="btn-frematch" class="big-btn mid">↻ Rematch</button>
+      <button id="btn-fdone" class="big-btn alt mid">Done</button>
     </div>
   </div>
 </section>
@@ -517,6 +611,8 @@
 <script src="src/engine/sprites.js"></script>
 <script src="src/ui_balls.js"></script>
 <script src="src/engine/battle.js"></script>
+<script src="src/net/transport.js"></script>
+<script src="src/pvp.js"></script>
 <script src="src/engine/render.js"></script>
 <script src="src/perf.js"></script>
 <script src="src/screens.js"></script>
@@ -526,6 +622,7 @@
 <script src="src/challenge_screen.js"></script>
 <script src="src/bonus_screen.js"></script>
 <script src="src/typechart_screen.js"></script>
+<script src="src/friend_screen.js"></script>
 <script src="src/main.js"></script>
 <!-- /BM:SCRIPTS -->
 </body>

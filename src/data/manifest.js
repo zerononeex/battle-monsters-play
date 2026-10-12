@@ -27,6 +27,32 @@ BM.SPRITE_FILES = {
    ]
   }
  },
+ "absol": {
+  "attack": {
+   "src": "sprites/absol.attack.png",
+   "cellW": 165,
+   "cellH": 130,
+   "anchorX": 82,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1
+   ]
+  },
+  "run": {
+   "src": "sprites/absol.run.png",
+   "cellW": 111,
+   "cellH": 130,
+   "anchorX": 55,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1,
+    2,
+    3
+   ]
+  }
+ },
  "aerodactyl": {
   "attack": {
    "src": "sprites/aerodactyl.attack.png",
@@ -373,6 +399,84 @@ BM.SPRITE_FILES = {
    ]
   }
  },
+ "bagon": {
+  "attack": {
+   "src": "sprites/bagon.attack.png",
+   "cellW": 145,
+   "cellH": 130,
+   "anchorX": 72,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1
+   ]
+  },
+  "run": {
+   "src": "sprites/bagon.run.png",
+   "cellW": 125,
+   "cellH": 130,
+   "anchorX": 62,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1,
+    2,
+    3
+   ]
+  }
+ },
+ "banette": {
+  "attack": {
+   "src": "sprites/banette.attack.png",
+   "cellW": 153,
+   "cellH": 130,
+   "anchorX": 76,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1
+   ]
+  },
+  "run": {
+   "src": "sprites/banette.run.png",
+   "cellW": 120,
+   "cellH": 130,
+   "anchorX": 60,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1,
+    2,
+    3
+   ]
+  }
+ },
+ "barboach": {
+  "attack": {
+   "src": "sprites/barboach.attack.png",
+   "cellW": 158,
+   "cellH": 130,
+   "anchorX": 79,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1
+   ]
+  },
+  "run": {
+   "src": "sprites/barboach.run.png",
+   "cellW": 302,
+   "cellH": 130,
+   "anchorX": 151,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1,
+    2,
+    3
+   ]
+  }
+ },
  "bayleef": {
   "attack": {
    "src": "sprites/bayleef.attack.png",
@@ -390,6 +494,32 @@ BM.SPRITE_FILES = {
    "cellW": 111,
    "cellH": 130,
    "anchorX": 55,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1,
+    2,
+    3
+   ]
+  }
+ },
+ "beldum": {
+  "attack": {
+   "src": "sprites/beldum.attack.png",
+   "cellW": 165,
+   "cellH": 130,
+   "anchorX": 82,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1
+   ]
+  },
+  "run": {
+   "src": "sprites/beldum.run.png",
+   "cellW": 81,
+   "cellH": 130,
+   "anchorX": 40,
    "anchorY": 129,
    "frames": [
     0,
@@ -1016,6 +1146,32 @@ BM.SPRITE_FILES = {
    ]
   }
  },
+ "corphish": {
+  "attack": {
+   "src": "sprites/corphish.attack.png",
+   "cellW": 206,
+   "cellH": 130,
+   "anchorX": 103,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1
+   ]
+  },
+  "run": {
+   "src": "sprites/corphish.run.png",
+   "cellW": 79,
+   "cellH": 130,
+   "anchorX": 39,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1,
+    2,
+    3
+   ]
+  }
+ },
  "corsola": {
   "attack": {
    "src": "sprites/corsola.attack.png",
@@ -1059,6 +1215,32 @@ BM.SPRITE_FILES = {
    "cellW": 117,
    "cellH": 130,
    "anchorX": 58,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1,
+    2,
+    3
+   ]
+  }
+ },
+ "crawdaunt": {
+  "attack": {
+   "src": "sprites/crawdaunt.attack.png",
+   "cellW": 215,
+   "cellH": 130,
+   "anchorX": 107,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1
+   ]
+  },
+  "run": {
+   "src": "sprites/crawdaunt.run.png",
+   "cellW": 107,
+   "cellH": 130,
+   "anchorX": 53,
    "anchorY": 129,
    "frames": [
     0,
@@ -1499,6 +1681,84 @@ BM.SPRITE_FILES = {
    ]
   }
  },
+ "dusclops": {
+  "attack": {
+   "src": "sprites/dusclops.attack.png",
+   "cellW": 147,
+   "cellH": 130,
+   "anchorX": 73,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1
+   ]
+  },
+  "run": {
+   "src": "sprites/dusclops.run.png",
+   "cellW": 106,
+   "cellH": 130,
+   "anchorX": 53,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1,
+    2,
+    3
+   ]
+  }
+ },
+ "dusknoir": {
+  "attack": {
+   "src": "sprites/dusknoir.attack.png",
+   "cellW": 141,
+   "cellH": 130,
+   "anchorX": 70,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1
+   ]
+  },
+  "run": {
+   "src": "sprites/dusknoir.run.png",
+   "cellW": 130,
+   "cellH": 130,
+   "anchorX": 65,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1,
+    2,
+    3
+   ]
+  }
+ },
+ "duskull": {
+  "attack": {
+   "src": "sprites/duskull.attack.png",
+   "cellW": 156,
+   "cellH": 130,
+   "anchorX": 78,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1
+   ]
+  },
+  "run": {
+   "src": "sprites/duskull.run.png",
+   "cellW": 108,
+   "cellH": 130,
+   "anchorX": 54,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1,
+    2,
+    3
+   ]
+  }
+ },
  "eevee_water": {
   "attack": {
    "src": "sprites/eevee_water.attack.png",
@@ -1750,6 +2010,32 @@ BM.SPRITE_FILES = {
    "cellW": 108,
    "cellH": 130,
    "anchorX": 54,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1,
+    2,
+    3
+   ]
+  }
+ },
+ "feebas": {
+  "attack": {
+   "src": "sprites/feebas.attack.png",
+   "cellW": 182,
+   "cellH": 130,
+   "anchorX": 91,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1
+   ]
+  },
+  "run": {
+   "src": "sprites/feebas.run.png",
+   "cellW": 118,
+   "cellH": 130,
+   "anchorX": 59,
    "anchorY": 129,
    "frames": [
     0,
@@ -2304,6 +2590,32 @@ BM.SPRITE_FILES = {
    "cellW": 179,
    "cellH": 130,
    "anchorX": 89,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1,
+    2,
+    3
+   ]
+  }
+ },
+ "groudon": {
+  "attack": {
+   "src": "sprites/groudon.attack.png",
+   "cellW": 141,
+   "cellH": 130,
+   "anchorX": 70,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1
+   ]
+  },
+  "run": {
+   "src": "sprites/groudon.run.png",
+   "cellW": 136,
+   "cellH": 130,
+   "anchorX": 68,
    "anchorY": 129,
    "frames": [
     0,
@@ -2990,6 +3302,32 @@ BM.SPRITE_FILES = {
    ]
   }
  },
+ "kyogre": {
+  "attack": {
+   "src": "sprites/kyogre.attack.png",
+   "cellW": 205,
+   "cellH": 130,
+   "anchorX": 102,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1
+   ]
+  },
+  "run": {
+   "src": "sprites/kyogre.run.png",
+   "cellW": 108,
+   "cellH": 130,
+   "anchorX": 54,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1,
+    2,
+    3
+   ]
+  }
+ },
  "lairon": {
   "attack": {
    "src": "sprites/lairon.attack.png",
@@ -3074,6 +3412,32 @@ BM.SPRITE_FILES = {
    "cellW": 143,
    "cellH": 130,
    "anchorX": 71,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1,
+    2,
+    3
+   ]
+  }
+ },
+ "latias": {
+  "attack": {
+   "src": "sprites/latias.attack.png",
+   "cellW": 158,
+   "cellH": 130,
+   "anchorX": 79,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1
+   ]
+  },
+  "run": {
+   "src": "sprites/latias.run.png",
+   "cellW": 97,
+   "cellH": 130,
+   "anchorX": 48,
    "anchorY": 129,
    "frames": [
     0,
@@ -3715,6 +4079,58 @@ BM.SPRITE_FILES = {
    ]
   }
  },
+ "metagross": {
+  "attack": {
+   "src": "sprites/metagross.attack.png",
+   "cellW": 210,
+   "cellH": 130,
+   "anchorX": 105,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1
+   ]
+  },
+  "run": {
+   "src": "sprites/metagross.run.png",
+   "cellW": 149,
+   "cellH": 130,
+   "anchorX": 74,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1,
+    2,
+    3
+   ]
+  }
+ },
+ "metang": {
+  "attack": {
+   "src": "sprites/metang.attack.png",
+   "cellW": 157,
+   "cellH": 130,
+   "anchorX": 78,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1
+   ]
+  },
+  "run": {
+   "src": "sprites/metang.run.png",
+   "cellW": 145,
+   "cellH": 130,
+   "anchorX": 72,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1,
+    2,
+    3
+   ]
+  }
+ },
  "metapod": {
   "attack": {
    "src": "sprites/metapod.attack.png",
@@ -3836,6 +4252,32 @@ BM.SPRITE_FILES = {
    "cellW": 82,
    "cellH": 130,
    "anchorX": 41,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1,
+    2,
+    3
+   ]
+  }
+ },
+ "milotic": {
+  "attack": {
+   "src": "sprites/milotic.attack.png",
+   "cellW": 161,
+   "cellH": 130,
+   "anchorX": 80,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1
+   ]
+  },
+  "run": {
+   "src": "sprites/milotic.run.png",
+   "cellW": 70,
+   "cellH": 130,
+   "anchorX": 35,
    "anchorY": 129,
    "frames": [
     0,
@@ -5109,6 +5551,32 @@ BM.SPRITE_FILES = {
    ]
   }
  },
+ "salamence": {
+  "attack": {
+   "src": "sprites/salamence.attack.png",
+   "cellW": 167,
+   "cellH": 130,
+   "anchorX": 83,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1
+   ]
+  },
+  "run": {
+   "src": "sprites/salamence.run.png",
+   "cellW": 136,
+   "cellH": 130,
+   "anchorX": 68,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1,
+    2,
+    3
+   ]
+  }
+ },
  "sceptile": {
   "attack": {
    "src": "sprites/sceptile.attack.png",
@@ -5254,6 +5722,32 @@ BM.SPRITE_FILES = {
    ]
   }
  },
+ "sealeo": {
+  "attack": {
+   "src": "sprites/sealeo.attack.png",
+   "cellW": 176,
+   "cellH": 130,
+   "anchorX": 88,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1
+   ]
+  },
+  "run": {
+   "src": "sprites/sealeo.run.png",
+   "cellW": 156,
+   "cellH": 130,
+   "anchorX": 78,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1,
+    2,
+    3
+   ]
+  }
+ },
  "seel": {
   "run": {
    "src": "sprites/seel.run.png",
@@ -5310,6 +5804,32 @@ BM.SPRITE_FILES = {
    ]
   }
  },
+ "shelgon": {
+  "attack": {
+   "src": "sprites/shelgon.attack.png",
+   "cellW": 177,
+   "cellH": 130,
+   "anchorX": 88,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1
+   ]
+  },
+  "run": {
+   "src": "sprites/shelgon.run.png",
+   "cellW": 112,
+   "cellH": 130,
+   "anchorX": 56,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1,
+    2,
+    3
+   ]
+  }
+ },
  "shellder": {
   "run": {
    "src": "sprites/shellder.run.png",
@@ -5342,6 +5862,32 @@ BM.SPRITE_FILES = {
    "cellW": 145,
    "cellH": 130,
    "anchorX": 72,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1,
+    2,
+    3
+   ]
+  }
+ },
+ "shuppet": {
+  "attack": {
+   "src": "sprites/shuppet.attack.png",
+   "cellW": 181,
+   "cellH": 130,
+   "anchorX": 90,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1
+   ]
+  },
+  "run": {
+   "src": "sprites/shuppet.run.png",
+   "cellW": 98,
+   "cellH": 130,
+   "anchorX": 49,
    "anchorY": 129,
    "frames": [
     0,
@@ -5614,6 +6160,32 @@ BM.SPRITE_FILES = {
    "cellW": 105,
    "cellH": 130,
    "anchorX": 52,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1,
+    2,
+    3
+   ]
+  }
+ },
+ "spheal": {
+  "attack": {
+   "src": "sprites/spheal.attack.png",
+   "cellW": 187,
+   "cellH": 130,
+   "anchorX": 93,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1
+   ]
+  },
+  "run": {
+   "src": "sprites/spheal.run.png",
+   "cellW": 130,
+   "cellH": 130,
+   "anchorX": 65,
    "anchorY": 129,
    "frames": [
     0,
@@ -6742,6 +7314,32 @@ BM.SPRITE_FILES = {
    ]
   }
  },
+ "walrein": {
+  "attack": {
+   "src": "sprites/walrein.attack.png",
+   "cellW": 155,
+   "cellH": 130,
+   "anchorX": 77,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1
+   ]
+  },
+  "run": {
+   "src": "sprites/walrein.run.png",
+   "cellW": 156,
+   "cellH": 130,
+   "anchorX": 78,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1,
+    2,
+    3
+   ]
+  }
+ },
  "wartortle": {
   "attack": {
    "src": "sprites/wartortle.attack.png",
@@ -6811,6 +7409,32 @@ BM.SPRITE_FILES = {
    "cellW": 119,
    "cellH": 130,
    "anchorX": 59,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1,
+    2,
+    3
+   ]
+  }
+ },
+ "whiscash": {
+  "attack": {
+   "src": "sprites/whiscash.attack.png",
+   "cellW": 151,
+   "cellH": 130,
+   "anchorX": 75,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1
+   ]
+  },
+  "run": {
+   "src": "sprites/whiscash.run.png",
+   "cellW": 89,
+   "cellH": 130,
+   "anchorX": 44,
    "anchorY": 129,
    "frames": [
     0,

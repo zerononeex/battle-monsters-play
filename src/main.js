@@ -13,6 +13,9 @@
   let settingsFrom = null; // 'title' | 'battle'
   let teamFrom = 'title';  // where the team screen's back button goes ('title' | 'prebattle')
   let preStage = null;     // stage id shown on the pre-battle screen
+  // PHASE 11 friend battles: the live session while its battle is on screen (null in every other mode) and which sim side is
+  // "me" (1 = the campaign player / the host; -1 = the guest, whose screen is drawn mirrored). The campaign never changes them.
+  let PV = null, mySide = 1;
 
   const show = (id, on = true) => $(id).classList.toggle('hidden', !on);
   function go(name) {
@@ -27,6 +30,7 @@
     show('scr-gacha', name === 'gacha');
     show('scr-challenge', name === 'challenge');
     show('scr-bonus', name === 'bonus'); // Phase 6: no music change — the screen you came from keeps playing
+    show('scr-friend', name === 'friend'); show('scr-fpause', false);
     show('scr-chmode', false); show('scr-chover', false);
     show('scr-result', false); show('scr-ending', false); show('scr-pause', false); show('scr-bag', false); show('scr-line', false); show('scr-filter', false); show('scr-peek', false); show('scr-rename', false); show('scr-reveal', false); show('scr-legend', false);
     canvas.style.visibility = name === 'battle' ? 'visible' : 'hidden';
@@ -41,6 +45,7 @@
     if (name === 'collection') { BM.Audio.playMusic('team'); Scr.renderCollection(); }
     if (name === 'team') { BM.Audio.playMusic('team'); Scr.renderTeam(); }
     if (name === 'gacha') { BM.Audio.playMusic('gacha'); Gacha.render(); }
+    if (name === 'friend' && BM.Audio.currentKey !== 'title') BM.Audio.playMusic('title');
   }
   function toast(msg) { const t = $('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 1800); }
 
@@ -449,11 +454,12 @@
   function buildCards() {
     hudShown = {};
     const wrap = $('cards'); wrap.innerHTML = ''; cardEls = [];
-    const n = Math.max(5, B.S.team.length);
+    const team = B.pocket(mySide).team; // friend battles: the guest's own cards (side -1)
+    const n = Math.max(5, team.length);
     wrap.style.gridTemplateColumns = `repeat(${n}, 1fr)`;
     wrap.classList.toggle('many', n > 5);
     for (let i = 0; i < n; i++) {
-      const c = B.S.team[i];
+      const c = team[i];
       const el = document.createElement('button');
       if (!c) { el.className = 'card empty'; wrap.appendChild(el); cardEls.push(null); continue; }
       el.className = 'card'; el.dataset.form = c.form.id;
@@ -464,7 +470,8 @@
       el.prepend(cv);
       const lv = document.createElement('span'); lv.className = 'clv'; lv.textContent = 'Lv ' + c.level; el.appendChild(lv);
       // batch1 step 7: away from its home region → the card says so and the level it fights at
-      const away = BM.awayTag(c.form, c.level, B.S.stage);
+      // friend battles: a capped battle shows true level → fight level ("Lv 65 → 50") — the numbers' reason, like the away tag
+      const away = PV ? (c.fightLv !== c.level ? BM.Pvp.levelTag(c.level, c.fightLv) : '') : BM.awayTag(c.form, c.level, B.S.stage);
       if (away) { el.classList.add('away'); const a = document.createElement('span'); a.className = 'away-tag'; a.textContent = away; el.appendChild(a); }
       const name = document.createElement('span'); name.className = 'cname'; name.textContent = c.form.name; el.appendChild(name);
       const cost = document.createElement('span'); cost.className = 'ccost'; cost.innerHTML = BM.apIcon() + c.cost; el.appendChild(cost);
@@ -473,9 +480,10 @@
       tap(el, () => {
         if (paused) return;
         if (c.rule) { BM.Audio.sfx('deny'); toast(`${c.form.name}: ${c.rule}.`); return; }
-        const r = B.spawn(i);
-        if (r === 'ok') dismissHint('spawn'); // the spawn event plays the cry (G8)
-        else { BM.Audio.sfx('deny'); el.classList.remove('denied'); void el.offsetWidth; el.classList.add('denied'); }
+        // friend battles: the tap is an INPUT (applied ~0.2 s later on both iPads); 'pending' = already on its way
+        const r = PV ? PV.input('spawn', i) : B.spawn(i);
+        if (r === 'ok') { dismissHint('spawn'); if (PV) { el.classList.remove('sent'); void el.offsetWidth; el.classList.add('sent'); } } // the spawn event plays the cry (G8)
+        else if (r === 'pending') { /* already sent */ } else { BM.Audio.sfx('deny'); el.classList.remove('denied'); void el.offsetWidth; el.classList.add('denied'); }
       });
       wrap.appendChild(el);
       cardEls.push({ el, slot: i, cd: el.querySelector('.cd'), cdnum: el.querySelector('.cdnum'), last: '' });
@@ -483,7 +491,8 @@
   }
   tap($('btn-gen'), () => {
     if (paused || !B) return;
-    const r = B.upgradeGen();
+    const r = PV ? PV.input('genup') : B.upgradeGen();
+    if (r === 'pending') return;
     const gb = $('btn-gen');
     if (r === 'ok') { BM.Audio.sfx('upgrade'); dismissHint('gen'); gb.classList.remove('bump'); void gb.offsetWidth; gb.classList.add('bump'); }
     else { BM.Audio.sfx('deny'); gb.classList.remove('denied'); void gb.offsetWidth; gb.classList.add('denied'); }
@@ -526,20 +535,20 @@
   let genShown = 0; // N1: generator face (ball) currently drawn
   let hudShown = {}; // Phase 8 perf: last values written to the HUD DOM (write on change only)
   function updateHud() {
-    const S = B.S, g = B.genInfo();
+    const S = B.S, g = B.genInfo(mySide), pk = B.pocket(mySide);
     // Phase 8 perf: the HUD writes the DOM only when a value CHANGES (it used to rewrite the AP numbers and rebuild the generator
     // cost's ball icon with innerHTML every frame — each write re-styles / re-paints text under the AAA1 shadow-ring outlines)
     const hs = hudShown;
-    const ap = Math.floor(S.ap); if (hs.ap !== ap) { hs.ap = ap; $('ap-num').textContent = ap; }
+    const ap = Math.floor(pk.ap); if (hs.ap !== ap) { hs.ap = ap; $('ap-num').textContent = ap; }
     if (hs.cap !== g.cap) { hs.cap = g.cap; $('ap-cap').textContent = g.cap; }
     if (hs.lv !== g.level) { hs.lv = g.level; $('gen-lv').textContent = g.level; }
     if (genShown !== g.level) { genShown = g.level; $('gen-icon').innerHTML = BM.genFaceHtml(g.level) + (g.max ? '' : '<i>▲</i>'); $('btn-gen').dataset.ball = BM.GEN_BALLS[g.level]; }
     const cost = g.max ? 'MAX' : g.cost; if (hs.cost !== cost) { hs.cost = cost; $('gen-cost').innerHTML = g.max ? 'MAX' : BM.apIcon() + g.cost; }
-    const gb = $('btn-gen'), gs = g.max ? 'max' : S.ap < g.cost ? 'cant' : 'ready';
+    const gb = $('btn-gen'), gs = g.max ? 'max' : pk.ap < g.cost ? 'cant' : 'ready';
     if (hs.gen !== gs) { hs.gen = gs; gb.classList.toggle('cant', gs === 'cant'); gb.classList.toggle('ready', gs === 'ready'); }
     cardEls.forEach((c) => {
       if (!c) return;
-      const t = S.team[c.slot], why = B.canSpawn(c.slot);
+      const t = pk.team[c.slot], why = B.canSpawn(c.slot, mySide);
       const state = why + ':' + Math.ceil(t.cd);
       const h = t.cd > 0 ? Math.round((t.cd / t.form.cd) * 1000) / 10 : 0; // the cooldown sweep, in 0.1% steps (smooth, but no rewrite when still)
       if (c.cdH !== h) { c.cdH = h; c.cd.style.height = h + '%'; }
@@ -564,8 +573,8 @@
       else if (ev.type === 'baseHit') BM.Audio.sfx('baseHit');
       else if (ev.type === 'faint' && !ev.quiet) BM.Audio.sfx('faint');
       // G8: every Pokémon cries when it spawns — yours at full volume, enemies a touch quieter
-      else if (ev.type === 'spawn') BM.Audio.cry(ev.unit.form.id, ev.unit.form.size, ev.unit.side === 1 ? 1 : C.CRY_ENEMY_VOL, ev.unit.side);
-      else if (ev.type === 'end') setTimeout(() => showResult(ev.result), 900);
+      else if (ev.type === 'spawn') BM.Audio.cry(ev.unit.form.id, ev.unit.form.size, ev.unit.side === mySide ? 1 : C.CRY_ENEMY_VOL, ev.unit.side * mySide);
+      else if (ev.type === 'end' && !PV) setTimeout(() => showResult(ev.result), 900); // friend battles: the session shows the result
     }
     B.S.events.length = 0;
   }
@@ -707,6 +716,40 @@
   let lastRewards = null;
   tap($('btn-map'), () => { BM.Audio.sfx('tap'); afterResult(() => { const rc = lastRewards && lastRewards.regionComplete; B = null; if (rc) { lastRewards.regionComplete = null; show('scr-result', false); showEnding(rc); } else go(BM.isBonus(BM.stageById(preStage)) ? 'bonus' : 'map'); }); });
 
+  // ---------- PHASE 11: Battle a Friend ----------
+  // The battle screen is shared with the campaign; only the inputs (sent, not applied), the side, the mirror and the result differ.
+  function startPvp(sess) {
+    PV = sess; mySide = sess.mySide; B = sess.B; paused = false;
+    genShown = 0; hudShown = {}; speed = sess.speed; showSpeed();
+    $('btn-speed').classList.toggle('locked', sess.role !== 'host');
+    layout(); R.clearFx(); R.setMirror(mySide === -1);
+    $('armed-icons').innerHTML = '';
+    window.__battle = B; // test hook
+    go('battle'); buildCards(); show('hint', false);
+    const me = sess.me.name, fr = sess.friend.name;
+    $('pvp-names').innerHTML = `<b class="pn-me"></b><span>VS</span><b class="pn-fr"></b><i>${BM.Pvp.levelName(sess.level)}</i>`;
+    $('pvp-names').querySelector('.pn-me').textContent = me; $('pvp-names').querySelector('.pn-fr').textContent = fr;
+    show('pvp-names', true);
+    BM.Audio.playMusic(B.S.stage.music);
+    BM.Audio.preloadCries([...B.S.team, ...B.S.foe.team].map((c) => c.form.id));
+  }
+  function endPvp() {
+    PV = null; mySide = 1; B = null; paused = false;
+    R.setMirror(false); R.clearFx(); show('pvp-names', false); $('btn-speed').classList.remove('locked');
+    show('scr-fpause', false);
+  }
+  function pvpPause(on, by) {
+    if (!PV) return;
+    if (on) BM.Audio.suspend(); else BM.Audio.resume();
+    $('fpause-title').textContent = by === 'friend' ? 'Paused by your friend' : 'Paused';
+    $('fpause-sub').textContent = by === 'friend' ? `${PV.friend.name} paused the battle. Either of you can resume.` : `${PV.friend.name}'s battle is paused too.`;
+    show('scr-fpause', on); if (on) fit($('scr-fpause'));
+  }
+  function pvpSpeed(v) { speed = v; showSpeed(); }
+  const Friend = BM.FriendScreen({ $, tap, toast, show, fit, go: (n) => go(n), screen: () => screen, prof: () => prof(), thumb: (...a) => Scr.thumb(...a),
+    startPvp, endPvp, pvpPause, pvpSpeed });
+  tap($('btn-friend'), () => { BM.Audio.sfx('tap'); Friend.open(); });
+
   // ---------- pause / settings ----------
   function openSettings(from) {
     settingsFrom = from;
@@ -737,7 +780,7 @@
     show('scr-pause', false);
     if (settingsFrom === 'battle') { paused = false; BM.Audio.resume(); }
   }
-  tap($('btn-pause'), () => { if (B && !B.S.result) openSettings('battle'); });
+  tap($('btn-pause'), () => { if (PV) { if (PV.state === 'battle' && !PV.paused) { BM.Audio.sfx('tap'); PV.pause(true); } return; } if (B && !B.S.result) openSettings('battle'); });
   // XX1 (Phase 7.6): 1× → 2× → 3× → 1×. The battle runs `speed` × as many FIXED 1/30 s steps per real second — every system
   // (marching, attacks, cooldowns, AP generation, waves, gates) scales together and the simulation is step-for-step identical
   // at any speed, so balance per battle-second is unchanged. Music is never touched (its clock is the audio element's own).
@@ -745,6 +788,8 @@
   function showSpeed() { $('speed-num').textContent = speed + '×'; $('btn-speed').dataset.speed = speed; }
   tap($('btn-speed'), () => {
     if (!B || B.S.result) return;
+    // friend battles: the HOST's speed drives both iPads; the guest's button shows it, greyed
+    if (PV) { if (PV.role !== 'host') { BM.Audio.sfx('deny'); toast('Your friend picks the battle speed'); return; } PV.setSpeed(speed % 3 + 1); return; }
     speed = speed % 3 + 1; BM.Audio.sfx('tap'); showSpeed();
     if (prof()) { prof().settings.battleSpeed = speed; BM.Save.persist(); }
   });
@@ -757,6 +802,7 @@
     const bonus = B && BM.isBonus(B.S.stage); B = null; go(bonus ? 'bonus' : 'map');
   });
   document.addEventListener('visibilitychange', () => {
+    if (PV) { if (document.hidden && PV.state === 'battle' && !PV.paused) PV.pause(true); return; } // shared pause (both iPads)
     if (document.hidden && screen === 'battle' && B && !B.S.result && !paused) openSettings('battle');
   });
   document.addEventListener('gesturestart', (e) => e.preventDefault());
@@ -765,6 +811,7 @@
     // rotation / resize: open panels re-fit the new viewport (never scroll)
     for (const o of document.querySelectorAll('.overlay:not(.hidden)')) if (o.querySelector('.fit')) fit(o);
     if (screen === 'prebattle') fit($('scr-prebattle'));
+    if (screen === 'friend') Friend.fit();
   });
 
   // ---------- loop ----------
@@ -785,7 +832,13 @@
     let dt = Math.min(0.25, (tms - lastT) / 1000); lastT = tms;
     if (screen === 'title') titleSprite(now);
     if (screen === 'map') KMap.tick(tms);
-    if (screen === 'battle' && B) {
+    // friend battles: the session's clock runs every frame (lobby keep-alive, countdown, lockstep stepping)
+    Friend.frame(dt);
+    if (screen === 'battle' && B && PV) {
+      onBattleEvents();
+      R.draw(B, performance.now() / 1000);
+      updateHud();
+    } else if (screen === 'battle' && B) {
       BM.Perf.setOn(devMode); BM.Perf.frameStart(tms);
       let steps = 0;
       if (!paused) {
@@ -816,6 +869,8 @@
     for (const el of document.querySelectorAll('.pc-ico')) el.innerHTML = BM.pcIcon();
     // batch1 step 8: the Safari Zone button = the Safari Ball (its icon art when icons/safari_ball lands, the CSS ball until then)
     for (const el of document.querySelectorAll('.safari-ico')) el.innerHTML = BM.ballHtml('safari_ball');
+    // Phase 11: Battle a Friend = two Poké Balls facing off (VS) — no gambling imagery
+    for (const el of document.querySelectorAll('.vs-ico')) el.innerHTML = BM.ballHtml('poke_ball', 'vs-ball') + '<b class="vs-x">VS</b>' + BM.ballHtml('poke_ball', 'vs-ball');
   }
 
   // ---------- boot ----------
@@ -830,5 +885,5 @@
   // first tap anywhere unlocks audio on iOS and starts the title music
   document.addEventListener('pointerdown', () => { BM.Audio.unlock(); if ((screen === 'title' || screen === 'profiles') && !BM.Audio.currentKey) BM.Audio.playMusic('title'); }, { once: false });
   window.BM.debug = { types: Types, get battle() { return B; }, get speed() { return speed; }, startBattle, go, get screen() { return screen; }, map: KMap, bonus: Bonus, render: R, evo: Evo, screens: Scr, gacha: Gacha, challenge: Chal, fit, openPrebattle: (id) => { preStage = id; go('prebattle'); },
-    get preStage() { return preStage; }, showEnding, get lastRewards() { return lastRewards; }, setDev: (v) => { devMode = !!v; }, stress: (v) => { stressFill = !!v; } };
+    get preStage() { return preStage; }, showEnding, friend: Friend, get pvp() { return PV; }, get mySide() { return mySide; }, get lastRewards() { return lastRewards; }, setDev: (v) => { devMode = !!v; }, stress: (v) => { stressFill = !!v; } };
 })();
