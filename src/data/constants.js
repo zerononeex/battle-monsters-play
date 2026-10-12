@@ -10,9 +10,11 @@ BM.C = {
   // AP generator: [AP per second, AP cap, cost to reach next level]. Phase 7.5 (user): AA1 upgrade costs 50 · 75 · 100 ·
   // 130 · 160 · 190 · 220 (total 925; was 120…600 = 2,520) and AA2 caps 400 · 550 · 700 · 900 · 1100 · 1300 · 1550 · 1800
   // (was 300…1200). Rates unchanged. Pacing is balanced with waves (Q1 rule), never by re-raising these.
+  // NNN1 (user playtest 2026-10-11, Johto prompt Step 0c): upgrade costs rise slightly 50·75·100·130·160·190·220 (925) →
+  // 55·80·105·135·165·195·230 (total 965). Rates and the AA2 caps do NOT move.
   GEN: [null,
-    [15, 400, 50], [20, 550, 75], [25, 700, 100], [30, 900, 130],
-    [36, 1100, 160], [42, 1300, 190], [49, 1550, 220], [56, 1800, null]],
+    [15, 400, 55], [20, 550, 80], [25, 700, 105], [30, 900, 135],
+    [36, 1100, 165], [42, 1300, 195], [49, 1550, 230], [56, 1800, null]],
   GEN_MAX: 8,
   LEVEL_CAP: 60,
   baseHP: (stageLevel) => 1000 + 300 * stageLevel,

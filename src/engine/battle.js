@@ -29,7 +29,23 @@ BM.Battle = function (stage, profile, opts = {}) {
   // K2 wave cadence: timed bursts + HP-threshold counter-bursts (with a wall-breaker)
   const CAD = BM.waveCadence && stage.waves && stage.waves.length && !stage.noBursts ? BM.waveCadence(stage) : null;
   const rint = (lo, hi) => lo + Math.floor(rnd() * (hi - lo + 1));
-  if (CAD) { S.cad = CAD; S.nextBurst = CAD.first; S.thrFired = CAD.thresholds.map(() => false); for (const w of S.waves) w.every *= CAD.trickle; }
+  // OOO1 pack size for one trickle release of `form`. The trickle stretch (CAD.trickle) is PER BODY: a wave that releases packs
+  // of ~2.5 waits ~2.5× as long between releases, so the same bodies arrive together instead of one by one.
+  function packMean(form) {
+    if (!CAD || !CAD.pack) return 1;
+    const cls = BM.sizeClass(form);
+    if (cls === 'boss' || form.boss) return 1;
+    if (cls === 'large') return CAD.pack[1] >= 3 ? 1.35 : 1;
+    return (CAD.pack[0] + CAD.pack[1]) / 2;
+  }
+  function packSize(form) {
+    if (!CAD || !CAD.pack) return 1;
+    const cls = BM.sizeClass(form);
+    if (cls === 'boss' || form.boss) return 1;
+    if (cls === 'large') return CAD.pack[1] >= 3 && rnd() < 0.35 ? 2 : 1;
+    return rint(CAD.pack[0], CAD.pack[1]);
+  }
+  if (CAD) { S.cad = CAD; S.nextBurst = CAD.first; S.thrFired = CAD.thresholds.map(() => false); for (const w of S.waves) w.every *= CAD.trickle * packMean(BM.FORMS[w.form]); }
   // Y1 GATE (user, Phase 7.5): a stage's strongest enemy types never exist at second zero — they debut through ONE gate (stage
   // data `gate`): TIMER (`by: 'time'`, start spawning `at` seconds in) or BASE HP (`by: 'hp'`, the moment the enemy base drops
   // to `at` = 0.9, with an immediate reinforcement of each gated form). Until it opens, gated forms are held out of the trickle,
@@ -227,7 +243,10 @@ BM.Battle = function (stage, profile, opts = {}) {
       if (gated(w.form)) continue;
       if (S.t < w.next || (w.count != null && w.spawned >= w.count)) continue;
       if (count(-1) >= CAP) { w.next = S.t + 1; continue; }
-      makeUnit(BM.FORMS[w.form], w.level, -1, C.ENEMY_BASE_FRONT + 8 - rnd() * 16);
+      // OOO1: a trickle release is a PACK of fodder / medium units (extras 1–2 levels lower); large units come solo (a pair
+      // late on, when the pack range allows 3+); aces / bosses always solo
+      const n = packSize(BM.FORMS[w.form]);
+      for (let k = 0; k < n && count(-1) < CAP; k++) makeUnit(BM.FORMS[w.form], k ? Math.max(1, w.level - CAD.packLv) : w.level, -1, C.ENEMY_BASE_FRONT + 8 - k * 12 - rnd() * 16);
       w.spawned++; w.next += w.every;
     }
 

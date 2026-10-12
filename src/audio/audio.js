@@ -194,13 +194,13 @@ BM.Audio = (function () {
     if (current && current.key === key) return;
     stopMusic();
     const loop = BM.MUSIC_KEYS[key].loop;
-    const file = BM.MUSIC_FILES[key];
+    const { file, via } = BM.musicSource(key); // Johto keys: their paired Kanto theme until their own MP3 lands
     if (file) {
       const el = shared();
       el.src = file; el.loop = loop; el.volume = elRouted ? 0.7 : 0.7 * duckLevel;
       el.currentTime = 0;
       if (musicOn) el.play().catch(() => {}); // music off: the track is loaded but stays paused (G4)
-      current = { key, el, stop() { el.pause(); } };
+      current = { key, el, via, stop() { el.pause(); } };
       return;
     }
     if (!ensure()) return;
@@ -253,6 +253,7 @@ BM.Audio = (function () {
     get soundOn() { return soundOn; }, get musicOn() { return musicOn; }, stats,
     // what is playing now: 'mp3' (a supplied art-src/music file) or 'synth' (the WebAudio fallback) — tests + dev
     get currentSource() { return current ? (current.el ? 'mp3' : 'synth') : null; },
+    get currentVia() { return current && current.el ? current.via : null; }, // the key whose MP3 is playing (Johto fallback pairing)
     get currentEl() { return current && current.el; },
     // is music audible right now? (an MP3 actually playing, or the synth with music on) — G4 test
     get musicAudible() { return !!current && musicOn && (current.el ? !current.el.paused : true); } };

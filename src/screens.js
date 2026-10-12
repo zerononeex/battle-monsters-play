@@ -22,7 +22,8 @@ BM.Screens = function (ui) {
   // own tap handler hit-tests its box (same pattern as the team slot's ✕).
   const CYC_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.5 9.5A8 8 0 0 0 5.2 7.4" /><path d="M4.5 14.5a8 8 0 0 0 14.3 2.1" />' +
     '<path class="hd" d="M3.2 3.6 5.2 7.9 9.6 6.4z" /><path class="hd" d="M20.8 20.4 18.8 16.1 14.4 17.6z" /></svg>';
-  function multiForm(id) { const l = prof().lines[id]; return !!l && BM.LINES[id].forms.filter((g) => l.unlocked.includes(g.id)).length > 1; }
+  // Johto Step 6: a ready Mega form is one more stop on the cycle (BM.lineForms = the chain + its Mega forms)
+  function multiForm(id) { const l = prof().lines[id]; return !!l && BM.lineForms(id).filter((g) => l.unlocked.includes(g.id)).length > 1; }
   function addCycle(card, id) {
     if (!multiForm(id)) return null;
     const b = document.createElement('span'); b.className = 'cyc'; b.dataset.cycle = id; b.setAttribute('aria-label', 'Change form'); b.innerHTML = CYC_SVG;
@@ -35,7 +36,7 @@ BM.Screens = function (ui) {
   }
   // flips a line to its next unlocked form (wrapping); the line's level is shared by every form
   function nextForm(id) {
-    const l = prof().lines[id], forms = BM.LINES[id].forms.filter((g) => l.unlocked.includes(g.id));
+    const l = prof().lines[id], forms = BM.lineForms(id).filter((g) => l.unlocked.includes(g.id));
     if (forms.length < 2) return null;
     const g = forms[(forms.findIndex((x) => x.id === l.form) + 1) % forms.length];
     BM.Save.setForm(id, g.id); BM.Audio.cry(g.id, g.size, 1, 'ui'); toast(`${g.name} will battle!`);
@@ -64,15 +65,21 @@ BM.Screens = function (ui) {
     if (e.item) return `${BM.ITEMS[e.item]} at Lv ${e.minLevel}+`;
     return `Evolves at Lv ${e.level}`;
   }
-  const ownedLines = () => BM.KANTO_LINES.filter((id) => prof().lines[id]);
+  // Johto (Step 2): the PC Box shows ONE region's lines at a time (Kanto 37 · Johto 36 — together they would shrink every card on a
+  // phone); region tabs appear once the profile reaches Johto. The Bellossom branch belongs to Johto (EEE1).
+  let collRegion = 'kanto';
+  const regionLines = (r) => (r === 'johto' ? BM.JOHTO_LINES : BM.KANTO_LINES);
+  const ownedLines = () => regionLines(collRegion).filter((id) => prof().lines[id]);
+  // every owned line of every region (the Team screen's PC Box strip): Kanto first, then Johto
+  const allOwned = () => [...BM.KANTO_LINES, ...BM.JOHTO_LINES].filter((id) => prof().lines[id]);
   // How a not-yet-owned line is met, in kid words.
   function meetText(line) {
-    if (line.rewardOnly) return 'Beat the Kanto Champion to meet this legend!';
-    const gift = BM.KANTO_STAGES.find((s) => s.gift === line.id && !line.legendary);
+    if (line.rewardOnly) return `Beat the ${BM.REGION_NAMES[BM.regionOfStage(BM.stageById(line.rewardStage))]} Champion to meet this legend!`;
+    const gift = BM.STAGES.find((s) => !s.dev && s.gift === line.id && !line.legendary);
     if (gift) return `A gift at ${gift.name}`;
     const banner = BM.BANNERS.find((b) => BM.bannerPool(b).includes(line.id));
-    if (line.legendary && banner) return `Legendary — Safari Zone ${banner.name.replace('Kanto ', '')} (or the Legendary Safari Zone)`;
-    return banner ? `Safari Zone ${banner.name.replace('Kanto ', '')}` : 'Safari Zone';
+    if (line.legendary && banner) return `Legendary — Safari Zone ${banner.short || banner.name.replace('Kanto ', '')} (or the Legendary Safari Zone)`;
+    return banner ? `Safari Zone ${banner.short || banner.name.replace('Kanto ', '')}` : 'Safari Zone';
   }
   // Sizes a grid's cards so `n` of them fit the element's box without scrolling (F2). aspect = card height / width.
   function fitGrid(el, n, aspect, gap, maxCols) {
@@ -92,7 +99,7 @@ BM.Screens = function (ui) {
   }
   // XP progress inside the current level (0..1) on the L³ curve.
   function xpFrac(xp, lv) {
-    if (lv >= BM.C.LEVEL_CAP) return 1;
+    if (lv >= BM.levelCap(prof())) return 1;
     const a = BM.xpForLevel(lv), b = BM.xpForLevel(lv + 1);
     return Math.max(0, Math.min(1, (xp - a) / (b - a)));
   }
@@ -180,7 +187,7 @@ BM.Screens = function (ui) {
     const foot = document.createElement('span'); foot.className = 'coll-foot';
     const tc = traitChip(f); if (tc) foot.appendChild(tc);
     const dots = document.createElement('span'); dots.className = 'dots';
-    for (const lf of line.forms) { const d = document.createElement('i'); d.className = lf.id === l.form ? 'on' : l.unlocked.includes(lf.id) ? '' : 'lockd'; dots.appendChild(d); }
+    for (const lf of [...line.forms, ...(line.megas || []).filter((m) => l.unlocked.includes(m.id))]) { const d = document.createElement('i'); d.className = (lf.id === l.form ? 'on' : l.unlocked.includes(lf.id) ? '' : 'lockd') + (lf.mega ? ' mega' : ''); dots.appendChild(d); }
     if (line.forms.length > 1) foot.appendChild(dots);
     card.appendChild(foot);
     addCycle(card, id);
@@ -191,12 +198,17 @@ BM.Screens = function (ui) {
   function renderCollection() {
     const p = prof(), grid = $('coll-grid');
     grid.innerHTML = '';
-    const owned = ownedLines(), ids = applyFilter(BM.KANTO_LINES, false);
-    $('coll-count').textContent = `${owned.length} / ${BM.KANTO_LINES.length}`;
+    if (!BM.regionReached(collRegion, p)) collRegion = 'kanto';
+    const all = regionLines(collRegion), owned = ownedLines(), ids = applyFilter(all, false);
+    $('coll-count').textContent = `${owned.length} / ${all.length}`;
+    const rt = $('coll-regions'), regs = ['kanto', 'johto'].filter((r) => BM.regionReached(r, p));
+    ui.show('coll-regions', regs.length > 1); rt.innerHTML = '';
+    for (const r of regs) { const b = document.createElement('button'); b.className = 'pill-btn coll-reg' + (r === collRegion ? ' on' : ''); b.dataset.region = r; b.textContent = BM.REGION_NAMES[r];
+      tap(b, () => { if (collRegion === r) return; collRegion = r; BM.Audio.sfx('tap'); renderCollection(); }); rt.appendChild(b); }
     show('btn-dev-unlock', ui.devMode()); show('btn-dev-items', ui.devMode());
     updateFilterBadges();
     // cards are sized for the FULL roster so filtering never makes them jump in size
-    const w = fitGrid(grid, BM.KANTO_LINES.length, 1.22, Math.max(4, Math.min(10, Math.round(window.innerWidth / 120))));
+    const w = fitGrid(grid, all.length, 1.22, Math.max(4, Math.min(10, Math.round(window.innerWidth / 120))));
     const ts = Math.max(48, Math.min(128, Math.round(w * 0.8)));
     if (!ids.length) { const d = document.createElement('div'); d.className = 'bench-empty'; d.textContent = 'Nobody matches — tap Filter → Reset.'; grid.appendChild(d); }
     for (const id of ids) {
@@ -207,7 +219,7 @@ BM.Screens = function (ui) {
       grid.appendChild(card);
     }
   }
-  tap($('btn-coll-filter'), () => { BM.Audio.sfx('tap'); openFilter({ ids: BM.KANTO_LINES, ownedOnly: false, done: renderCollection }); });
+  tap($('btn-coll-filter'), () => { BM.Audio.sfx('tap'); openFilter({ ids: regionLines(collRegion), ownedOnly: false, done: renderCollection }); });
   // Not owned yet: the base form as a dark silhouette, name hidden, plus how to meet it.
   function unownedCard(line, ts) {
     const card = document.createElement('button'); card.className = 'coll-card unowned'; card.dataset.line = line.id;
@@ -255,7 +267,7 @@ BM.Screens = function (ui) {
     });
     const info = $('line-info'); info.innerHTML = '';
     const xp = document.createElement('div'); xp.className = 'xp-line';
-    const nextTxt = l.level >= BM.C.LEVEL_CAP ? 'MAX level' : `${(BM.xpForLevel(l.level + 1) - l.xp).toLocaleString()} XP to Lv ${l.level + 1}`;
+    const nextTxt = l.level >= BM.levelCap(prof()) ? 'MAX level' : `${(BM.xpForLevel(l.level + 1) - l.xp).toLocaleString()} XP to Lv ${l.level + 1}`;
     xp.innerHTML = `<span class="xp-bar"><i style="width:${Math.round(xpFrac(l.xp, l.level) * 100)}%"></i></span><span>${nextTxt}</span>`;
     info.appendChild(xp);
     if (locked) { const h = document.createElement('div'); h.className = 'dex-locked'; h.textContent = `${unlockText(f)} to meet this character!`; info.appendChild(h); }
@@ -285,6 +297,18 @@ BM.Screens = function (ui) {
       tap(b, () => { BM.Audio.sfx('tap'); openLine(id, g.id); });
       forms.appendChild(b);
     });
+    forms.classList.toggle('has-mega', !!(line.megas && line.megas.length)); // 4–5 cards on one row: a little narrower
+    // Johto Step 6: the line's Mega forms after the chain — fieldable when ready, else an honest lock ("beat Johto" / "needs a stone")
+    for (const g of line.megas || []) {
+      const ar = document.createElement('span'); ar.className = 'chain-arrow mega'; ar.textContent = '💎'; forms.appendChild(ar);
+      const lk = !l.unlocked.includes(g.id), b = document.createElement('button');
+      b.className = 'line-form mega' + (lk ? ' locked' : '') + (g.id === formId ? ' sel' : ''); b.dataset.form = g.id;
+      b.appendChild(thumb(g, 72, lk));
+      const n = document.createElement('span'); n.className = 'fname'; n.textContent = lk && !BM.megaUnlocked(prof()) ? 'Mega ???' : g.name; b.appendChild(n);
+      if (lk) { const k = document.createElement('span'); k.className = 'lock'; k.innerHTML = (BM.megaUnlocked(prof()) ? itemIcon(g.stone) + ' ' : '🔒 '); k.appendChild(document.createTextNode(BM.megaLockText(prof(), g))); b.appendChild(k); }
+      tap(b, () => { BM.Audio.sfx('tap'); openLine(id, g.id); });
+      forms.appendChild(b);
+    }
     renderLineItems(id);
     show('scr-line', true);
     ui.fit($('scr-line'));
@@ -311,7 +335,8 @@ BM.Screens = function (ui) {
       const n = p.items[it] || 0;
       if (n) btn(`${itemIcon(it)} ${BM.ITEM_INFO[it].name} <small>×${n}</small>`, 'candy', () => use(id, it));
     }
-    if (!box.children.length) { const d = document.createElement('div'); d.className = 'items-none'; d.textContent = 'Win stages to find candies and stones for this character!'; box.appendChild(d); }
+    // (no 'win stages…' note on a line with Mega forms: its chain needs the whole row)
+    if (!box.children.length && !line.megas) { const d = document.createElement('div'); d.className = 'items-none'; d.textContent = 'Win stages to find candies and stones for this character!'; box.appendChild(d); }
   }
   function use(id, itemId) {
     const l = prof().lines[id], from = l.form, r = BM.Save.useItem(id, itemId);
@@ -326,7 +351,7 @@ BM.Screens = function (ui) {
   tap($('btn-line-x'), closeLine);
   $('scr-line').addEventListener('pointerdown', (e) => { if (e.target.id === 'scr-line') { e.preventDefault(); closeLine(); } });
   tap($('btn-coll-back'), () => { BM.Audio.sfx('tap'); ui.go('title'); });
-  tap($('btn-dev-unlock'), () => { BM.Save.devUnlockAll(); toast('DEV: every Kanto line + form unlocked (Lv 36)'); renderCollection(); });
+  tap($('btn-dev-unlock'), () => { BM.Save.devUnlockAll(); toast('DEV: every Kanto + Johto line + form unlocked (Lv 36)'); renderCollection(); });
   tap($('btn-dev-items'), () => { BM.Save.devGrantItems(); toast('DEV: +5 of every item'); renderCollection(); });
 
   // ---------- item bag ----------
@@ -355,7 +380,7 @@ BM.Screens = function (ui) {
   tap($('btn-coll-bag'), () => { BM.Audio.sfx('tap'); openBag(); });
 
   // ---------- Team builder TA (Phase 7 fix-first; replaces the T3 circles + picker popup) ----------
-  // Header: ◀ name ▶ (preset arrows) + ✏️ rename + buy slot. Middle: the 10 slots (tap = select · tap the selected one
+  // Header: ◀ name ▶ (preset arrows) + ✏️ rename + buy slot. Middle: the BM.TEAM_SIZE (PPP1: 6) slots (tap = select · tap the selected one
   // again = next form · ✕ = off). Bottom: owned Pokémon strip, scrolling LEFT–RIGHT inside itself (tap = place in the
   // selected slot). Press-and-hold a block or a slot = stats peek.
   let selSlot = 0;
@@ -399,7 +424,7 @@ BM.Screens = function (ui) {
       el.appendChild(thumb(f, 120, false));
       const n = document.createElement('span'); n.className = 'dname'; n.textContent = f.name; el.appendChild(n);
       const dots = document.createElement('span'); dots.className = 'dots';
-      for (const lf of line.forms) { const d = document.createElement('i'); d.className = lf.id === l.form ? 'on' : l.unlocked.includes(lf.id) ? '' : 'lockd'; dots.appendChild(d); }
+      for (const lf of [...line.forms, ...(line.megas || []).filter((m) => l.unlocked.includes(m.id))]) { const d = document.createElement('i'); d.className = (lf.id === l.form ? 'on' : l.unlocked.includes(lf.id) ? '' : 'lockd') + (lf.mega ? ' mega' : ''); dots.appendChild(d); }
       el.appendChild(dots);
       const c = document.createElement('span'); c.className = 'dcost'; c.innerHTML = BM.apIcon() + BM.effCost(f, l.level); el.appendChild(c);
       const rm = document.createElement('span'); rm.className = 'rm'; rm.textContent = '✕'; el.appendChild(rm);
@@ -432,7 +457,7 @@ BM.Screens = function (ui) {
     updateFilterBadges();
     const occ = p.team[selSlot];
     $('ta-box-title').textContent = occ ? `PC Box — tap to swap slot ${selSlot + 1} (${BM.FORMS[p.lines[occ].form].name})` : `PC Box — tap to put in slot ${selSlot + 1}`;
-    const ids = applyFilter(ownedLines(), true);
+    const ids = applyFilter(allOwned(), true);
     const ts = Math.max(44, Math.min(110, Math.round(strip.clientHeight * 0.62)));
     if (!ids.length) { const d = document.createElement('div'); d.className = 'bench-empty'; d.textContent = 'Nobody matches — tap Filter → Reset.'; strip.appendChild(d); }
     for (const id of ids) {
@@ -502,7 +527,7 @@ BM.Screens = function (ui) {
   tap($('btn-rename-ok'), doRename);
   tap($('btn-rename-cancel'), () => { $('rename-input').blur(); show('scr-rename', false); });
   $('rename-input').addEventListener('keydown', (e) => { if (e.key === 'Enter') doRename(); });
-  tap($('btn-team-filter'), () => { BM.Audio.sfx('tap'); openFilter({ ids: ownedLines(), ownedOnly: true, done: renderStrip }); });
+  tap($('btn-team-filter'), () => { BM.Audio.sfx('tap'); openFilter({ ids: allOwned(), ownedOnly: true, done: renderStrip }); });
   function removeFromTeam(id) {
     if (!BM.Save.removeFromTeam(id)) { BM.Audio.sfx('deny'); toast('Your team needs at least one Pokémon!'); return; }
     BM.Audio.sfx('tap'); renderTeam();

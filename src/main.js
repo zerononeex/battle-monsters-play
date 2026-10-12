@@ -9,6 +9,7 @@
   let speed = 1;           // XX1: battle speed (1 | 2 | 3) — fixed sim steps per real second × speed
   let screen = 'profiles';
   let devMode = /[?&]dev\b/.test(location.search);
+  let mapRegion = 'kanto'; // Johto (Step 1/4): which region's map the map screen shows
   let settingsFrom = null; // 'title' | 'battle'
   let teamFrom = 'title';  // where the team screen's back button goes ('title' | 'prebattle')
   let preStage = null;     // stage id shown on the pre-battle screen
@@ -32,7 +33,9 @@
     if (name === 'profiles') { BM.Audio.playMusic('title'); renderProfiles(); }
     if (name === 'title') { BM.Audio.playMusic('title'); renderChip(); renderRegions(); renderHomeTower(); }
     // music by screen: map = map_kanto, pre-battle = the stage's town key, battle = its category key (startBattle)
-    if (name === 'map') { BM.Audio.playMusic('map_kanto'); show('btn-map-dev', devMode); show('btn-map-dev-rules', devMode); KMap.render(); }
+    // Johto: the map screen shows the region last opened from the home carousel / the region of the stage just played; its music is
+    // map_kanto / map_johto (map_johto plays map_kanto until its MP3 is supplied — the Step 0 fallback rule)
+    if (name === 'map') { BM.Audio.playMusic(BM.REGION_MAPS[mapRegion].music); show('btn-map-dev', devMode); show('btn-map-dev-rules', devMode); KMap.setRegion(mapRegion); KMap.render(); }
     if (name === 'bonus') { BM.Audio.playMusic('tower'); Bonus.render(); } // FF3: the Tower's own theme
     if (name === 'prebattle') renderPrebattle();
     if (name === 'collection') { BM.Audio.playMusic('team'); Scr.renderCollection(); }
@@ -238,7 +241,7 @@
 
   // ---------- home (F5): region tiles replace PLAY; Teams · All Characters · Items below ----------
   const REGIONS = [
-    { id: 'kanto', name: 'Kanto', open: true, art: 'ui/region_kanto', color: ['#7ec86a', '#2f7fb8'], emoji: '🌋' },
+    { id: 'kanto', name: 'Kanto', art: 'ui/region_kanto', color: ['#7ec86a', '#2f7fb8'], emoji: '🌋' },
     { id: 'johto', name: 'Johto', art: 'ui/region_johto', color: ['#c9a36a', '#7a4f2f'], emoji: '🔔' },
     { id: 'hoenn', name: 'Hoenn', art: 'ui/region_hoenn', color: ['#5ec9c9', '#2f5fa8'], emoji: '🌊' },
     { id: 'sinnoh', name: 'Sinnoh & Beyond', art: 'ui/region_sinnoh', color: ['#a8b8e8', '#4f4f8f'], emoji: '❄️' },
@@ -248,25 +251,28 @@
   let regionAt = 0, swiped = false;
   function renderRegions() {
     const box = $('regions'); box.innerHTML = '';
-    const p = prof(), cleared = BM.KANTO_STAGES.filter((s) => p && p.cleared[s.id] > 0).length;
-    const r = REGIONS[regionAt];
+    const p = prof(), r = REGIONS[regionAt];
+    // Johto (Step 1): a region's card is LIVE once the profile reaches it (Kanto always; Johto after the Kanto Champion) — a
+    // locked teaser otherwise. Its stage count is its own region's.
+    const open = BM.regionReached(r.id, p), RS = (BM.REGION_MAPS[r.id] || {}).stages || [];
+    const cleared = RS.filter((s) => p && p.cleared[s.id] > 0).length, total = RS.length;
     const b = document.createElement('button');
-    b.className = 'region-tile' + (r.open ? '' : ' locked'); b.dataset.region = r.id;
+    b.className = 'region-tile' + (open ? '' : ' locked'); b.dataset.region = r.id;
     // a WIDE picture fills the card (assets/ui/regions_wide/<key>.png, or Kanto's map); a portrait region tile (#210–#213)
     // is shown whole over the region's gradient instead of being cropped to a strip
-    const wide = BM.Sprites.artSrc('ui/regionw_' + r.id) || (r.id === 'kanto' && BM.Sprites.artSrc('maps/kanto'));
+    const wide = BM.Sprites.artSrc('ui/regionw_' + r.id) || (BM.REGION_MAPS[r.id] && BM.Sprites.artSrc(BM.REGION_MAPS[r.id].map.art));
     const tall = !wide && BM.Sprites.artSrc(r.art), art = wide || tall, grad = `linear-gradient(160deg, ${r.color[0]}, ${r.color[1]})`;
     b.style.backgroundImage = wide ? `url("${wide}")` : tall ? `url("${tall}"), ${grad}` : grad;
     b.classList.toggle('portrait', !!tall);
     b.innerHTML = (art ? '' : `<span class="rt-emoji">${r.emoji}</span>`) + `<span class="rt-name">${r.name}</span>` +
-      `<span class="rt-sub">${r.open ? (p && p.regionsDone && p.regionsDone[r.id] ? `🏆 ${r.name} complete! · ${cleared} / ${BM.KANTO_STAGES.length} stages ✓` : `${cleared} / ${BM.KANTO_STAGES.length} stages ✓ · tap to play!`) : r.id === 'johto' ? '🔒 Coming in a future adventure' : '🔒 Coming later'}</span>`;
+      `<span class="rt-sub">${open ? (p && p.regionsDone && p.regionsDone[r.id] ? `🏆 ${r.name} complete! · ${cleared} / ${total} stages ✓` : `${cleared} / ${total} stages ✓ · tap to play!`) : r.id === 'johto' ? '🔒 Beat the Kanto Champion to open Johto' : '🔒 Coming later'}</span>`;
     b.classList.toggle('complete', !!(p && p.regionsDone && p.regionsDone[r.id]));
     // opens on RELEASE (pointerup) so a sideways swipe flips the region instead of opening it
     b.addEventListener('pointerdown', (e) => { e.preventDefault(); BM.Audio.unlock(); });
     b.addEventListener('pointerup', () => {
       if (swiped) return;
-      if (!r.open) { BM.Audio.sfx('deny'); toast(r.id === 'johto' ? 'Johto is coming in a future adventure!' : `${r.name} opens in a later update!`); return; }
-      BM.Audio.sfx('tap'); go('map');
+      if (!open) { BM.Audio.sfx('deny'); toast(r.id === 'johto' ? 'Beat the Kanto Champion to open Johto!' : `${r.name} opens in a later update!`); return; }
+      BM.Audio.sfx('tap'); mapRegion = r.id; go('map');
     });
     box.appendChild(b);
     const dots = $('reg-dots'); dots.innerHTML = '';
@@ -330,11 +336,14 @@
       if (d.item === 'tickets') add(`${tkHtml} +${d.n} bonus tickets`, 'drop');
       else add(`${itemIconHtml(d.item)} ${d.n > 1 ? d.n + '× ' : ''}${BM.ITEMS[d.item]}`, 'drop new');
     }
+    if (r.prize) for (const [id, n] of Object.entries(r.prize)) add(`${itemIconHtml(id)} ${n > 1 ? n + '× ' : ''}${BM.ITEMS[id]}${id === 'master_ball' ? '! (the Legendary Safari Zone)' : ''}`, 'new legend');
     if (r.masterBall) add(`${itemIconHtml('master_ball')} Master Ball! (the Legendary Safari Zone)`, 'new legend');
     if (r.gift && r.giftNew !== false) add(`🎁 New character: ${BM.LINES[r.gift].name}!`, 'new');
+    if (r.megaUnlocked) add('💎 Mega Evolution unlocked! (Mega Stones: the Safari Zone, the Prism Tower, Johto stages)', 'new legend'); // Johto Step 6
   }
   function renderPrebattle() {
     const st = BM.stageById(preStage), p = prof();
+    if (!st.dev && !st.bonus) mapRegion = BM.regionOfStage(st); // ◀ Map / the result's Map return to this stage's region
     BM.Audio.playMusic(st.townMusic);
     const bg = (st.bgArt && BM.Sprites.artSrc('bg/' + st.bgArt)) || BM.Sprites.artSrc('bg/' + st.background);
     $('scr-prebattle').style.backgroundImage = bg ? `url("${bg}")` : '';
@@ -375,7 +384,7 @@
     $('pre-rew-h').textContent = wins ? `Cleared ×${wins} — replay rewards` : 'First-clear rewards';
     rewardChips({ ...BM.stageRewards(st, !wins), preview: st }, $('pre-rewards'));
     // what this stage's drop table can give (icons only; the roll happens on a win)
-    const finds = BM.dropPreview(st);
+    const finds = BM.dropPreview(st, p); // era-gated rows (Sun Stone in the Tower, Mega Stones) only once they can drop
     if (finds.length) { const d = document.createElement('span'); d.className = 'reward finds'; d.innerHTML = 'May find: ' + finds.map((id) => id === 'tickets' ? BM.ticketIcon() : itemIconHtml(id)).join(''); $('pre-rewards').appendChild(d); }
     renderPreItems();
     fit($('scr-prebattle'));
@@ -604,7 +613,7 @@
     if (!(r && r.regionComplete && r.giftNew)) return;
     const f = BM.LINES[r.gift].forms[0];
     box.appendChild(Scr.thumb(f, 150, false));
-    box.insertAdjacentHTML('beforeend', `<div class="rc-text"><b>${f.name} joins your team!</b><span>The legend of Kanto chose YOU — it's in your PC Box at Lv 1${r.giftOnTeam ? ' and on your team' : ''}.</span></div>`);
+    box.insertAdjacentHTML('beforeend', `<div class="rc-text"><b>${f.name} joins your team!</b><span>The legend of ${BM.REGION_NAMES[r.regionComplete] || 'Kanto'} chose YOU — it's in your PC Box at Lv 1${r.giftOnTeam ? ' and on your team' : ''}.</span></div>`);
     setTimeout(() => BM.Audio.cry(f.id, f.size, 1, 'ui'), 700);
   }
   // ENDING (Phase 7): after the Champion falls for the first time — the `credits` track, a region-complete summary
@@ -612,14 +621,15 @@
   function showEnding(region) {
     const p = prof(), owned = Object.keys(p.lines).filter((id) => BM.LINES[id] && !BM.LINES[id].enemyOnly);
     const legends = owned.filter((id) => BM.LINES[id].legendary);
-    const cleared = BM.KANTO_STAGES.filter((s) => p.cleared[s.id] > 0).length;
+    const RS = BM.REGION_MAPS[region].stages, cleared = RS.filter((s) => p.cleared[s.id] > 0).length;
     $('end-title').textContent = `${region[0].toUpperCase() + region.slice(1)} complete!`;
     $('end-sub').textContent = `${p.name}, you beat the Champion and became the hero of ${region[0].toUpperCase() + region.slice(1)}!`;
-    $('end-stats').innerHTML = `<div class="es"><b>${cleared} / ${BM.KANTO_STAGES.length}</b><span>stages cleared</span></div>` +
+    $('end-stats').innerHTML = `<div class="es"><b>${cleared} / ${RS.length}</b><span>stages cleared</span></div>` +
       `<div class="es"><b>${owned.length}</b><span>Pokémon friends</span></div><div class="es"><b>${legends.length}</b><span>legendaries</span></div>`;
     const lg = $('end-legends'); lg.innerHTML = '';
     for (const id of legends) { const c = Scr.thumb(BM.LINES[id].forms[0], 96, false); c.dataset.line = id; lg.appendChild(c); }
-    $('end-next').textContent = 'Johto is waiting… coming in a future adventure!';
+    // Johto: Kanto's ending opens Johto (it is live now); Johto's ending unlocks Mega Evolution and points at Mt. Silver
+    $('end-next').textContent = region === 'kanto' ? 'Johto is open — find it on the home screen!' : 'Mega Evolution is unlocked! And someone is waiting at the top of Mt. Silver…';
     show('scr-ending', true); fit($('scr-ending'));
     BM.Audio.playMusic('credits');
   }
@@ -678,6 +688,10 @@
     show('pause-battle-btns', from === 'battle');
     show('btn-close-settings', from !== 'battle');
     show('mistake-sliders', !!prof());
+    // Johto Step 6: the profile's Mega Evolution state, in kid words
+    show('mega-status', !!prof() && settingsFrom !== 'battle');
+    if (prof()) { const p = prof(), own = BM.MEGA_STONES.filter((s) => p.items[s] > 0).length;
+      $('mega-status').innerHTML = BM.megaUnlocked(p) ? `💎 Mega Evolution: <b>unlocked!</b> · ${own} / ${BM.MEGA_STONES.length} Mega Stones` : '💎 Mega Evolution: 🔒 beat the Johto Champion to unlock it'; }
     applySliders();
     show('scr-pause', true);
     fit($('scr-pause'));

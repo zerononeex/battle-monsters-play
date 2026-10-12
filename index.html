@@ -112,6 +112,8 @@
   <div class="sub-head">
     <button id="btn-coll-back" class="icon-btn" aria-label="Back">◀</button>
     <h2><span class="pc-ico">📦</span> PC Box <span id="coll-count" class="head-count"></span></h2>
+    <!-- Johto Step 2: one region's lines at a time (the grid never scrolls) — the tabs appear once Johto is reached -->
+    <span id="coll-regions" class="coll-regions hidden"></span>
     <button id="btn-coll-filter" class="pill-btn filter-btn">⚙ Filter<span class="fcount"></span></button>
     <button id="btn-coll-bag" class="pill-btn">🎒 Items</button>
     <button id="btn-dev-unlock" class="dev-btn hidden">DEV: unlock all</button>
@@ -121,7 +123,7 @@
 </section>
 
 <!-- Team builder TA (Phase 7 fix-first, deck v3 pick — replaces the T3 circles + picker popup): header = team name with
-     ◀ ▶ preset arrows + ✏️ rename (+ buy a preset slot); middle band = the 10 slots (tap one to select it; tap it again =
+     ◀ ▶ preset arrows + ✏️ rename (+ buy a preset slot); middle band = the 6 slots (PPP1) (tap one to select it; tap it again =
      next form; ✕ = take off); bottom strip = owned Pokémon as LEFT–RIGHT scrolling blocks (image + name + level) — tap a
      block to place it in the selected slot; SMALL Filter = the PC Box filter popup; press-and-hold a block or a slot =
      stats peek. Fixed bands, never overlapping; the screen never scrolls — only the strip scrolls, horizontally. -->
@@ -169,6 +171,8 @@
       
       <button id="btn-master-trade" class="side-btn"></button>
       <button id="btn-legend" class="side-btn legend"></button>
+      <!-- Johto Step 6: the Mega Stone section — appears only once Mega Evolution is unlocked (Johto Champion cleared) -->
+      <button id="btn-mega-shop" class="side-btn mega hidden"></button>
     </div>
   </div>
 </section>
@@ -219,6 +223,8 @@
       <button id="tg-music" class="toggle">🎵 Music: <b>ON</b></button>
       <button id="tg-sound" class="toggle">🔊 Sound: <b>ON</b></button>
     </div>
+    <!-- Johto Step 6: Mega Evolution status (per profile) -->
+    <div id="mega-status" class="mega-status hidden"></div>
     <div class="sliders" id="mistake-sliders">
       <label class="slider"><span>🧮 Math mistakes allowed: <b id="sl-math-v">2</b></span><input id="sl-math" type="range" min="2" max="10" step="1" value="2"></label>
       <label class="slider"><span>🔤 Spelling mistakes allowed: <b id="sl-spell-v">3</b></span><input id="sl-spell" type="range" min="3" max="10" step="1" value="3"></label>
@@ -439,6 +445,16 @@
   </div>
 </section>
 
+<!-- Mega Stone section of the Safari Zone (Johto Step 6): every Mega Stone, owned ✓ or for sale in Battle Tickets -->
+<section id="scr-megashop" class="overlay hidden">
+  <div class="panel megashop-panel fit">
+    <button id="btn-megashop-x" class="panel-x" aria-label="Close">✕</button>
+    <h2>💎 Mega Stones</h2>
+    <p id="megashop-help"></p>
+    <div id="megashop-grid" class="megashop-grid"></div>
+  </div>
+</section>
+
 <!-- Item bag (F5 "Items", Phase 4): counts + icons; Poké Balls / Dowsing Machines "coming soon" -->
 <section id="scr-bag" class="overlay hidden">
   <div class="panel bag-panel fit">
@@ -466,15 +482,21 @@
 <script src="src/data/items.js"></script>
 <script src="src/data/enemies.js"></script>
 <script src="src/data/base_stats.js"></script>
+<script src="src/data/johto.js"></script>
+<script src="src/data/johto_chain.js"></script>
 <script src="src/data/combat.js"></script>
 <script src="src/data/stages.js"></script>
+<script src="src/data/johto_stages.js"></script>
+<script src="src/data/mega.js"></script>
 <script src="src/data/bonus.js"></script>
 <script src="src/data/restrictions.js"></script>
 <script src="src/data/kanto_map.js"></script>
+<script src="src/data/johto_map.js"></script>
 <script src="src/data/banners.js"></script>
 <script src="src/data/math_gen.js"></script>
 <script src="src/data/words.js"></script>
 <script src="src/data/manifest.js"></script>
+<script src="src/data/art_audit.js"></script>
 <script src="src/audio/music_keys.js"></script>
 <script src="src/audio/songs.js"></script>
 <script src="src/audio/audio.js"></script>

@@ -46,7 +46,7 @@ window.BM = window.BM || {};
   });
   const treasure = [
     T('fire', 'Fire Stone Volcano', 'fire_stone', [['ponyta', -1], ['growlithe', 0], ['vulpix', 0], ['rapidash', 1, 40, 22]], 'cinnabar_island', 24, 8, '🔥'),
-    T('water', 'Water Stone Lake', 'water_stone', [['staryu', -1], ['psyduck', 0], ['tentacool', 0], ['golduck', 1, 40, 22]], 'cerulean_city', 22, 7, '💧'),
+    T('water', 'Water Stone Lake', 'water_stone', [['staryu', -2], ['psyduck', -1], ['tentacool', -1], ['golduck', 1, 40, 22]], 'cerulean_city', 22, 7, '💧'),
     T('thunder', 'Thunder Stone Plant', 'thunder_stone', [['voltorb', -1], ['pikachu', 0], ['electrode', 1, 30, 20], ['raichu', 1, 40, 24]], 'vermilion_city', 24, 8, '⚡'),
     T('leaf', 'Leaf Stone Garden', 'leaf_stone', [['oddish', -1], ['tangela', -1, 20, 16], ['oddish', 0], ['vileplume', -1, 45, 30]], 'viridian_forest', 20, 6, '🍃'),
     T('moon', 'Moon Stone Cave', 'moon_stone', [['zubat', -1], ['clefairy', 0], ['geodude', 0], ['golbat', 1, 40, 22], ['clefable', 1, 55, 28]], 'mt_moon', 18, 6, '🌙'),
@@ -57,22 +57,40 @@ window.BM = window.BM || {};
       drops: [{ item: 'rare_candy', w: 28, n: 1 }, { item: 'dowsing_machine', w: 14, n: 1 }, { item: 'xp_candy_m', w: 20, n: 1 }, { item: 'xp_candy_l', w: 6, n: 1 }, { item: 'tickets', w: 24, n: 3 }, { item: 'poke_ball', w: 10, n: 1 }] },
   ];
   for (const st of treasure) st.burst = { pool: [...new Set(st.waves.map((w) => w.form))] };
-  BM.BONUS_STAGES = [...xpStages, ...treasure];
+  // Johto Step 5: the Sun Stone enters the Tower's item-vault pool — a Johto-era drop (`needs: 'johto'`: it rolls only for a
+  // profile that has reached Johto; BM.dropOk, stages.js). Nothing else in the Tower changes structurally.
+  treasure.find((st) => st.id === 'bonus_tr_item').drops.push({ item: 'sun_stone', w: 6, n: 1, needs: 'johto' });
+  // MEGA STONE FLOORS (Johto Step 6): the section that was "Beat Johto to unlock 🔒" — four themed floors, open once Mega
+  // Evolution is (the Johto Champion's first clear). Each drops its theme's Mega Stones (the first clear guarantees the headline
+  // stone). Johto-level foes (Lv 62–65, late cadence), a Kanto + Johto-cleared deck.
+  const M = (id, name, headline, stones, foes, bg, level, icon) => ({ ...T(id, name, headline, foes, bg, level, 25, icon), id: 'bonus_mega_' + id, bonus: 'mega',
+    drops: [...stones.map((s) => ({ item: s, w: s === headline ? 14 : 8, n: 1, needs: 'mega' })), { item: 'tickets', w: 22, n: 4 }, { item: 'xp_candy_l', w: 14, n: 1 }, { item: 'rare_candy', w: 6, n: 1 }, { item: 'dowsing_machine', w: 2, n: 1 }] });
+  const mega = [
+    M('fire', 'Mega Fire Peak', 'charizardite_x', ['charizardite_x', 'charizardite_y', 'houndoominite'], [['houndour', -2], ['magmar', -1], ['rapidash', -1], ['arcanine', 0, 40, 22], ['houndoom', 0, 50, 24]], 'johto_burned_tower', 63, '🔥'),
+    M('ocean', 'Mega Ocean Cave', 'blastoisinite', ['blastoisinite', 'gyaradosite', 'feraligite'], [['horsea', -3], ['remoraid', -3], ['chinchou', -3, 12, 14], ['octillery', -2, 26, 18], ['kingdra', -1, 45, 28]], 'johto_lake_of_rage', 63, '🌊'),
+    M('jungle', 'Mega Jungle', 'venusaurite', ['venusaurite', 'meganiumite', 'pinsirite', 'scizorite'], [['sunkern', -2], ['skiploom', -1], ['ledian', -1], ['heracross', 0, 40, 22], ['scyther', 0, 50, 24]], 'johto_ilex_forest', 64, '🌿'),
+    M('sky', 'Mega Sky Ruins', 'tyranitarite', ['tyranitarite', 'dragoninite', 'aerodactylite', 'alakazite', 'gengarite', 'raichunite_x', 'raichunite_y', 'mewtwonite_x', 'mewtwonite_y'], [['natu', -2], ['misdreavus', -1], ['xatu', -1], ['skarmory', 0, 30, 20], ['dragonair', 0, 45, 24], ['tyranitar', 1, 60, 30]], 'johto_mt_silver', 65, '🐉'),
+  ];
+  for (const st of mega) st.burst = { pool: [...new Set(st.waves.map((w) => w.form))] };
+  BM.BONUS_STAGES = [...xpStages, ...treasure, ...mega];
   // Y1 (Phase 7.5): the Tower's strongest wave form (the evolved headline foe / the tier's heavy) waits for a 35 s timer gate
   for (const st of BM.BONUS_STAGES) {
     let best = null, bv = -1;
     for (const w of st.waves) { const f = BM.FORMS[w.form], v = f.bst + f.baseHP; if (v > bv) { bv = v; best = w.form; } }
     st.gate = { by: 'time', at: 35, forms: [best] };
     // …and a treasure vault's headline heavy stays in the trickle only (never a +2-level, HP ×1.8 wall-breaker) — Phase 7.5 sim
-    if (st.bonus === 'treasure') st.burst = { pool: [...new Set(st.waves.map((w) => w.form))].filter((f) => f !== best) };
+    // OOO1 (Johto Step 0d): a vault's own wave timers are already tight (every 9–19 s), so its packed trickle keeps a little more
+    // spacing per body (×1.9) and gentler bursts (3–4 every 20–26 s): at the campaign values three vaults jammed at their unlock
+    // level, 4 levels under the vault (Water / Thunder / Ice, combined sim)
+    if (st.bonus === 'treasure') st.burst = { pool: [...new Set(st.waves.map((w) => w.form))].filter((f) => f !== best), trickle: 1.9, size: [3, 4], every: [20, 26] };
   }
-  BM.BONUS_MEGA = { locked: true, text: 'Beat Johto to unlock 🔒', name: 'Mega Stone Stages' };
+  BM.BONUS_MEGA = { locked: true, text: 'Beat Johto to unlock 🔒', name: 'Mega Stone Stages' }; // the locked card's words (until the unlock)
   BM.STAGES.push(...BM.BONUS_STAGES);
   BM.isBonus = (st) => !!(st && st.bonus);
   // Unlocks (BUILD_PLAN §4.3 spirit: Easy after Brock …): the zone itself opens after Brock; XP tiers after Brock / Lt. Surge /
   // Koga / Giovanni; each treasure stage once the campaign stage its band matches (`curveAt`) is cleared.
   BM.BONUS_OPEN_AFTER = 'kanto_05_brock';
   const TIER_AFTER = { regular: 'kanto_05_brock', great: 'kanto_10_surge', ultra: 'kanto_15_koga', master: 'kanto_20_giovanni' };
-  BM.bonusUnlockStage = (st) => (st.tier ? TIER_AFTER[st.tier] : BM.KANTO_STAGES[Math.max(0, st.curveAt - 1)].id);
+  BM.bonusUnlockStage = (st) => (st.bonus === 'mega' ? 'johto_24_champion' : st.tier ? TIER_AFTER[st.tier] : BM.KANTO_STAGES[Math.max(0, st.curveAt - 1)].id);
   BM.bonusOpen = (st, p) => !!(p && p.cleared[BM.bonusUnlockStage(st)] > 0);
 })();

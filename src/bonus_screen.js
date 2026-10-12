@@ -31,11 +31,20 @@ BM.BonusScreen = function (ui) {
       tr.appendChild(card(st, `<span class="bz-icon">${icon(st.headline)}</span><b class="bz-name">${st.name}</b><span class="bz-band">Lv ${st.level}</span>` +
         `<span class="bz-pay">${(prof().cleared[st.id] || 0) ? BM.ITEMS[st.headline] + ' likely' : '1st clear: ' + BM.ITEMS[st.headline] + '!'}</span>`, 'treasure'));
     }
-    const m = document.createElement('button'); m.className = 'bz-card mega locked'; m.id = 'bz-mega-card';
-    const ms = BM.Sprites.artSrc('icons/mega_stone');
-    m.innerHTML = `<span class="bz-icon">${ms ? `<img src="${ms}" alt="">` : '💎'}</span><b class="bz-name">${BM.BONUS_MEGA.name}</b><span class="bz-pay">${BM.BONUS_MEGA.text}</span>`;
-    tap(m, () => { BM.Audio.sfx('deny'); toast(BM.BONUS_MEGA.text); });
-    mg.appendChild(m);
+    // Johto Step 6: the Mega Stone section opens with Mega Evolution (the Johto Champion's first clear) — four themed floors;
+    // until then the one locked card ("Beat Johto to unlock 🔒")
+    if (BM.megaUnlocked(prof())) {
+      for (const st of BM.BONUS_STAGES.filter((s) => s.bonus === 'mega')) {
+        mg.appendChild(card(st, `<span class="bz-icon">${st.icon}</span><b class="bz-name">${st.name}</b><span class="bz-band">Lv ${st.level}</span>` +
+          `<span class="bz-pay">${(prof().cleared[st.id] || 0) ? 'Mega Stones likely' : '1st clear: ' + BM.ITEMS[st.headline] + '!'}</span>`, 'treasure mega'));
+      }
+    } else {
+      const m = document.createElement('button'); m.className = 'bz-card mega locked'; m.id = 'bz-mega-card';
+      const ms = BM.Sprites.artSrc('icons/mega_stone');
+      m.innerHTML = `<span class="bz-icon">${ms ? `<img src="${ms}" alt="">` : '💎'}</span><b class="bz-name">${BM.BONUS_MEGA.name}</b><span class="bz-pay">${BM.BONUS_MEGA.text}</span>`;
+      tap(m, () => { BM.Audio.sfx('deny'); toast(BM.BONUS_MEGA.text); });
+      mg.appendChild(m);
+    }
     const art = BM.Sprites.artSrc('ui/bonus_zone');
     $('scr-bonus').style.backgroundImage = art ? `linear-gradient(rgba(20,10,40,.35), rgba(20,10,40,.35)), url("${art}")` : '';
     ui.fit($('scr-bonus'));

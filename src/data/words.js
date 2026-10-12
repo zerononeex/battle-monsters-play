@@ -243,4 +243,6 @@ BM.WORDS_POKEMON = [
   ['tangrowth', 'tangrowth', 'Tangrowth has long vine arms.'], ['rhyperior', 'rhyperior', 'Rhyperior can shoot rocks from its hands.'],
   ['hitmonchan', 'hitmonchan', 'Hitmonchan throws very fast punches.'],
 ];
+// Johto (Step 2): every new species is a word too (johto.js BM.JOHTO_WORDS — regional / Mega / hyphenated names skip)
+if (BM.JOHTO_WORDS) BM.WORDS_POKEMON.push(...BM.JOHTO_WORDS);
 BM.SPELL_POKEMON_SHARE = 0.15; // share of spelling words drawn from the Pokémon bonus list

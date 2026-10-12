@@ -17,5 +17,25 @@ BM.BANNERS = [
       'scyther_kleavor', 'meowth_galar', 'eevee_electric', 'eevee_dark', 'eevee_grass', 'eevee_fairy'],
   },
 ];
+// JOHTO (Johto prompt v9 Step 3): two Johto banners, same economy as Kanto (30 / 45 / 17 / 8 loot mix, legendary 2% per pull,
+// guaranteed by the 60th pull — HHH1 — non-legendary pulls favour unowned 75%, dupes → XP Candy L worth). Shown in the Safari Zone
+// once the profile REACHES Johto (Kanto beaten). Banner A = Raikou + Entei · Banner B = Suicune + Ho-Oh + Celebi (mythical, Mew's
+// slot). LUGIA IS ON NO BANNER (rewardOnly: the Johto Champion's first clear — the Mewtwo rule). The Johto lines handed out as stage
+// gifts (Cyndaquil, Totodile, Chikorita — Professor Elm's three —, Togepi, the Bellossom-branch Oddish, Shuckle) are on neither
+// banner, like Kanto's starters; the other 24 lines are split in two (branch pairs apart, the Meowth / Galar Meowth precedent).
+BM.BANNERS.push(
+  {
+    id: 'johto_a', region: 'johto', name: 'Johto Banner A', short: 'Johto A',
+    legendaries: ['raikou', 'entei'],
+    lines: ['marill', 'wooper', 'murkrow', 'girafarig', 'pineco', 'snubbull', 'sneasel', 'slugma', 'houndour', 'phanpy', 'elekid', 'larvitar'],
+  },
+  {
+    id: 'johto_b', region: 'johto', name: 'Johto Banner B', short: 'Johto B',
+    legendaries: ['suicune', 'ho_oh', 'celebi'],
+    lines: ['wooper_paldea', 'misdreavus', 'wobbuffet', 'dunsparce', 'sneasel_hisui', 'teddiursa', 'swinub', 'corsola', 'corsola_galar', 'delibird', 'smeargle', 'magby'],
+  },
+);
+// Banners the profile can see: its reached regions' (Kanto always; Johto once Kanto is beaten)
+BM.bannersFor = (p) => BM.BANNERS.filter((b) => BM.regionReached(b.region, p));
 // Every line a banner can give (legendaries + the rest).
 BM.bannerPool = (b) => [...b.legendaries, ...b.lines];

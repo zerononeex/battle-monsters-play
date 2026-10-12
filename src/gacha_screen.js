@@ -11,13 +11,15 @@ BM.GachaScreen = function (ui) {
   const legendNames = (b) => b.legendaries.map((id) => BM.LINES[id].name).join(' or ');
 
   function render() {
-    const p = prof(), b = Ga.banner(bannerId);
+    const p = prof(), list = BM.bannersFor(p);
+    if (!list.some((x) => x.id === bannerId)) bannerId = list[0].id;
+    const b = Ga.banner(bannerId);
     ui.renderWallet();
-    // tabs
-    const tabs = $('banner-tabs'); tabs.innerHTML = '';
-    for (const bb of BM.BANNERS) {
+    // tabs (Johto Step 3: a region's banners appear once the profile reaches it — Kanto A/B, then Johto A/B)
+    const tabs = $('banner-tabs'); tabs.innerHTML = ''; tabs.classList.toggle('many', list.length > 2);
+    for (const bb of list) {
       const t = document.createElement('button'); t.className = 'banner-tab' + (bb.id === bannerId ? ' on' : ''); t.dataset.banner = bb.id;
-      t.innerHTML = `<span class="bt-name">${bb.name.replace('Kanto ', '')}</span><span class="bt-leg">${bb.legendaries.map((id) => BM.LINES[id].name).join(' + ')}</span>`;
+      t.innerHTML = `<span class="bt-name">${bb.short || bb.name.replace('Kanto ', '')}</span><span class="bt-leg">${bb.legendaries.map((id) => BM.LINES[id].name).join(' + ')}</span>`;
       // SS1 (Phase 7.6): the banner's legendaries as their real in-game battle sprites, big — kids pick a banner by who they see
       const spr = document.createElement('span'); spr.className = 'bt-sprites';
       for (const id of bb.legendaries) { const c = ui.thumb(BM.LINES[id].forms[0], 112, false); c.className = 'leg-sprite'; c.dataset.line = id; spr.appendChild(c); }
@@ -92,6 +94,9 @@ BM.GachaScreen = function (ui) {
     $('btn-master-trade').disabled = balls < G.MASTER_TRADE;
     $('btn-legend').innerHTML = `${MB()} Legendary Safari Zone <small>${mbs ? `×${mbs} Master Ball${mbs > 1 ? 's' : ''}` : '🔒 needs a Master Ball'}</small>`;
     $('btn-legend').disabled = !mbs;
+    // Johto Step 6: the Mega Stone section shows only after the unlock
+    show('btn-mega-shop', BM.megaUnlocked(p));
+    if (BM.megaUnlocked(p)) { const own = BM.MEGA_STONES.filter((s) => p.items[s] > 0).length; $('btn-mega-shop').innerHTML = `💎 Mega Stones <small>${own} / ${BM.MEGA_STONES.length} · ${TK()} ${G.MEGA_STONE_TICKETS} each</small>`; }
     // KK1 + MM1 + VVV1: earning is as visible as spending — a pull-sized, full-width button with the Poké Ball art (no 🧠):
     // every right answer pays one Poké Ball = one free Safari Zone spin, +3 bonus every 5 in a row
     $('btn-earn').innerHTML = `<span class="pb-t">${BM.ballHtml('poke_ball', 'earn-ball')} Answer &amp; Earn</span><span class="pb-c">Poké Balls — 1 per right answer, +3 bonus every 5 in a row!</span>`;
@@ -141,6 +146,26 @@ BM.GachaScreen = function (ui) {
     if (!r.ok) { BM.Audio.sfx('deny'); toast(r.msg); return; }
     show('scr-legend', false); reveal(r.results);
   });
+  // ---------- Mega Stone section (Johto Step 6) ----------
+  function openMegaShop() {
+    const p = prof(), box = $('megashop-grid'); box.innerHTML = '';
+    $('megashop-help').innerHTML = `Own a Mega Stone and that Pokémon can Mega Evolve — cycle to its Mega form on the Team screen! ${TK()} ${G.MEGA_STONE_TICKETS} each · you have ${p.tickets}.`;
+    for (const stone of BM.MEGA_STONES) {
+      const f = BM.megaOfStone(stone), own = p.items[stone] > 0, b = document.createElement('button');
+      b.className = 'mega-stone' + (own ? ' owned' : p.tickets < G.MEGA_STONE_TICKETS ? ' cant' : ''); b.dataset.stone = stone;
+      b.innerHTML = `<span class="ms-icon">${ui.itemIcon(stone)}</span><b>${BM.ITEMS[stone]}</b><small>${f.name}</small><span class="ms-price">${own ? '✓ yours' : `${TK()} ${G.MEGA_STONE_TICKETS}`}</span>`;
+      tap(b, () => {
+        const r = Ga.buyMegaStone(stone);
+        if (r === 'ok') { BM.Audio.sfx('upgrade'); toast(`${BM.ITEMS[stone]}! ${f.name} can join your team now.`); ui.renderWallet(); render(); openMegaShop(); return; }
+        BM.Audio.sfx('deny'); toast(r === 'owned' ? `You already have ${BM.ITEMS[stone]}!` : r === 'tickets' ? `A Mega Stone costs ${G.MEGA_STONE_TICKETS} tickets — you have ${prof().tickets}.` : 'Beat the Johto Champion to unlock Mega Evolution!');
+      });
+      box.appendChild(b);
+    }
+    show('scr-megashop', true); ui.fit($('scr-megashop'));
+  }
+  tap($('btn-mega-shop'), () => { BM.Audio.sfx('tap'); openMegaShop(); });
+  tap($('btn-megashop-x'), () => show('scr-megashop', false));
+  $('scr-megashop').addEventListener('pointerdown', (e) => { if (e.target.id === 'scr-megashop') { e.preventDefault(); show('scr-megashop', false); } });
   const closeLegend = () => show('scr-legend', false);
   tap($('btn-legend-x'), closeLegend);
   $('scr-legend').addEventListener('pointerdown', (e) => { if (e.target.id === 'scr-legend') { e.preventDefault(); closeLegend(); } });

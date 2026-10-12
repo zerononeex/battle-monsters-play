@@ -34,6 +34,7 @@ window.BM = window.BM || {};
     }
     return out;
   }
+  BM.waveRow = W; BM.dropTable = D; // later regions' stage files build with the same helpers (johto_stages.js)
   BM.STAGES = [
     {
       id: 'kanto_01_pallet', num: 1, name: 'Pallet Town', drops: D('early', { leaf_stone: 1 }), kind: 'wild', level: 3,
@@ -205,9 +206,20 @@ window.BM = window.BM || {};
   // camping the enemy base (one per burst from stage 9 on).
   // Tiers (kid-fair ramp): stages 1–4 small late bursts, 5–10 medium, 11+ the full 3–5 (bonus stages use `curveAt`).
   // The trickle's intervals stretch ×trickle while bursts are on (the pressure comes in waves instead of a steady stream).
-  BM.CADENCE = { every: [22, 30], thresholds: [0.75, 0.5, 0.25], breakerLv: 2, trickle: 1.5, burstLv: -3,
-    tier: (n) => (n <= 4 ? { first: 32, size: [2, 3], counterSize: 2, breakerHp: 1.5 } : n <= 12 ? { first: 30, size: [3, 3], counterSize: 3, breakerHp: 1.8 }
-      : n <= 18 ? { first: 36, size: [3, 3], counterSize: 3, breakerHp: 2, trickle: 1.8, burstLv: -5 } : { first: 40, size: [3, 4], counterSize: 3, breakerHp: 2.5, trickle: 2.1, burstLv: -5 }) };
+  // OOO1 SPAWN DENSITY (user playtest 2026-10-11, Johto prompt Step 0d — AMENDS K2, does not replace it): a battle should look
+  // like a battle. (1) PACKS are the default: every trickle release is a small pack — 2 early, 2–3 mid-campaign, 3–4 late — of
+  // FODDER / MEDIUM units only (large units and aces still come solo, a large one sometimes in a pair late on; they are events).
+  // Pack extras come in 1–2 levels BELOW the wave (the power guard). (2) Bursts every ~15–22 s (was 22–30), size 4–6 (was 3–4);
+  // counter-bursts 75/50/25% stay, one bigger. (3) The trickle stretch is now counted PER BODY (battle.js packMean: a pack of ~2.5 waits ~2.5× as long) and shrinks
+  // ×1.5–2.1 → ×1.4–1.6 (E4 ×4 → ×2.6) — the POWER GUARD bound it there: the combined sim measured ×1.0–1.2 at ~1.6× K2 pressure
+  // with Cerulean / Vermilion unwinnable; at these values pressure is ×1.38 of K2 on average (guard 1.25–1.40).
+  // Bosses, aces and base HP are unchanged. Tuned by the combined 0c+0d+0e sim (phase7 sim: field presence, AP saturation,
+  // deathball time per stage — CURRENT_STATE).
+  BM.CADENCE = { every: [15, 22], thresholds: [0.75, 0.5, 0.25], breakerLv: 2, trickle: 1.0, burstLv: -3, packLv: 1,
+    tier: (n) => (n <= 4 ? { first: 30, size: [3, 4], counterSize: 3, breakerHp: 1.5, trickle: 1.4, pack: [2, 2], packLv: 1 }
+      : n <= 12 ? { first: 28, size: [4, 5], counterSize: 4, breakerHp: 1.8, trickle: 1.4, pack: [2, 3], packLv: 1 }
+      : n <= 18 ? { first: 30, size: [4, 5], counterSize: 4, breakerHp: 2, trickle: 1.5, burstLv: -5, pack: [2, 3], packLv: 2 }
+      : { first: 32, size: [5, 6], counterSize: 4, breakerHp: 2.5, trickle: 1.6, burstLv: -5, pack: [3, 4], packLv: 2 }) };
   // AoE / status carriers mixed into the bursts from stage 9 on (themed: the stage's own poisoners, sleepers, freezers…)
   BM.STAGE_CARRIERS = {
     kanto_09_vermilion: ['tentacool'], kanto_10_surge: ['voltorb'], kanto_11_lavender: ['haunter'], kanto_12_celadon: ['koffing'],
@@ -217,7 +229,7 @@ window.BM = window.BM || {};
     kanto_25_champion: ['gyarados', 'alakazam'],
   };
   // Elite Four / Champion stages: their fodder are fully evolved Lv 51–60 Pokémon, as strong as yours — fewer of them
-  BM.CADENCE.e4 = { trickle: 4, size: [2, 3], counterSize: 2 };
+  BM.CADENCE.e4 = { trickle: 2.6, size: [3, 4], counterSize: 3, pack: [2, 3] }; // OOO1: ×4 → ×2.6 per body, still thinner than a gym
   BM.waveCadence = function (st) {
     const K = BM.CADENCE, o = st.burst || {}, forms = [...new Set((st.waves || []).map((w) => w.form))];
     const T0 = K.tier(st.curveAt || st.num || 1), lv = st.level + (o.burstLv != null ? o.burstLv : T0.burstLv != null ? T0.burstLv : K.burstLv), pool = (o.pool || forms).map((f) => (typeof f === 'string' ? { form: f, level: lv } : f));
@@ -225,6 +237,7 @@ window.BM = window.BM || {};
     const T = { ...K.tier(st.curveAt || st.num || 1), ...(['e4', 'champion'].includes(st.kind) ? K.e4 : {}) };
     return {
       trickle: o.trickle || T.trickle || K.trickle, first: o.first != null ? o.first : T.first, every: o.every || K.every, size: o.size || T.size, pool, counterSize: o.counterSize || T.counterSize, breakerHp: o.breakerHp || T.breakerHp,
+      pack: o.pack || T.pack || [1, 1], packLv: o.packLv != null ? o.packLv : T.packLv != null ? T.packLv : K.packLv, // OOO1
       carriers: (o.carriers || BM.STAGE_CARRIERS[st.id] || []).map((f) => (typeof f === 'string' ? { form: f, level: lv } : f)),
       breaker: o.breaker ? (typeof o.breaker === 'string' ? { form: o.breaker, level: st.level + K.breakerLv } : o.breaker) : { form: strongest(), level: st.level + K.breakerLv },
       thresholds: o.thresholds || K.thresholds,
@@ -271,6 +284,7 @@ window.BM = window.BM || {};
   for (const st of BM.STAGES) if (BM.STAGE_BASES[st.id]) st.baseArt = BM.STAGE_BASES[st.id];
   BM.stageById = (id) => BM.STAGES.find((s) => s.id === id);
   BM.KANTO_STAGES = BM.STAGES.filter((s) => !s.dev); // campaign order, 25
+  for (const st of BM.KANTO_STAGES) st.region = st.region || 'kanto';
   BM.isPlayable = (st) => !!st && !st.locked && Array.isArray(st.waves);
 
   // Rewards (stored in Phase 3, spent from Phase 4/5). §4.5 tickets: first clear location 10 · gym 20 · E4 25 ·
@@ -287,12 +301,17 @@ window.BM = window.BM || {};
       xp: (first ? 4 : 2) * st.level * st.level,
       gift: first && st.gift ? st.gift : null,
       item: first && st.item ? st.item : null,
+      ...(first && st.prize ? { prize: st.prize } : {}), // Johto: a capstone's extra first-clear items { itemId: n } (Mt. Silver)
     };
   };
   // Rolls a win's drops from the stage table (`rnd` = seeded RNG in tests). Returns [{ item, n }] (merged by item).
   const GOOD = (d) => d.item !== 'tickets';
-  BM.rollDrops = function (st, first, rnd = Math.random) {
-    const table = st.drops || [];
+  // Johto: a drop row may be era-gated — `needs: 'johto'` (Sun Stone in the Tower: the profile has reached Johto) or `needs: 'mega'`
+  // (Mega Stones: Mega Evolution unlocked). Gated rows never roll without a profile that meets them (they are not in the table).
+  BM.dropOk = (d, p) => !d.needs || (d.needs === 'mega' ? !!(BM.megaUnlocked && BM.megaUnlocked(p)) : BM.regionReached(d.needs, p));
+  BM.dropsFor = (st, p) => (st.drops || []).filter((d) => BM.dropOk(d, p));
+  BM.rollDrops = function (st, first, rnd = Math.random, p = null) {
+    const table = BM.dropsFor(st, p);
     if (!table.length) return [];
     const pick = (list) => { const tot = list.reduce((a, d) => a + d.w, 0); let x = rnd() * tot; for (const d of list) { if ((x -= d.w) < 0) return d; } return list[list.length - 1]; };
     const got = [];
@@ -304,8 +323,8 @@ window.BM = window.BM || {};
   };
   // Dowsing Machine (battle item): a WIN with it armed guarantees the stage's RAREST drop = the real item with the lowest
   // weight in the table — not tickets, and not another Dowsing Machine (that would only hand the machine back).
-  BM.rarestDrop = function (st) {
-    const real = (st.drops || []).filter((d) => d.item !== 'tickets' && d.item !== 'dowsing_machine');
+  BM.rarestDrop = function (st, p = null) {
+    const real = BM.dropsFor(st, p).filter((d) => d.item !== 'tickets' && d.item !== 'dowsing_machine');
     return real.length ? real.reduce((a, d) => (d.w < a.w ? d : a)).item : null;
   };
   // T1 GUARANTEED XP CANDY (user, Phase 7.5): EVERY stage win — repeat wins included, challenge auto-clears too — adds one XP
@@ -325,7 +344,7 @@ window.BM = window.BM || {};
     return t[t.length - 1][0];
   };
   // Distinct things a stage can drop, for the pre-battle "May find" row.
-  BM.dropPreview = (st) => [...new Set((st.drops || []).map((d) => d.item))];
+  BM.dropPreview = (st, p = null) => [...new Set(BM.dropsFor(st, p).map((d) => d.item))];
   // Enemy preview for the pre-battle screen: each wave form once (lowest–highest level), the ace last.
   BM.stagePreview = function (st) {
     const out = [], by = {};

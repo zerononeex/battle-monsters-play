@@ -115,7 +115,7 @@ BM.Save = (function () {
   const MISTAKES = { mathMistakes: { def: 2, min: 2, max: 10 }, spellMistakes: { def: 3, min: 3, max: 10 } }; // = BM.CHALLENGE.SLIDERS
   const START_TICKETS = 30; // §4.5: a new profile starts with 3 pulls
   const LOADOUT = { FREE: 10, MAX: 20, PRICE: 50 }; // F4: 10 free preset teams, buy up to 20 at 50 tickets each
-  const XP_CAP = Math.pow(BM.C.LEVEL_CAP, 3);
+  const xpCap = (p) => Math.pow(BM.levelCap(p), 3); // RR1 ladder: 60 in Kanto, 65 once Johto is reached
 
   function newProfile(slot, name, grade) {
     const p = {
@@ -173,13 +173,15 @@ BM.Save = (function () {
     p.items = p.items && typeof p.items === 'object' ? p.items : {};
     for (const k of Object.keys(p.items)) if (!BM.ITEMS[k] || !(p.items[k] > 0)) delete p.items[k];
     if (p.mapAt != null && !BM.stageById(p.mapAt)) p.mapAt = null;
+    p.regionsDone = p.regionsDone && typeof p.regionsDone === 'object' ? p.regionsDone : {};
+    const cap = BM.levelCap(p);
     for (const id of Object.keys(p.lines || {})) {
       const line = BM.LINES[id], l = p.lines[id];
       if (!line || line.enemyOnly) { delete p.lines[id]; continue; }
-      const ids = line.forms.map((f) => f.id);
-      l.level = Math.max(1, Math.min(BM.C.LEVEL_CAP, l.level | 0 || 1));
-      l.xp = Math.min(XP_CAP, Math.max(Math.pow(l.level, 3), Number.isFinite(l.xp) ? Math.floor(l.xp) : 0));
-      l.level = BM.levelFromXp(l.xp); // the level always follows the total XP (§4.3)
+      const ids = (BM.lineForms ? BM.lineForms(id) : line.forms).map((f) => f.id); // + the line's Mega forms (Step 6: kept only while ready — syncMegas below)
+      l.level = Math.max(1, Math.min(cap, l.level | 0 || 1));
+      l.xp = Math.min(Math.pow(cap, 3), Math.max(Math.pow(l.level, 3), Number.isFinite(l.xp) ? Math.floor(l.xp) : 0));
+      l.level = BM.levelFromXp(l.xp, cap); // the level always follows the total XP (§4.3)
       l.unlocked = (l.unlocked || []).filter((f) => ids.includes(f));
       if (!l.unlocked.includes(ids[0])) l.unlocked.unshift(ids[0]); // the base form is always fieldable
       if (!l.unlocked.includes(l.form)) l.form = l.unlocked[0];
@@ -202,6 +204,7 @@ BM.Save = (function () {
     p.regionsDone = Object.fromEntries(Object.keys(p.regionsDone && typeof p.regionsDone === 'object' ? p.regionsDone : {}).map((k) => [k, 1]));
     delete p.attempted; // X1 (v8): intel follows `cleared`
     p.armed = [...new Set(Array.isArray(p.armed) ? p.armed : [])].filter((id) => BM.ITEM_INFO[id] && BM.ITEM_INFO[id].battle && p.items[id] > 0);
+    if (BM.syncMegas) BM.syncMegas(p); // Johto Step 6: Mega forms fieldable exactly while Mega Evolution is unlocked + the stone is owned
     return p;
   }
 
@@ -299,8 +302,8 @@ BM.Save = (function () {
   // Adds XP to a line (capped at Lv 60's 216,000) and re-derives its level. Returns { from, to, xpBefore, xpAfter }.
   function addXp(p, id, n) {
     const l = p.lines[id], from = l.level, xpBefore = l.xp;
-    l.xp = Math.min(XP_CAP, l.xp + Math.max(0, Math.floor(n)));
-    l.level = BM.levelFromXp(l.xp);
+    l.xp = Math.min(xpCap(p), l.xp + Math.max(0, Math.floor(n)));
+    l.level = BM.levelFromXp(l.xp, BM.levelCap(p));
     return { id, from, to: l.level, xpBefore, xpAfter: l.xp };
   }
   // The next form a line can evolve into BY LEVEL right now (real level, or the §4.6 trade/friendship level), not yet
@@ -325,6 +328,7 @@ BM.Save = (function () {
     l.unlocked.push(formId);
     l.unlocked.sort((a, b) => BM.FORMS[a].stage - BM.FORMS[b].stage);
     l.form = formId;
+    if (BM.syncMegas) BM.syncMegas(p);
     persist();
     return true;
   }
@@ -347,7 +351,7 @@ BM.Save = (function () {
     }
     if (it.kind === 'xp' || it.kind === 'candy') {
       if (!have) return { ok: false, msg: `You have no ${it.name} yet — win stages to find them!` };
-      if (l.level >= BM.C.LEVEL_CAP) return { ok: false, msg: `${line.name} is already Lv ${BM.C.LEVEL_CAP} — the top level!` };
+      if (l.level >= BM.levelCap(p)) return { ok: false, msg: `${line.name} is already Lv ${BM.levelCap(p)} — the top level!` };
       take(p, itemId);
       // Rare Candy: +1 level at any level — XP becomes exactly the next level's L³ threshold
       const r = addXp(p, id, it.kind === 'candy' ? BM.xpForLevel(l.level + 1) - l.xp : it.xp);
@@ -387,9 +391,10 @@ BM.Save = (function () {
       if (!pend && pendingEvolution(id, p)) r.evolve.push(id);
     }
     if (r.item) give(p, r.item);
-    r.drops = st.dev ? [] : BM.rollDrops(st, first, rnd);
+    if (r.prize) for (const [id, n] of Object.entries(r.prize)) give(p, id, n); // a capstone's first-clear prize (Mt. Silver: Master Ball + XP Candy L)
+    r.drops = st.dev ? [] : BM.rollDrops(st, first, rnd, p);
     if (r.used.includes('dowsing_machine') && !st.dev) {
-      const rare = BM.rarestDrop(st);
+      const rare = BM.rarestDrop(st, p);
       if (rare) { const o = r.drops.find((d) => d.item === rare); if (o) o.n++; else r.drops.push({ item: rare, n: 1 }); r.dowsed = rare; }
     }
     for (const d of r.drops) { if (d.item === 'tickets') p.tickets += d.n; else give(p, d.item, d.n); }
@@ -400,11 +405,16 @@ BM.Save = (function () {
     // REGION COMPLETE (Phase 7): the region's final stage (the Champion) on its FIRST clear grants the region's Master Ball
     // (§4 economy: 1 per region fully beaten) — the Mewtwo line comes as the stage gift below (rewardOnly, joins at Lv 1).
     // A replay never re-grants (first only); the ending screen plays from the result screen.
+    // Johto (Step 1): the same plumbing for every region — the Johto Champion's first clear grants Lugia (the stage gift) + 1 Master
+    // Ball and marks Johto done (which also unlocks Mega Evolution, Step 6). Idempotent: `first` is true exactly once per profile.
     if (first && st.regionFinal) { give(p, 'master_ball'); r.masterBall = 1; r.regionComplete = st.region || 'kanto'; p.regionsDone = { ...(p.regionsDone || {}), [r.regionComplete]: 1 }; }
     if (r.gift) {
       r.giftNew = giveLine(p, r.gift);
       if (r.giftNew && p.team.length < BM.TEAM_SIZE) { p.team.push(r.gift); r.giftOnTeam = true; saveTeam(); }
     }
+    // Johto Step 6: the Johto Champion's first clear unlocks Mega Evolution; a dropped Mega Stone readies its form
+    if (r.regionComplete === 'johto') r.megaUnlocked = true;
+    if (BM.syncMegas) BM.syncMegas(p);
     persist();
     return r;
   }
@@ -521,12 +531,12 @@ BM.Save = (function () {
   // Dev/test only (hidden dev mode): own every Kanto line, unlock every form, set levels.
   function devUnlockAll() {
     const p = profile();
-    for (const id of BM.KANTO_LINES) {
+    for (const id of [...BM.KANTO_LINES, ...BM.JOHTO_LINES]) {
       giveLine(p, id);
       const l = p.lines[id];
       l.unlocked = BM.LINES[id].forms.map((f) => f.id);
       l.xp = Math.max(l.xp || 0, Math.pow(36, 3));
-      l.level = BM.levelFromXp(l.xp);
+      l.level = BM.levelFromXp(l.xp, BM.levelCap(p));
     }
     persist();
   }

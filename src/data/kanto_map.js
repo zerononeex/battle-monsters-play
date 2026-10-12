@@ -62,9 +62,4 @@ BM.KANTO_MAP = {
     [0.45, 0.82], [0.34, 0.60], [0.78, 0.66], [0.74, 0.12]],
   water: [[0.66, 0.06, 0.035], [0.46, 0.64, 0.03]],
 };
-// The walk polyline that arrives at stage `toId` from the stage before it in campaign order.
-BM.mapPath = function (toId) {
-  const M = BM.KANTO_MAP, i = BM.KANTO_STAGES.findIndex((s) => s.id === toId);
-  if (i <= 0) return [M.nodes[toId]];
-  return [M.nodes[BM.KANTO_STAGES[i - 1].id], ...(M.via[toId] || []), M.nodes[toId]];
-};
+// BM.mapPath (the walk polyline into a stage) lives in johto_map.js — region-aware since Johto.

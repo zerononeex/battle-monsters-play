@@ -309,7 +309,7 @@ button { font: inherit; color: inherit; border: 0; cursor: pointer; touch-action
 .preset.buy small { font-size: .62em; display: flex; align-items: center; }
 .preset.buy img { height: 1.1em; }
 .team-main { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; gap: clamp(6px, 2vh, 18px); }
-.deck { flex: 0 0 auto; display: grid; grid-template-columns: repeat(10, 1fr); gap: clamp(4px, .8vw, 10px); height: min(46vh, 300px); padding-top: 10px; }
+.deck { flex: 0 0 auto; display: grid; grid-template-columns: repeat(6, 1fr); /* PPP1: 6 slots (was 10) */ gap: clamp(4px, .8vw, 10px); height: min(46vh, 300px); padding-top: 10px; }
 .deck-slot { position: relative; border-radius: 14px; background: var(--card); border: 3px solid var(--ink); padding: 3px; box-shadow: 0 4px 0 rgba(0,0,0,.3); min-width: 0;
   display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 2px; }
 .deck-slot > * { pointer-events: none; }
@@ -647,7 +647,7 @@ button { font: inherit; color: inherit; border: 0; cursor: pointer; touch-action
 .gen-btn .gen-icon .gen-ball, .gen-btn .gen-icon img { font-size: calc(var(--hud-h, 170px) * .2); height: calc(var(--hud-h, 170px) * .2); width: auto; }
 .gen-btn .gen-icon .ball.gen-ball { width: calc(var(--hud-h, 170px) * .2); }
 
-/* ---------- Phase 7 TA team builder: fixed bands (header · 10 slots · PC Box strip); only the strip scrolls ---------- */
+/* ---------- Phase 7 TA team builder: fixed bands (header · 6 slots (PPP1) · PC Box strip); only the strip scrolls ---------- */
 .ta-head { gap: clamp(6px, 1vw, 12px); }
 .ta-head .ta-arrow { width: clamp(38px, 6.4vh, 56px); height: clamp(38px, 6.4vh, 56px); }
 .ta-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; max-width: 32vw; }
@@ -775,7 +775,7 @@ button { font: inherit; color: inherit; border: 0; cursor: pointer; touch-action
 .bz-pay img { height: 1.3em; }
 .bz-wins { position: absolute; top: 2px; right: 6px; font-size: 12px; font-weight: 900; color: #2f8f3a; }
 .bz-lock { position: absolute; top: 2px; right: 6px; }
-.bz-card.mega { grid-column: 1 / -1; flex-direction: row; justify-content: center; gap: 12px; background: repeating-linear-gradient(45deg, #e6e0f0 0 12px, #d6cfe6 12px 24px); }
+#bz-mega-card { grid-column: 1 / -1; flex-direction: row; justify-content: center; gap: 12px; background: repeating-linear-gradient(45deg, #e6e0f0 0 12px, #d6cfe6 12px 24px); }
 /* Phase 7 batch P: ticket mode on the gacha screen, the "turn sound on" notice, the neutral no-picture card */
 .pull-btn.earn { background: linear-gradient(#3fb0ff, #1f6fd1); box-shadow: 0 5px 0 #154a8f; }
 .pull-btn.earn .pb-t { display: inline-flex; align-items: center; gap: 6px; font-size: clamp(15px, 3.4vh, 26px); }
@@ -890,3 +890,35 @@ button { font: inherit; color: inherit; border: 0; cursor: pointer; touch-action
 .perf-overlay .perf-btns { display: flex; gap: 6px; margin-top: 4px; }
 .perf-overlay button { pointer-events: auto; font: 700 12px system-ui, sans-serif; padding: 4px 10px; border-radius: 8px; border: 2px solid #c8ffd8; background: #1c2a40; color: #c8ffd8; }
 .perf-overlay button.on { background: #c8ffd8; color: #1c2a40; }
+/* Johto Step 3: four banner tabs (Kanto A/B + Johto A/B) share the tab column — smaller sprites, the legend line hidden */
+.banner-tabs.many .banner-tab { padding: 2px; border-width: 3px; }
+.banner-tabs.many .bt-sprites .leg-sprite { width: clamp(30px, 6.5vh, 58px); height: clamp(30px, 6.5vh, 58px); }
+.banner-tabs.many .bt-leg { display: none; }
+.banner-tabs.many .bt-name { font-size: clamp(11px, 2.4vh, 18px); }
+/* Johto Step 2: PC Box region tabs (Kanto · Johto) */
+.coll-regions { display: flex; gap: 6px; }
+.coll-regions .coll-reg { opacity: .65; }
+.coll-regions .coll-reg.on { opacity: 1; background: var(--accent); }
+/* Johto Step 6: Mega forms on the detail chain + the Safari Zone's Mega Stone section */
+.line-form.mega { border-color: #8a3fd1; background: linear-gradient(160deg, #fff, #f1e3ff); }
+.chain-arrow.mega { font-size: 22px; }
+.deck-slot .dots i.mega, .dots i.mega { background: #b04fe0; }
+.side-btn.mega { background: linear-gradient(160deg, #c38cff, #7a3fd1); color: #fff; }
+.megashop-panel { width: min(96vw, 1000px); }
+.megashop-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 8px; }
+.mega-stone { border: 3px solid var(--ink); border-radius: 14px; background: #fff; padding: 4px; display: flex; flex-direction: column; align-items: center; gap: 1px; font-size: 13px; }
+.mega-stone > * { pointer-events: none; }
+.mega-stone .ms-icon img, .mega-stone .ms-icon .emo { width: 40px; height: 40px; font-size: 30px; }
+.mega-stone small { font-size: 11px; opacity: .8; }
+.mega-stone .ms-price { font-weight: 900; }
+.mega-stone.owned { background: #e9ffe2; border-color: #3c9a3c; }
+.mega-stone.cant { opacity: .6; }
+.mega-status { font-weight: 800; font-size: 15px; margin: 4px 0; text-align: center; }
+/* Johto Step 6: the 4 open Mega Stone floors sit in one row like the other floors */
+.bz-card.treasure.mega { background: linear-gradient(160deg, #f6ecff, #dcc6f7); }
+.line-forms.has-mega { gap: 6px; }
+.line-forms.has-mega .line-form { width: 116px; }
+.line-forms.has-mega .line-form canvas { width: 84px; height: 84px; }
+.line-forms.has-mega .line-form .fname { font-size: 14px; }
+.line-forms.has-mega .chain-arrow { font-size: 14px; }
+.line-items .items-none { min-width: 120px; font-size: 13px; }

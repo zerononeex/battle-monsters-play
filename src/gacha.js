@@ -19,6 +19,9 @@ BM.GACHA = {
   // also counts in Build 1 because its Champion stage only opens in Phase 7 (the prompt: "Build 1: Kanto's four").
   // Remove 'kanto' here to require the Champion clear.
   LEGEND_REGIONS_OPEN: ['kanto'],
+  // Johto Step 6 — the Safari Zone's Mega Stone section (after the unlock): stones for TICKETS. Economy note (CURRENT_STATE): 100
+  // tickets = 10 pulls ≈ two Johto gym first clears + a few replays; drops / the Tower's Mega floors stay the free route.
+  MEGA_STONE_TICKETS: 100,
 };
 BM.Gacha = (function () {
   const G = BM.GACHA;
@@ -109,5 +112,14 @@ BM.Gacha = (function () {
     BM.Save.persist();
     return { ok: true, results: [result] };
   }
-  return { pull, price, canPay, pityLeft, tradeMasterBall, legendaryPull, legendPool, clearedRegions, legends, commons, evoItems, banner };
+  // Mega Stone purchase. Returns 'ok' | 'locked' (Mega Evolution not unlocked) | 'owned' | 'tickets'.
+  function buyMegaStone(stone) {
+    const p = prof();
+    if (!BM.MEGA_STONES.includes(stone) || !BM.megaUnlocked(p)) return 'locked';
+    if (p.items[stone] > 0) return 'owned';
+    if (p.tickets < G.MEGA_STONE_TICKETS) return 'tickets';
+    p.tickets -= G.MEGA_STONE_TICKETS; p.items[stone] = 1;
+    BM.syncMegas(p); BM.Save.persist(); return 'ok';
+  }
+  return { pull, price, canPay, pityLeft, tradeMasterBall, legendaryPull, legendPool, clearedRegions, legends, commons, evoItems, banner, buyMegaStone };
 })();

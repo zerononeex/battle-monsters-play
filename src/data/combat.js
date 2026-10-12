@@ -73,6 +73,8 @@ window.BM = window.BM || {};
     tangrowth: ['Vine Whip', 'vine', 140, 2], rhyperior: ['Rock Wrecker', 'rock', 110],
     hitmonchan: ['Fire / Ice / Thunder Punch', 'punch', 60, 3], // CC1 signature: the elemental punches (see FLAIR)
   };
+  // Later regions' rows (johto.js, loaded before this file) join the same tables before anything is priced or cached
+  if (BM.EXTRA_COMBAT) { Object.assign(MOVES, BM.EXTRA_COMBAT.moves); }
   // CC1: visual-only "flair" — each punch flashes the next element in turn; the damage stays the form's own type (Fighting)
   BM.COMBAT_FLAIR = { hitmonchan: ['fire', 'ice', 'electric'] };
   // How each visual is drawn when its move sprite is not generated yet: projectile (flies), stream (attacker -> target
@@ -107,6 +109,7 @@ window.BM = window.BM || {};
     // Mewtwo's Psystrike freezes the whole cluster it hits — the showcase signature (design addendum K4)
     mewtwo: ['freeze', 1],
   };
+  if (BM.EXTRA_COMBAT) { Object.assign(AREA, BM.EXTRA_COMBAT.area); for (const [k, v] of Object.entries(BM.EXTRA_COMBAT.status)) STATUS[k] = v; }
   BM.STATUS = {
     freeze: { icon: '❄', name: 'Frozen', dur: 2, stop: true, color: '#bff0ff' },
     paralyze: { icon: '⚡', name: 'Paralyzed', dur: 4, slow: 0.5, color: '#ffe14a' },
@@ -170,36 +173,54 @@ window.BM = window.BM || {};
 })();
 
 // Q1 COST CAP — the kids' fun rule (user ruling 2026-10-11; SUPERSEDES the L2 audit's absolute scale, its power ordering
-// survives INSIDE the bands). Base (Lv 1) cost bands: fodder basics 40–60 · standard basics 60–75 (anchor Squirtle 75) ·
-// stage-1 evolutions 75–85 (anchor Wartortle 85) · stage-2 evolutions + strong singles 85–95 (anchor Blastoise 90–95) ·
-// legendaries 100–120. Inside a band the L2 audited price (`costAudit`) decides: legendaries spread over the band by it,
-// the others are the audit scaled to the band's anchor and clamped into it (so steps inside a line are ≈ +10). L1 then
-// scales gently with level, and the EFFECTIVE cost is HARD-CAPPED at 150 AP at any level (BM.effCost, constants.js).
+// survives INSIDE the bands). Inside a band the L2 audited price (`costAudit`) decides; L1 then scales gently with level, and the
+// EFFECTIVE cost is HARD-CAPPED at 150 AP at any level (BM.effCost, constants.js).
 // "Fodder basics" = base forms of the weakest species (real BST < 305: Magikarp, Jigglypuff, Ditto, Meowth, Vulpix, Dratini…).
+// NNN1 AP PRESSURE PASS (user playtest 2026-10-11, Johto prompt Step 0c — the MODERATED set that pairs with PPP1's team of 6):
+// prices rise ONLY where the power is. Fodder basics 40–60 and standard basics 60–75 are UNCHANGED (Squirtle 75) — the Q1 fun
+// rule survives for the Pokémon kids spam for joy. Stage-1 evolutions 75–85 → 80–90 (Wartortle 90) · stage-2 + strong singles
+// 85–95 → 95–105 (Blastoise 100; pseudo-legendary finals, real BST ≥ 600, at the top: 105) · legendaries 100–120 → 115–130.
+// Rarity is a price signal again in the evolved / legendary bands: a Rare form sits at least mid-band, a Super Rare one at the top.
+// Evolution steps are now ≈ +15. The L2 power order survives inside each band among forms of the same rarity.
+// The fodder / legendary spreads use FIXED audit scales (the Kanto spans), so adding a region never re-prices Kanto.
 (function () {
   BM.COST_BANDS = {
-    fodder: { lo: 40, hi: 60, name: 'Fodder basic' }, basic: { lo: 60, hi: 75, k: 1, name: 'Standard basic' },
-    stage1: { lo: 75, hi: 85, k: 0.85, name: 'Stage-1 evolution' }, stage2: { lo: 85, hi: 95, k: 0.62, name: 'Stage-2 / strong single' },
-    legend: { lo: 100, hi: 120, name: 'Legendary' },
+    fodder: { lo: 40, hi: 60, span: [40, 85], name: 'Fodder basic' }, basic: { lo: 60, hi: 75, k: 1, name: 'Standard basic' },
+    stage1: { lo: 80, hi: 90, k: 0.9, name: 'Stage-1 evolution' }, stage2: { lo: 95, hi: 105, k: 0.68, name: 'Stage-2 / strong single' },
+    legend: { lo: 115, hi: 130, span: [245, 350], name: 'Legendary' },
   };
+  BM.COST_RARITY_BANDS = ['stage1', 'stage2', 'legend']; // where rarity moves the price (basics untouched)
   BM.costBand = function (f) {
     const line = BM.LINES[f.line];
     if (line.legendary) return 'legend';
-    if (line.forms.length === 1) return f.bst < 305 ? 'fodder' : 'stage2';
+    if (f.mega) return 'mega';
+    if (line.forms.filter((g) => !g.mega).length === 1) return f.bst < 305 ? 'fodder' : 'stage2';
     if (f.stage === 0) return f.bst < 305 ? 'fodder' : 'basic';
     return f.stage === 1 ? 'stage1' : 'stage2';
   };
-  const forms = Object.values(BM.FORMS).filter((f) => f.cost0 != null);
-  for (const f of forms) f.costAudit = f.cost; // the L2 price (power ordering)
   const r5 = (x) => Math.round(x / 5) * 5;
-  const span = (band) => { const a = forms.filter((f) => BM.costBand(f) === band).map((f) => f.costAudit); return [Math.min(...a), Math.max(...a)]; };
-  const S = { fodder: span('fodder'), legend: span('legend') };
-  for (const f of forms) {
-    if (f.costFix) { f.cost = f.costFix; continue; }
+  // one form's price from its own audit + band + rarity (never from other forms)
+  BM.bandCost = function (f) {
+    if (f.costFix) return f.costFix;
     const b = BM.costBand(f), B = BM.COST_BANDS[b];
+    if (!B) return f.cost; // Mega forms are priced by their own rule (mega.js)
     let c;
-    if (b === 'fodder' || b === 'legend') { const [lo, hi] = S[b]; c = B.lo + (hi > lo ? (f.costAudit - lo) / (hi - lo) : 1) * (B.hi - B.lo); }
+    if (B.span) { const [lo, hi] = B.span; c = B.lo + Math.max(0, Math.min(1, (f.costAudit - lo) / (hi - lo))) * (B.hi - B.lo); }
     else c = f.costAudit * B.k;
-    f.cost = Math.max(B.lo, Math.min(B.hi, r5(c)));
-  }
+    c = Math.max(B.lo, Math.min(B.hi, r5(c)));
+    if (BM.COST_RARITY_BANDS.includes(b) && b !== 'legend') {
+      const rar = BM.LINES[f.line].rarity, mid = r5((B.lo + B.hi) / 2);
+      if (rar === 'rare') c = Math.max(c, mid);
+      if (rar === 'super' || (b === 'stage2' && f.bst >= 600)) c = B.hi; // Super Rare + pseudo-legendary finals: top of the band
+    }
+    return c;
+  };
+  BM.applyCostBands = function () {
+    for (const f of Object.values(BM.FORMS)) {
+      if (f.cost0 == null || f.costAudit != null) continue;
+      f.costAudit = f.cost; // the L2 price (power ordering)
+      f.cost = BM.bandCost(f);
+    }
+  };
+  BM.applyCostBands();
 })();

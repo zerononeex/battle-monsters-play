@@ -223,4 +223,4 @@ BM.rarityOf = (lineId) => BM.RARITIES.find((r) => r.id === (BM.LINES[lineId] && 
 
 // New profiles start with the 3 free starters + Pikachu (what Phase 1 played with).
 BM.DEFAULT_TEAM = ['bulbasaur', 'charmander', 'squirtle', 'pikachu'];
-BM.TEAM_SIZE = 10;
+BM.TEAM_SIZE = 6; // PPP1 (user playtest 2026-10-11, Johto Step 0e): Pokémon parties are SIX (was 10 — a bench of 4 fresh cards made cooldowns never bite)

@@ -25,8 +25,28 @@ BM.ITEM_INFO = {
   black_augurite: { name: 'Black Augurite', kind: 'evo', emoji: '🪨' },
   up_grade: { name: 'Up-Grade', kind: 'evo', emoji: '💾' },
   dubious_disc: { name: 'Dubious Disc', kind: 'evo', emoji: '💿' },
+  // Johto (Step 2, BUILD_PLAN §4.6 house-rule items for the Johto lines' evolutions; icons ASSET_PROMPTS #605–#610). Johto-era:
+  // they drop only from Johto stages (and the gacha's evolution-item slot of a Johto banner).
+  shiny_stone: { name: 'Shiny Stone', kind: 'evo', emoji: '✨', region: 'johto' },
+  dusk_stone: { name: 'Dusk Stone', kind: 'evo', emoji: '🌑', region: 'johto' },
+  razor_claw: { name: 'Razor Claw', kind: 'evo', emoji: '🗡️', region: 'johto' },
+  electirizer: { name: 'Electirizer', kind: 'evo', emoji: '🔌', region: 'johto' },
+  magmarizer: { name: 'Magmarizer', kind: 'evo', emoji: '🌋', region: 'johto' },
+  peat_block: { name: 'Peat Block', kind: 'evo', emoji: '🟫', region: 'johto' },
   poke_ball: { name: 'Poké Ball', kind: 'ball', emoji: '🔴', blurb: '1 = one pull · 9 = a 10-pull' },
   master_ball: { name: 'Master Ball', kind: 'ball', emoji: '🟣', blurb: 'Opens the Legendary Safari Zone' },
+  // MEGA STONES (Johto Step 6): kind 'mega' — OWNING one (never used up) lets its line field that Mega form once Mega Evolution is
+  // unlocked (Johto Champion cleared). Ids = the queued icon save-as keys EXACTLY (ASSET_PROMPTS #591–#604, #621–#625; BR-007).
+  venusaurite: { name: 'Venusaurite', kind: 'mega', emoji: '💎' }, charizardite_x: { name: 'Charizardite X', kind: 'mega', emoji: '💎' },
+  charizardite_y: { name: 'Charizardite Y', kind: 'mega', emoji: '💎' }, blastoisinite: { name: 'Blastoisinite', kind: 'mega', emoji: '💎' },
+  alakazite: { name: 'Alakazite', kind: 'mega', emoji: '💎' }, gengarite: { name: 'Gengarite', kind: 'mega', emoji: '💎' },
+  gyaradosite: { name: 'Gyaradosite', kind: 'mega', emoji: '💎' }, pinsirite: { name: 'Pinsirite', kind: 'mega', emoji: '💎' },
+  aerodactylite: { name: 'Aerodactylite', kind: 'mega', emoji: '💎' }, mewtwonite_x: { name: 'Mewtwonite X', kind: 'mega', emoji: '💎' },
+  mewtwonite_y: { name: 'Mewtwonite Y', kind: 'mega', emoji: '💎' }, scizorite: { name: 'Scizorite', kind: 'mega', emoji: '💎' },
+  houndoominite: { name: 'Houndoominite', kind: 'mega', emoji: '💎' }, tyranitarite: { name: 'Tyranitarite', kind: 'mega', emoji: '💎' },
+  meganiumite: { name: 'Meganiumite', kind: 'mega', emoji: '💎' }, feraligite: { name: 'Feraligite', kind: 'mega', emoji: '💎' },
+  dragoninite: { name: 'Dragoninite', kind: 'mega', emoji: '💎' }, raichunite_x: { name: 'Raichunite X', kind: 'mega', emoji: '💎' },
+  raichunite_y: { name: 'Raichunite Y', kind: 'mega', emoji: '💎' },
   // battle items (Phase 5): armed before a battle, used up only when you WIN
   speed_up: { name: 'Speed Up', kind: 'battle', battle: true, emoji: '⏩', blurb: 'The battle runs 1.5× faster' },
   gen_lv8: { name: 'Generator Lv 8', kind: 'battle', battle: true, emoji: '🔋', blurb: 'Start with the AP Generator at Lv 8' },
@@ -34,21 +54,26 @@ BM.ITEM_INFO = {
   full_ap: { name: 'Full AP Start', kind: 'battle', battle: true, emoji: '💯', blurb: 'Start the battle with full AP' },
   dowsing_machine: { name: 'Dowsing Machine', kind: 'dowsing', battle: true, emoji: '📡', blurb: 'Win to find the stage\'s rarest treasure' },
 };
-for (const [id, it] of Object.entries(BM.ITEM_INFO)) { it.id = id; it.blurb = it.blurb || 'Helps a character evolve'; }
+for (const [id, it] of Object.entries(BM.ITEM_INFO)) { it.id = id; it.blurb = it.blurb || (it.kind === 'mega' ? 'A Mega Stone — lets one Pokémon Mega Evolve' : 'Helps a character evolve'); }
 BM.ITEMS = Object.fromEntries(Object.entries(BM.ITEM_INFO).map(([id, it]) => [id, it.name])); // id -> name
 BM.BAG_ORDER = Object.keys(BM.ITEM_INFO);
 BM.BATTLE_ITEMS = BM.BAG_ORDER.filter((id) => BM.ITEM_INFO[id].battle); // pre-battle item row order
 // Battle-item effects (tunable): Speed Up multiplier, XP Bonus multiplier.
 BM.BATTLE_ITEM_FX = { speedMul: 1.5, xpMul: 1.5 };
 
-// XP curve (§4.3): total XP to reach Lv L = L³, capped at BM.C.LEVEL_CAP (60 → 216,000).
+// XP curve (§4.3): total XP to reach Lv L = L³, capped at the profile's level cap (Kanto 60 → 216,000).
+// RR1 CAP LADDER (Johto prompt Step 1): the GLOBAL level cap is a ladder value — 60 in Kanto, 65 once Johto is unlocked (Kanto
+// beaten), 70 with Hoenn… — for every line, everywhere. The XP curve never changes; a line held at a cap simply keeps earning
+// towards the next one. BM.C.LEVEL_CAP stays the base rung (60).
+BM.CAP_LADDER = { kanto: 60, johto: 65, hoenn: 70 };
+BM.levelCap = (p) => { let cap = BM.C.LEVEL_CAP; for (const r of BM.REGION_ORDER) if (BM.CAP_LADDER[r] && BM.regionReached(r, p)) cap = Math.max(cap, BM.CAP_LADDER[r]); return cap; };
 BM.xpForLevel = (lv) => Math.pow(lv, 3);
-BM.levelFromXp = (xp) => Math.max(1, Math.min(BM.C.LEVEL_CAP, Math.floor(Math.cbrt(Math.max(1, xp)) + 1e-9)));
+BM.levelFromXp = (xp, cap = BM.C.LEVEL_CAP) => Math.max(1, Math.min(cap, Math.floor(Math.cbrt(Math.max(1, xp)) + 1e-9)));
 
 // EEE1 (Phase 7.6): REGION GATES on evolutions. A region counts as REACHED only once it has shipped AND the region before it is
-// beaten (beating Kanto will unlock Johto). Johto has not shipped, so `requiresRegion: 'johto'` cannot be met by any Kanto
-// play — the evolve UI shows the lock honestly instead.
-BM.SHIPPED_REGIONS = ['kanto'];
+// beaten (beating Kanto unlocks Johto — the regionsDone flag from Phase 7). Johto prompt Step 1: Johto SHIPS — a profile that has
+// beaten Kanto reaches it (its home card goes live, the cap rises to 65, `requiresRegion: 'johto'` evolutions open).
+BM.SHIPPED_REGIONS = ['kanto', 'johto'];
 BM.REGION_ORDER = ['kanto', 'johto', 'hoenn', 'sinnoh', 'unova', 'kalos', 'alola', 'galar', 'paldea'];
 BM.REGION_NAMES = { kanto: 'Kanto', johto: 'Johto', hoenn: 'Hoenn', sinnoh: 'Sinnoh', unova: 'Unova', kalos: 'Kalos', alola: 'Alola', galar: 'Galar', paldea: 'Paldea' };
 BM.regionReached = (region, p) => {

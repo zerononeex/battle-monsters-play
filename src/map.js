@@ -5,7 +5,13 @@
 window.BM = window.BM || {};
 BM.MapScreen = function (ui) {
   const { $, tap, toast } = ui;
-  const M = BM.KANTO_MAP, ST = BM.KANTO_STAGES;
+  // Johto (Step 4): the screen shows ONE region's map at a time (setRegion) — Kanto's or Johto's nodes, paths, art and token
+  let region = 'kanto', M = BM.KANTO_MAP, ST = BM.KANTO_STAGES;
+  function setRegion(r) {
+    if (r === region || !BM.REGION_MAPS[r]) return;
+    region = r; M = BM.REGION_MAPS[r].map; ST = BM.REGION_MAPS[r].stages; PATH = null; NODE_S = null; queued = null;
+    box.dataset.region = r;
+  }
   const prof = () => BM.Save.profile();
   const box = $('map-box'), cv = $('map-canvas'), nodesEl = $('map-nodes'), tokenEl = $('map-token');
   let bw = 0, bh = 0;
@@ -86,7 +92,7 @@ BM.MapScreen = function (ui) {
     }
     // town blocks under the location nodes (not gyms / Elite Four)
     for (const st of ST) {
-      if (['gym', 'e4', 'champion'].includes(st.kind) || st.id === 'kanto_03_forest' || st.id === 'kanto_06_mtmoon') continue;
+      if (['gym', 'e4', 'champion'].includes(st.kind) || ['kanto_03_forest', 'kanto_06_mtmoon', 'johto_03_route31', 'johto_06_unioncave', 'johto_09_ilex', 'johto_12_nationalpark', 'johto_18_lakeofrage', 'johto_20_icepath', 'johto_22_victoryroad'].includes(st.id)) continue;
       const [x, y] = P(M.nodes[st.id]), s = bw * 0.012;
       for (const [dx, dy, c] of [[-1.6, -1.2, '#e8463c'], [1.2, -1.4, '#3d7dd8'], [-1.4, 1.2, '#f4efe2'], [1.4, 1.1, '#e8463c']]) {
         g.fillStyle = c; g.fillRect(x + dx * s * 1.4 - s / 2, y + dy * s * 1.4 - s / 2, s, s);
@@ -117,7 +123,7 @@ BM.MapScreen = function (ui) {
       b.innerHTML = `<span class="mn-num">${s === 'cleared' ? '✓' : NODE_ICON[st.kind] || st.num}</span>` +
         (s === 'soon' || s === 'locked' ? '<span class="mn-lock">🔒</span>' : '');
       const lbl = document.createElement('span'); lbl.className = 'mn-label ' + (M.labels[st.id] || (y > 0.84 ? 'above' : ''));
-      lbl.textContent = st.leader && st.kind !== 'champion' ? st.leader : st.name;
+      lbl.textContent = st.mapLabel || (st.leader && st.kind !== 'champion' ? st.leader : st.name);
       b.appendChild(lbl);
       tap(b, () => onNode(st, s, i));
       nodesEl.appendChild(b);
@@ -246,5 +252,5 @@ BM.MapScreen = function (ui) {
   tap($('btn-map-dev-rules'), () => { BM.Audio.sfx('tap'); const ids = ['dev_rule_cap', 'dev_rule_ap', 'dev_rule_both']; ui.openPrebattle(ids[ruleAt++ % ids.length]); });
 
   let queued = null; // stage id just cleared for the first time: walk from it to the next stage on the next render
-  return { render, queueWalk: (id) => { queued = id; }, tokenAt, layout: () => { if (bw) { layout(); renderNodes(); } }, tick: walkTick, nodeState, tokenTarget, walk, test };
+  return { render, setRegion, get region() { return region; }, queueWalk: (id) => { queued = id; }, tokenAt, layout: () => { if (bw) { layout(); renderNodes(); } }, tick: walkTick, nodeState, tokenTarget, walk, test };
 };
