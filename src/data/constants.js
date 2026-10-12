@@ -19,7 +19,8 @@ BM.C = {
   ACE_BASE_FRAC: 0.7,       // a leader's ace comes out when the enemy base drops below 70%...
   ACE_TIME: 90,             // ...or at 90 s, whichever is first (§4.4)
   // §4.4 giant boss (Phase 7): 2× sprite. §4.4 proposed HP ×6 / damage ×2 — the Phase 7 sim found Sabrina, Lorelei, Lance
-  // and the Champion unwinnable at expected levels with those, so: HP ×4 / damage ×1.5 (flagged for the user, §4.4)
+  // and the Champion unwinnable at expected levels with those, so: HP ×4 / damage ×1.5. BR-052 DECIDED in Phase 8 step 3: ×4 / ×1.5
+  // ships (×6/×2 re-simmed: Celadon Gym 1/6, Lance ~169 s; the user's restore trigger — "kids find it easy" — never came).
   GIANT: { hp: 4, dmg: 1.5, size: 2 },
   SIG: { first: 3, every: 10 }, // K4 signature special move: first after 3 s on the field, then every 10 s
   // Stat formula (§4.2). Role multipliers below.

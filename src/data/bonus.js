@@ -50,7 +50,7 @@ window.BM = window.BM || {};
     T('thunder', 'Thunder Stone Plant', 'thunder_stone', [['voltorb', -1], ['pikachu', 0], ['electrode', 1, 30, 20], ['raichu', 1, 40, 24]], 'vermilion_city', 24, 8, '⚡'),
     T('leaf', 'Leaf Stone Garden', 'leaf_stone', [['oddish', -1], ['tangela', -1, 20, 16], ['oddish', 0], ['vileplume', -1, 45, 30]], 'viridian_forest', 20, 6, '🍃'),
     T('moon', 'Moon Stone Cave', 'moon_stone', [['zubat', -1], ['clefairy', 0], ['geodude', 0], ['golbat', 1, 40, 22], ['clefable', 1, 55, 28]], 'mt_moon', 18, 6, '🌙'),
-    T('ice', 'Ice Stone Cavern', 'ice_stone', [['tentacool', -1], ['dewgong', -1, 14, 15], ['cloyster', -1, 24, 18], ['lapras', -1, 50, 32]], 'cerulean_city', 30, 10, '❄️'),
+    T('ice', 'Ice Stone Cavern', 'ice_stone', [['tentacool', -1], ['seel', -2, 6, 12], ['shellder', -2, 10, 14], ['dewgong', -1, 14, 15], ['cloyster', -1, 24, 18], ['lapras', -1, 50, 32]], 'cerulean_city', 30, 10, '❄️'),
     { ...T('ball', 'Poké Ball Factory', 'poke_ball', [['voltorb', -1], ['meowth', 0], ['porygon', 0], ['persian', 1, 40, 22]], 'celadon_city', 26, 9, '🔴'),
       drops: [{ item: 'poke_ball', w: 60, n: 2 }, { item: 'poke_ball', w: 12, n: 4 }, { item: 'tickets', w: 18, n: 3 }, { item: 'xp_candy_s', w: 10, n: 1 }] },
     { ...T('item', 'Treasure Tower', 'rare_candy', [['gastly', -1], ['haunter', 0], ['mr_mime', 0], ['gengar', 1, 45, 26]], 'lavender_town', 32, 11, '🍭'),

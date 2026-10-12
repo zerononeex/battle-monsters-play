@@ -36,6 +36,9 @@ window.BM = window.BM || {};
     // Phase 4: Giovanni's Dugtrio — the user's locked Dodger example (25%)
     // FFF1 (Phase 7.6): Diglett — Dugtrio's pre-evolution was missing from the game entirely (found by the user's gallery audit)
     E('diglett', 'Diglett', ['ground'], 265, 10, 95, 'rusher', { trait: 'dodger', dodge: 0.2, size: 0.8 }),
+    // III1a (Phase 8, user-approved): Seel + Shellder — Dewgong's / Cloyster's pre-evolutions, found missing by the FFF1 backward test
+    E('seel', 'Seel', ['water'], 325, 65, 45, 'balanced', { attackType: 'ice' }), // Icy Wind: the Ice line Dewgong grows into
+    E('shellder', 'Shellder', ['water'], 305, 30, 40, 'tank', { size: 0.85 }), // Def 100: a small shell wall that clamps
     E('dugtrio', 'Dugtrio', ['ground'], 425, 35, 120, 'rusher', { trait: 'dodger', dodge: 0.25, size: 1.1 }),
     // Phase 7.5 EE1 evolution sweep (missing stages of in-game species; canon stats PokéAPI) + CC2 Electrode + the two
     // Gen 1 stages the sweep's additions imply (Butterfree after Metapod, Golem after Graveler — chain test, BR-068)
@@ -92,7 +95,7 @@ BM.EVO_CANON = {
   porygon: ['porygon2'], porygon2: ['porygon_z'], eevee: ['vaporeon', 'jolteon', 'flareon', 'espeon', 'umbreon', 'leafeon', 'glaceon', 'sylveon'],
   pidgey: ['pidgeotto'], pidgeotto: ['pidgeot'], rattata: ['raticate'], caterpie: ['metapod'], metapod: ['butterfree'],
   geodude: ['graveler'], graveler: ['golem'], zubat: ['golbat'], golbat: ['crobat'], clefairy: ['clefable'],
-  diglett: ['dugtrio'], oddish: ['gloom'], gloom: ['vileplume', 'bellossom'], staryu: ['starmie'], tentacool: ['tentacruel'], voltorb: ['electrode'], ekans: ['arbok'],
+  diglett: ['dugtrio'], seel: ['dewgong'], shellder: ['cloyster'], oddish: ['gloom'], gloom: ['vileplume', 'bellossom'], staryu: ['starmie'], tentacool: ['tentacruel'], voltorb: ['electrode'], ekans: ['arbok'],
   koffing: ['weezing'], tangela: ['tangrowth'], rhyhorn: ['rhydon'], rhydon: ['rhyperior'], venonat: ['venomoth'], ponyta: ['rapidash'],
   onix: ['steelix'], mr_mime: [], hitmonlee: [], hitmonchan: [], snorlax: [], lapras: [], ditto: [], pinsir: [], aerodactyl: [],
   // final forms (nothing further in scope)
@@ -126,10 +129,8 @@ BM.PRE_CANON = {
   hitmonlee: 'tyrogue', hitmonchan: 'tyrogue', diglett: null, dugtrio: 'diglett', onix: null, steelix: 'onix', mr_mime: 'mime_jr',
 };
 BM.PRE_EXCLUDED = { pichu: 'baby', igglybuff: 'baby', cleffa: 'baby', munchlax: 'baby', tyrogue: 'baby', mime_jr: 'baby' };
-BM.PRE_PENDING = {
-  seel: 'Dewgong\'s pre-evolution — found by the FFF1 backward test (Phase 7.6); needs a run sheet (ASSET_PROMPTS #335) + the user\'s OK to add',
-  shellder: 'Cloyster\'s pre-evolution — found by the FFF1 backward test (Phase 7.6); needs a run sheet (ASSET_PROMPTS #336) + the user\'s OK to add',
-};
+// III1a (Phase 8): Seel + Shellder added (user-approved, art #335/#336 + cries landed) — nothing pending.
+BM.PRE_PENDING = {};
 // EEE1 (Phase 7.6): Bellossom was the last pending evolution — added as its own Johto-gated line (units.js). Nothing pending.
 BM.EVO_PENDING = {};
 // species key of a form: branch variants share their species (every typed Eevee = eevee, Kleavor's Scyther = scyther)

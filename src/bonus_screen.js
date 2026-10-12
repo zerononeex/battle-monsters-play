@@ -1,5 +1,5 @@
 // PRISM TOWER screen (FF1/HH2 Phase 7.5 — was the BONUS ZONE; internal id `bonus`; Phase 7 user design): its stages are
-// presented as tower FLOORS. Entry: the pinned home slot (primary) or the map's banner. Three sections that
+// presented as tower FLOORS. Entry: the pinned home slot ONLY (MMM1 — the region maps carry no Tower entry). Three sections that
 // fit without scrolling: XP STAGES (Regular · Great · Ultra · Master — ball icon, level band, XP + candy per win), TREASURE
 // STAGES (each stone, the Poké Ball stage, the item stage — headline drop, "1st clear: guaranteed"), and the MEGA STONE
 // section shown LOCKED ("Beat Johto to unlock 🔒"). A card opens the normal pre-battle screen for that stage. Data: data/bonus.js.
@@ -40,6 +40,6 @@ BM.BonusScreen = function (ui) {
     $('scr-bonus').style.backgroundImage = art ? `linear-gradient(rgba(20,10,40,.35), rgba(20,10,40,.35)), url("${art}")` : '';
     ui.fit($('scr-bonus'));
   }
-  tap($('btn-bonus-back'), () => { BM.Audio.sfx('tap'); ui.go(ui.from() || 'map'); });
+  tap($('btn-bonus-back'), () => { BM.Audio.sfx('tap'); ui.go(ui.from() || 'title'); }); // MMM1: home is the only entry, so home is the default return
   return { render };
 };

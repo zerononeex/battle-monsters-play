@@ -1,6 +1,6 @@
 // Question screen (Phase 6; Phase 7.5 PP1/MM1/NN1). Player-facing names: "Clear Stage" (opened from a stage's pre-battle
 // screen — 6 right in a row at grade + 2 clears it) and "Answer & Earn Poké Balls" (opened from the Safari Zone — 1 Poké Ball
-// per right answer). The word "Challenge" is internal only. One mixed stream (rules: challenge.js): math = a big question +
+// per right answer, +3 bonus at every 5th in a row, VVV1). The word "Challenge" is internal only. One mixed stream (rules: challenge.js): math = a big question +
 // 8 option buttons; spelling = NN1 VISUAL spelling — the word is SHOWN in writing with its picture clue (V2: only where the
 // picture is the word itself), empty slots and shuffled letter tiles; nothing is spoken (hear-and-spell was removed: speech
 // never worked on the user's iPad). The current screen's music keeps playing; correct / wrong are WebAudio SFX.

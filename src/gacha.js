@@ -1,5 +1,5 @@
 // Gacha logic (Phase 5, BUILD_PLAN §4.5 + §4.8). Pure rules on the active profile — the screen is gacha_screen.js.
-//   1 pull = 10 tickets (a 10-pull = 90, playtest H2: buy 9 get 1), or 1 Poké Ball (9 balls buy a 10-pull). Legendary 2% per pull; per-banner pity: the 40th pull since
+//   1 pull = 10 tickets (a 10-pull = 90, playtest H2: buy 9 get 1), or 1 Poké Ball (9 balls buy a 10-pull). Legendary 2% per pull; per-banner pity: the 60th pull (HHH1; was 40) since
 //   that banner's last legendary is a guaranteed legendary (one of ITS two). Otherwise the loot table: Character 30 ·
 //   XP 45 (S 30 / M 12 / L 3) · Battle item 17 · Evolution item 8 (stones / held items of lines on that banner).
 //   Non-legendary character pulls favour unowned lines 75% while any remain. A duplicate character -> XP Candy L worth of
@@ -9,7 +9,7 @@
 window.BM = window.BM || {};
 BM.GACHA = {
   PULL_TICKETS: 10, MULTI_TICKETS: 90, PULL_BALLS: 1, MULTI_BALLS: 9, MULTI: 10,
-  LEGEND_RATE: 0.02, PITY: 40,
+  LEGEND_RATE: 0.02, PITY: 60, // HHH1 (Phase 8, user 2026-10-11): guaranteed by the 60th pull (was 40)
   LOOT: [['character', 30], ['xp', 45], ['battle', 17], ['evo', 8]],
   XP: [['xp_candy_s', 30], ['xp_candy_m', 12], ['xp_candy_l', 3]],
   UNOWNED_BIAS: 0.75,

@@ -92,9 +92,9 @@ BM.GachaScreen = function (ui) {
     $('btn-master-trade').disabled = balls < G.MASTER_TRADE;
     $('btn-legend').innerHTML = `${MB()} Legendary Safari Zone <small>${mbs ? `×${mbs} Master Ball${mbs > 1 ? 's' : ''}` : '🔒 needs a Master Ball'}</small>`;
     $('btn-legend').disabled = !mbs;
-    // KK1 + MM1: earning is as visible as spending — a pull-sized, full-width button with the Poké Ball art (no 🧠): every right
-    // answer pays one Poké Ball = one free Safari Zone spin
-    $('btn-earn').innerHTML = `<span class="pb-t">${BM.ballHtml('poke_ball', 'earn-ball')} Answer &amp; Earn</span><span class="pb-c">Poké Balls — 1 for every right answer!</span>`;
+    // KK1 + MM1 + VVV1: earning is as visible as spending — a pull-sized, full-width button with the Poké Ball art (no 🧠):
+    // every right answer pays one Poké Ball = one free Safari Zone spin, +3 bonus every 5 in a row
+    $('btn-earn').innerHTML = `<span class="pb-t">${BM.ballHtml('poke_ball', 'earn-ball')} Answer &amp; Earn</span><span class="pb-c">Poké Balls — 1 per right answer, +3 bonus every 5 in a row!</span>`;
   }
   // R2: the art stage is exactly 2:1 and as big as the card allows once the info block below has its room — the art is
   // never cropped or stretched. Re-measured on every render and on resize.

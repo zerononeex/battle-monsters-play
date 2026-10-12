@@ -102,6 +102,8 @@ BM.BASE_STATS = {
   cloyster: [50, 95, 180, 85, 45, 70],
   hitmonlee: [50, 120, 53, 35, 110, 87],
   diglett: [10, 55, 25, 35, 45, 95], // FFF1 (PokéAPI)
+  seel: [65, 45, 55, 45, 70, 45], // III1a (PokéAPI)
+  shellder: [30, 65, 100, 45, 25, 40], // III1a (PokéAPI)
   dugtrio: [35, 100, 50, 50, 70, 120],
   onix: [35, 45, 160, 30, 45, 70],
   starmie: [60, 75, 85, 100, 85, 115],

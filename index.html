@@ -65,7 +65,7 @@
   </div>
   <button id="btn-map-dev" class="dev-btn map-dev hidden">DEV: Type Test</button>
   <button id="btn-map-dev-rules" class="dev-btn map-dev map-dev2 hidden">DEV: Rule Tests</button>
-  <button id="btn-bonus" class="bonus-banner">🗼 PRISM TOWER</button>
+  <!-- MMM1 (VVV1): NO Prism Tower entry on the map — the Tower is reached ONLY from the pinned home slot -->
 </section>
 
 <!-- Prism Tower (FF1/HH2, Phase 7.5; internal id stays "bonus" — was the Bonus Zone): its stages presented as tower FLOORS —
@@ -73,7 +73,7 @@
 <section id="scr-bonus" class="screen hidden">
   <div class="bz-panel fit">
     <div class="sub-head">
-      <button id="btn-bonus-back" class="icon-btn" aria-label="Back to the map">◀</button>
+      <button id="btn-bonus-back" class="icon-btn" aria-label="Back">◀</button>
       <h2>🗼 Prism Tower</h2>
       <span class="sub-hint">Replay these as often as you like — they never block the map!</span>
     </div>
@@ -485,6 +485,7 @@
 <script src="src/ui_balls.js"></script>
 <script src="src/engine/battle.js"></script>
 <script src="src/engine/render.js"></script>
+<script src="src/perf.js"></script>
 <script src="src/screens.js"></script>
 <script src="src/evolution.js"></script>
 <script src="src/map.js"></script>

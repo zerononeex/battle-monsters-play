@@ -288,5 +288,9 @@ BM.Battle = function (stage, profile, opts = {}) {
     }
   }
 
-  return { S, step, spawn, canSpawn, upgradeGen, genInfo, count, hitUnitForTest: (u, tgt, raw) => hitUnit(u, tgt, raw, false) };
+  // Phase 8 perf stress (dev overlay + perf tests only — never called by normal play): one enemy of a form, up to the side cap,
+  // and a timed burst on demand.
+  const devSpawnEnemy = (formId, level) => (count(-1) < CAP ? makeUnit(BM.FORMS[formId], level, -1, C.ENEMY_BASE_FRONT + 8 - rnd() * 16) : null);
+  const devBurst = () => { if (CAD) spawnBurst('timer', null); };
+  return { S, step, spawn, canSpawn, upgradeGen, genInfo, count, hitUnitForTest: (u, tgt, raw) => hitUnit(u, tgt, raw, false), devSpawnEnemy, devBurst };
 };

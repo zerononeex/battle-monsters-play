@@ -182,6 +182,20 @@ BM.Render = function (canvas) {
 
   // ---------- units ----------
   const facing = (u) => (u.side === -1 ? -1 : 1);
+  // K4 status tints (frozen / asleep / poisoned). Phase 8 perf: a canvas `filter` per draw was the battle's most expensive
+  // operation with statuses on screen (≈ 2× the frame time at 3× speed), so each sprite frame is tinted ONCE per status into a
+  // cached canvas (same filter strings, same pixels) and then drawn plainly. Where canvas filters are unsupported the cached
+  // frame is an untinted copy — exactly what the per-draw filter drew there before.
+  const TINT = { freeze: 'saturate(.4) brightness(1.25) hue-rotate(160deg)', sleep: 'brightness(.8)', poison: 'hue-rotate(250deg) saturate(1.4)' };
+  const tintCache = new WeakMap();
+  function tinted(img, type) {
+    let m = tintCache.get(img); if (!m) tintCache.set(img, (m = {}));
+    if (!m[type]) {
+      const c = document.createElement('canvas'); c.width = img.width; c.height = img.height;
+      const g = c.getContext('2d'); g.filter = TINT[type]; g.drawImage(img, 0, 0); m[type] = c;
+    }
+    return m[type];
+  }
   function drawUnit(u) {
     const sp = BM.Sprites.get(u.form);
     let frame;
@@ -204,10 +218,8 @@ BM.Render = function (canvas) {
     // never snap round. Only the sprite is mirrored: HP bars, status icons, markers and floating text are drawn after restore().
     ctx.scale(facing(u), 1);
     if (u.dead) ctx.translate(0, u.deadT * h * 0.4);
-    if (u.st && (u.st.type === 'freeze' || u.st.type === 'sleep')) ctx.filter = u.st.type === 'freeze' ? 'saturate(.4) brightness(1.25) hue-rotate(160deg)' : 'brightness(.8)';
-    else if (u.st && u.st.type === 'poison') ctx.filter = 'hue-rotate(250deg) saturate(1.4)';
+    if (u.st && TINT[u.st.type]) frame = tinted(frame, u.st.type);
     ctx.drawImage(frame, -sp.ax * s, -sp.ay * s, sp.w * s, sp.h * s);
-    ctx.filter = 'none';
     ctx.restore();
     if (!u.dead) {
       if (u.ace) { // leader's ace marker
@@ -447,5 +459,5 @@ BM.Render = function (canvas) {
       return { x: Math.min(x + bw * 0.05, (side === 1 ? bw * 0.55 : W - bw * 0.55) - 60), y: top, w: Math.max(bw * 0.9, 120), h: Math.max(TOP_SAFE + 8, gy - bh - 30) + 15 - top };
     });
   }
-  return { resize, draw, onEvent, clearFx, hpBarRects, facing, get fieldH() { return fieldH; } };
+  return { resize, draw, onEvent, clearFx, hpBarRects, facing, get fieldH() { return fieldH; }, get fxCount() { return fx.length; }, get textCount() { return texts.length; }, get dpr() { return dpr; } };
 };

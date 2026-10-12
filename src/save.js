@@ -130,7 +130,7 @@ BM.Save = (function () {
       loadoutSlots: LOADOUT.FREE, // preset teams (F4)
       loadouts: Array(LOADOUT.FREE).fill(null), // null | { team: [lineIds], forms: { lineId: formId } }
       loadoutAt: 0,              // T3: the preset being edited (the team auto-saves into it)
-      pity: {},                  // bannerId -> pulls since that banner's last legendary (§4.5 pity at 40)
+      pity: {},                  // bannerId -> pulls since that banner's last legendary (§4.5 pity; HHH1: at BM.GACHA.PITY = 60)
       pulls: {},                 // bannerId -> total pulls
       armed: [],                 // battle items armed for the next battle (consumed only on a WIN)
       regionsDone: {},           // Phase 7: regions fully beaten (the Champion's first clear: Mewtwo + Master Ball + ending)

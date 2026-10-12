@@ -36,7 +36,7 @@ window.BM = window.BM || {};
   }
   BM.STAGES = [
     {
-      id: 'kanto_01_pallet', num: 1, name: 'Pallet Town', drops: D('early', { leaf_stone: 1 }), kind: 'wild', level: 3, ebBend: 1.2,
+      id: 'kanto_01_pallet', num: 1, name: 'Pallet Town', drops: D('early', { leaf_stone: 1 }), kind: 'wild', level: 3,
       background: 'pallet_town', music: 'battle_wild', townMusic: 'town_pallet', tutorial: true,
       waves: [W('rattata', 2, 4, 8), W('pidgey', 2, 14, 12), W('rattata', 3, 60, 10), W('pidgey', 3, 90, 14)],
     },
@@ -110,6 +110,10 @@ window.BM = window.BM || {};
     { id: 'kanto_13_erika', num: 13, name: 'Celadon Gym', leader: 'Erika', drops: D('late', { leaf_stone: 3, moon_stone: 1 }), kind: 'gym', level: 29, ebBend: 0.8,
       background: 'celadon_city', bgArt: 'gym_erika', music: 'battle_gym', townMusic: 'town_celadon',
       waves: [W('oddish', 24, 4, 12), W('tangela', 25, 20, 19), W('oddish', 25, 50, 14), W('tangela', 26, 110, 18), W('gloom', 26, 35, 18)],
+      // BR-081 (Phase 8 step 4): no 75% counter-burst here — it landed just before the 70% ace trigger and froze the first push at
+      // ~73% against a Grass/Poison wall that resists most decks; the giant then met a stalled clump. 24-seed sim: careful style
+      // 13/24 → 23/24 (spender / eager ~9/24 either way — their type-blind decks, as at cap 15). Waves only; prices untouched.
+      burst: { thresholds: [0.5, 0.25] },
       ace: { form: 'vileplume', level: 29, giant: true, sig: { move: 'Sleep Powder', aoe: 90, status: 'sleep', reach: 230, every: 14 } } /* the first giant: a gentler signature */ },
     { id: 'kanto_14_fuchsia', num: 14, name: 'Fuchsia City', place: 'Safari Zone', drops: D('late', { leaf_stone: 2, metal_coat: 1, black_augurite: 1 }), kind: 'wild', level: 33,
       background: 'fuchsia_city', music: 'battle_wild', townMusic: 'town_fuchsia',
@@ -127,7 +131,7 @@ window.BM = window.BM || {};
       ace: { form: 'alakazam', level: 43, giant: true, sig: { move: 'Hypnosis', aoe: 120, status: 'sleep', reach: 270 } } },
     { id: 'kanto_18_cinnabar', num: 18, name: 'Cinnabar Island', place: 'Pokémon Mansion', drops: D('late', { fire_stone: 3, dubious_disc: 1 }), kind: 'wild', level: 42,
       background: 'cinnabar_island', music: 'battle_wild', townMusic: 'town_cinnabar',
-      waves: [W('ponyta', 40, 3, 10), W('growlithe', 41, 12, 13), W('vulpix', 41, 24, 15), W('koffing', 42, 40, 18), W('ponyta', 42, 100, 10)] },
+      waves: [W('ponyta', 40, 3, 10), W('growlithe', 41, 12, 13), W('vulpix', 41, 24, 15), W('koffing', 42, 40, 18), W('ponyta', 42, 100, 10), W('seel', 40, 30, 18)] }, // III1a: Seel from the Seafoam waters next door
     { id: 'kanto_19_blaine', num: 19, name: 'Cinnabar Gym', leader: 'Blaine', drops: D('late', { fire_stone: 3 }), kind: 'gym', level: 47,
       background: 'cinnabar_island', bgArt: 'gym_blaine', music: 'battle_gym', townMusic: 'town_cinnabar',
       waves: [W('growlithe', 42, 3, 11), W('rapidash', 44, 16, 16), W('ponyta', 43, 40, 12), W('rapidash', 45, 100, 15)],
@@ -138,7 +142,7 @@ window.BM = window.BM || {};
       ace: { form: 'rhydon', level: 50, giant: true, sig: { move: 'Earthquake', aoe: 170 } } },
     { id: 'kanto_21_lorelei', num: 21, name: 'Elite Four Lorelei', leader: 'Lorelei', drops: D('late', { ice_stone: 3, water_stone: 1 }), kind: 'e4', level: 56,
       background: 'indigo_plateau', bgArt: 'e4_hall', music: 'battle_elitefour', townMusic: 'town_indigo',
-      waves: [W('dewgong', 52, 8, 13), W('cloyster', 53, 20, 15), W('dewgong', 54, 60, 13), W('cloyster', 54, 110, 15)],
+      waves: [W('seel', 50, 4, 14), W('shellder', 50, 12, 18), W('dewgong', 52, 8, 13), W('cloyster', 53, 20, 15), W('dewgong', 54, 60, 13), W('cloyster', 54, 110, 15)],
       ace: { form: 'lapras', level: 56, giant: true, sig: { move: 'Blizzard', aoe: 150, status: 'freeze', reach: 260 } } },
     { id: 'kanto_22_bruno', num: 22, name: 'Elite Four Bruno', leader: 'Bruno', drops: D('late', { black_augurite: 2, metal_coat: 1 }), kind: 'e4', level: 58,
       background: 'indigo_plateau', bgArt: 'e4_hall', music: 'battle_elitefour', townMusic: 'town_indigo',
@@ -157,7 +161,7 @@ window.BM = window.BM || {};
     { id: 'kanto_25_champion', num: 25, name: 'Champion', leader: 'Blue', drops: D('late', { fire_stone: 1, water_stone: 1, thunder_stone: 1, leaf_stone: 1, moon_stone: 1, ice_stone: 1 }), kind: 'champion', level: 60,
       background: 'indigo_plateau', bgArt: 'champion_room', music: 'battle_champion', townMusic: 'town_indigo',
       waves: [W('pidgeot', 52, 8, 15), W('alakazam', 52, 22, 20), W('arcanine', 53, 40, 20), W('rhydon', 53, 60, 22), W('gyarados', 53, 90, 22)],
-      ace: { form: 'charizard', level: 60, giant: true, sig: { move: 'Blast Burn', aoe: 180, status: 'freeze', reach: 260 } }, gift: 'mewtwo', regionFinal: true, region: 'kanto', ebBend: 0.9 },
+      ace: { form: 'charizard', level: 60, giant: true, sig: { move: 'Blast Burn', aoe: 180, reach: 260 } /* Phase 8: no freeze — a Fire move never freezes (canon: no status; fire thaws) */ }, gift: 'mewtwo', regionFinal: true, region: 'kanto' },
     {
       // Hidden dev stage (long-press a logo 2 s, or ?dev): exercises the type chart.
       id: 'dev_types', num: 0, name: 'Type Test', kind: 'trainer', level: 3, dev: true,
@@ -180,6 +184,15 @@ window.BM = window.BM || {};
     for (let i = 1; i < A.length; i++) if (n <= A[i][0]) { const [x0, y0] = A[i - 1], [x1, y1] = A[i]; return y0 * Math.pow(y1 / y0, (n - x0) / (x1 - x0)); }
     return A[A.length - 1][1];
   };
+  // J2 EDGES TUNED (Phase 8 step 4, the user's ruling: tune the edges INTO the 15–40 s band with waves / base HP only — never
+  // prices or generator costs). Measured with `phase7 ttkall` (every stage, stage-appropriate team, undefended base): the curve
+  // left stages 1–4 at 9.7–12.3 s and 21–25 at 40.0–48.7 s. These stages get an explicit base HP aimed at ~15–17 s early and
+  // ~36–39.5 s late; HP still rises stage by stage and the Champion stays above Lance. Every other stage stays on the curve.
+  BM.EB_TUNED = {
+    kanto_01_pallet: 1550, kanto_02_viridian: 1750, kanto_03_forest: 1850, kanto_04_pewter: 2350,
+    kanto_21_lorelei: 66000, kanto_22_bruno: 71000, kanto_23_agatha: 74000, kanto_24_lance: 75500, kanto_25_champion: 76500,
+  };
+  for (const st of BM.STAGES) if (BM.EB_TUNED[st.id]) st.enemyBaseHP = BM.EB_TUNED[st.id];
   BM.enemyBaseHP = function (st) {
     if (st.enemyBaseHP) return st.enemyBaseHP;
     const n = st.curveAt || st.num || 1;

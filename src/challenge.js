@@ -12,11 +12,14 @@
 //   SAME code path as a battle win (BM.Save.recordWin: first-clear tickets / XP to the current team / drops / gift),
 //   consuming no battle item; a discard ends the run ("4 / 6").
 //   EARN mode ('earn', MM1 — was ticket mode): the profile's own grade, until the player stops; ONE Poké Ball per correct
-//   answer, flat (no tickets, no streak bonus) — a Poké Ball is a free Safari Zone spin. Straight into the bag.
+//   answer (no tickets) — a Poké Ball is a free Safari Zone spin — PLUS a +3 BONUS at every 5th correct answer in a row
+//   (VVV1: streaks 5, 10, 15, …; that answer pays 4 total). Straight into the bag.
 window.BM = window.BM || {};
 BM.CHALLENGE = {
   GOAL: 6,                  // Clear Stage: correct in a row (BBB1, Phase 7.5 — was 10)
-  EARN: 1,                  // earn mode: Poké Balls per correct answer (MM1 — flat, no streak bonus)
+  EARN: 1,                  // earn mode: Poké Balls per correct answer (MM1)
+  EARN_STREAK_EVERY: 5,     // VVV1: every Nth correct answer in a row…
+  EARN_STREAK_BONUS: 3,     // VVV1: …pays this many BONUS Poké Balls on top
   GRADE_UP: 2,              // auto-clear grade = own grade + 2 (generator capped at 7)
   SLIDERS: { mathMistakes: { def: 2, min: 2, max: 10 }, spellMistakes: { def: 3, min: 3, max: 10 } },
   MAX_SAME_KIND: 2,         // never 3 of one kind in a row
@@ -60,7 +63,7 @@ BM.Challenge = (function () {
     const p = prof(), rnd = opts.rnd || Math.random, mode = opts.mode === 'clear' ? 'clear' : 'earn';
     const run = {
       mode, stageId: opts.stageId || null, grade: gradeFor(p, mode), rnd,
-      streak: 0, best: 0, asked: 0, correct: 0, balls: 0, tickets: 0,
+      streak: 0, best: 0, asked: 0, correct: 0, balls: 0, bonus: 0, tickets: 0,
       kinds: [], usedWords: new Set(), q: null, over: false, cleared: false, rewards: null,
     };
     run.next = () => next(run);
@@ -94,8 +97,12 @@ BM.Challenge = (function () {
     if (ok) {
       run.streak++; run.correct++; run.best = Math.max(run.best, run.streak);
       if (run.mode === 'earn') {
-        // MM1: one Poké Ball per correct answer, flat — tickets stay the stage-win / drop currency
-        p.items.poke_ball = (p.items.poke_ball || 0) + CH.EARN; run.balls += CH.EARN; out.paid = CH.EARN;
+        // MM1 + VVV1: one Poké Ball per correct answer, plus a +3 BONUS whenever the streak hits a multiple of
+        // EARN_STREAK_EVERY (5, 10, 15, …) — tickets stay the stage-win / drop currency
+        const bonus = run.streak % CH.EARN_STREAK_EVERY === 0 ? CH.EARN_STREAK_BONUS : 0;
+        const pay = CH.EARN + bonus;
+        p.items.poke_ball = (p.items.poke_ball || 0) + pay; run.balls += pay; run.bonus += bonus;
+        out.paid = pay; out.bonus = bonus;
         BM.Save.persist();
       } else if (run.streak >= CH.GOAL) {
         // the SAME code path as a battle win: XP to the current team, no battle item consumed (armed items untouched)

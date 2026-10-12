@@ -32,7 +32,7 @@
     if (name === 'profiles') { BM.Audio.playMusic('title'); renderProfiles(); }
     if (name === 'title') { BM.Audio.playMusic('title'); renderChip(); renderRegions(); renderHomeTower(); }
     // music by screen: map = map_kanto, pre-battle = the stage's town key, battle = its category key (startBattle)
-    if (name === 'map') { BM.Audio.playMusic('map_kanto'); show('btn-map-dev', devMode); show('btn-map-dev-rules', devMode); KMap.render(); renderBonusBtn(); }
+    if (name === 'map') { BM.Audio.playMusic('map_kanto'); show('btn-map-dev', devMode); show('btn-map-dev-rules', devMode); KMap.render(); }
     if (name === 'bonus') { BM.Audio.playMusic('tower'); Bonus.render(); } // FF3: the Tower's own theme
     if (name === 'prebattle') renderPrebattle();
     if (name === 'collection') { BM.Audio.playMusic('team'); Scr.renderCollection(); }
@@ -214,19 +214,17 @@
   const Gacha = BM.GachaScreen({ $, tap, toast, show, fit, go: (n) => go(n), thumb: (...a) => Scr.thumb(...a), itemIcon: (id) => Scr.itemIcon(id), renderWallet: () => renderWallet() });
   const Chal = BM.ChallengeScreen({ $, tap, toast, show, fit, go: (n) => go(n), thumb: (...a) => Scr.thumb(...a), screen: () => screen,
     back: () => go('prebattle'), cleared: (run) => showChallengeResult(run) });
-  let towerFrom = 'title'; // HH1: the Tower is entered from the pinned home slot (primary) or the map banner — back returns there
+  let towerFrom = 'title'; // HH1 + MMM1 (VVV1): the Tower is entered ONLY from the pinned home slot — back returns home
   const Types = BM.TypeChart({ $, tap, show }); // CCC1
   tap($('btn-types'), () => { BM.Audio.sfx('tap'); Types.open(); });
   const Bonus = BM.BonusScreen({ $, tap, toast, fit, go: (n) => go(n), from: () => towerFrom, itemIcon: (id) => Scr.itemIcon(id), openPrebattle: (id) => { preStage = id; go('prebattle'); } });
-  // the map's ⭐ BONUS banner: opens after Brock
-  function renderBonusBtn() { const p = prof(); $('btn-bonus').classList.toggle('locked', !(p && p.cleared[BM.BONUS_OPEN_AFTER] > 0)); }
-  function openTower(from) {
+  // MMM1 (VVV1): the Tower opens after Brock, from the pinned home slot ONLY — there is no map-side entry
+  function openTower() {
     const p = prof();
     if (!(p.cleared[BM.BONUS_OPEN_AFTER] > 0)) { BM.Audio.sfx('deny'); toast('Beat Brock to open the Prism Tower!'); return; }
-    towerFrom = from; BM.Audio.sfx('tap'); go('bonus');
+    towerFrom = 'title'; BM.Audio.sfx('tap'); go('bonus');
   }
-  tap($('btn-bonus'), () => openTower('map'));
-  tap($('btn-home-tower'), () => openTower('title'));
+  tap($('btn-home-tower'), () => openTower());
   // HH1 pinned home slot: the tower art (the regenerated #260 backdrop) + its state
   function renderHomeTower() {
     const p = prof(), open = !!(p && p.cleared[BM.BONUS_OPEN_AFTER] > 0), art = BM.Sprites.artSrc('ui/bonus_zone'), el = $('btn-home-tower');
@@ -416,6 +414,7 @@
   }
   // F9 (BR-018): ALL team cards in one row; the whole card is the button (its children never take the tap).
   function buildCards() {
+    hudShown = {};
     const wrap = $('cards'); wrap.innerHTML = ''; cardEls = [];
     const n = Math.max(5, B.S.team.length);
     wrap.style.gridTemplateColumns = `repeat(${n}, 1fr)`;
@@ -457,7 +456,7 @@
   function startBattle(stageId) {
     const st = BM.stageById(stageId);
     if (!BM.isPlayable(st)) return;
-    preStage = stageId; genShown = 0;
+    preStage = stageId; genShown = 0; hudShown = {};
     speed = [1, 2, 3].includes(prof().settings.battleSpeed) ? prof().settings.battleSpeed : 1; showSpeed();
     layout();
     R.clearFx();
@@ -489,21 +488,25 @@
   }
 
   let genShown = 0; // N1: generator face (ball) currently drawn
+  let hudShown = {}; // Phase 8 perf: last values written to the HUD DOM (write on change only)
   function updateHud() {
     const S = B.S, g = B.genInfo();
-    $('ap-num').textContent = Math.floor(S.ap);
-    $('ap-cap').textContent = g.cap;
-    $('gen-lv').textContent = g.level;
+    // Phase 8 perf: the HUD writes the DOM only when a value CHANGES (it used to rewrite the AP numbers and rebuild the generator
+    // cost's ball icon with innerHTML every frame — each write re-styles / re-paints text under the AAA1 shadow-ring outlines)
+    const hs = hudShown;
+    const ap = Math.floor(S.ap); if (hs.ap !== ap) { hs.ap = ap; $('ap-num').textContent = ap; }
+    if (hs.cap !== g.cap) { hs.cap = g.cap; $('ap-cap').textContent = g.cap; }
+    if (hs.lv !== g.level) { hs.lv = g.level; $('gen-lv').textContent = g.level; }
     if (genShown !== g.level) { genShown = g.level; $('gen-icon').innerHTML = BM.genFaceHtml(g.level) + (g.max ? '' : '<i>▲</i>'); $('btn-gen').dataset.ball = BM.GEN_BALLS[g.level]; }
-    $('gen-cost').innerHTML = g.max ? 'MAX' : BM.apIcon() + g.cost;
-    const gb = $('btn-gen');
-    gb.classList.toggle('cant', !g.max && S.ap < g.cost);
-    gb.classList.toggle('ready', !g.max && S.ap >= g.cost);
+    const cost = g.max ? 'MAX' : g.cost; if (hs.cost !== cost) { hs.cost = cost; $('gen-cost').innerHTML = g.max ? 'MAX' : BM.apIcon() + g.cost; }
+    const gb = $('btn-gen'), gs = g.max ? 'max' : S.ap < g.cost ? 'cant' : 'ready';
+    if (hs.gen !== gs) { hs.gen = gs; gb.classList.toggle('cant', gs === 'cant'); gb.classList.toggle('ready', gs === 'ready'); }
     cardEls.forEach((c) => {
       if (!c) return;
       const t = S.team[c.slot], why = B.canSpawn(c.slot);
       const state = why + ':' + Math.ceil(t.cd);
-      c.cd.style.height = (t.cd > 0 ? (t.cd / t.form.cd) * 100 : 0) + '%';
+      const h = t.cd > 0 ? Math.round((t.cd / t.form.cd) * 1000) / 10 : 0; // the cooldown sweep, in 0.1% steps (smooth, but no rewrite when still)
+      if (c.cdH !== h) { c.cdH = h; c.cd.style.height = h + '%'; }
       if (state === c.last) return;
       c.last = state;
       c.el.classList.toggle('cant', why === 'ap' || why === 'full');
@@ -723,21 +726,37 @@
   // ---------- loop ----------
   const DT = 1 / C.TICK_HZ;
   let acc = 0, lastT = performance.now();
+  // Phase 8 perf overlay (dev mode only): "Fill 40" keeps both sides at the field cap — your cards + the stage's own foes
+  let stressFill = false;
+  function stressTick() {
+    if (!stressFill || !B || B.S.result) return;
+    const S = B.S; S.ap = 1e6;
+    for (let k = 0; k < 4 && B.count(1) < C.MAX_PER_SIDE; k++) { const c = S.team[(S.t * 7 + k) % S.team.length | 0]; c.cd = 0; B.spawn(S.team.indexOf(c)); }
+    const pool = S.stage.waves || [];
+    for (let k = 0; k < 4 && pool.length && B.count(-1) < C.MAX_PER_SIDE; k++) { const w = pool[(Math.random() * pool.length) | 0]; B.devSpawnEnemy(w.form, w.level); }
+  }
+  BM.Perf.attach({ fill: () => { stressFill = !stressFill; }, filling: () => stressFill, burst: () => B && B.devBurst() });
   function frame(tms) {
     const now = tms / 1000;
     let dt = Math.min(0.25, (tms - lastT) / 1000); lastT = tms;
     if (screen === 'title') titleSprite(now);
     if (screen === 'map') KMap.tick(tms);
     if (screen === 'battle' && B) {
+      BM.Perf.setOn(devMode); BM.Perf.frameStart(tms);
+      let steps = 0;
       if (!paused) {
         acc += dt * speed; // XX1: more fixed steps per real second, never a bigger step
-        while (acc >= DT) { B.step(DT); acc -= DT; }
+        while (acc >= DT) { B.step(DT); acc -= DT; steps++; }
+        if (stressFill) stressTick();
         onBattleEvents();
         tutorialTick();
       }
+      BM.Perf.afterSim();
       R.draw(B, performance.now() / 1000);
+      BM.Perf.afterDraw();
       updateHud();
-    }
+      if (BM.Perf.on) BM.Perf.frameEnd({ mine: B.count(1), foes: B.count(-1), fx: R.fxCount, texts: R.textCount, speed, steps, dpr: R.dpr });
+    } else if (BM.Perf.on) { BM.Perf.setOn(false); stressFill = false; }
     requestAnimationFrame(frame);
   }
 
@@ -765,5 +784,5 @@
   // first tap anywhere unlocks audio on iOS and starts the title music
   document.addEventListener('pointerdown', () => { BM.Audio.unlock(); if ((screen === 'title' || screen === 'profiles') && !BM.Audio.currentKey) BM.Audio.playMusic('title'); }, { once: false });
   window.BM.debug = { types: Types, get battle() { return B; }, get speed() { return speed; }, startBattle, go, get screen() { return screen; }, map: KMap, bonus: Bonus, render: R, evo: Evo, screens: Scr, gacha: Gacha, challenge: Chal, fit, openPrebattle: (id) => { preStage = id; go('prebattle'); },
-    get preStage() { return preStage; }, showEnding, get lastRewards() { return lastRewards; } };
+    get preStage() { return preStage; }, showEnding, get lastRewards() { return lastRewards; }, setDev: (v) => { devMode = !!v; }, stress: (v) => { stressFill = !!v; } };
 })();
