@@ -19,10 +19,15 @@ BM.Battle = function (stage, profile, opts = {}) {
     team: profile.team.filter((id) => profile.lines[id]).map((id) => ({
       line: id, form: BM.FORMS[profile.lines[id].form], level: profile.lines[id].level, cd: 0,
       cost: BM.effCost(BM.FORMS[profile.lines[id].form], profile.lines[id].level), // L1: +1%/Lv, cap ×1.5
+      // batch1 step 7 HOME-REGION RULE: the level its HP / damage fight at on this stage (half, rounded up, when away from home)
+      fightLv: BM.battleLevel(BM.FORMS[profile.lines[id].form], profile.lines[id].level, stage),
     })).map((c) => ({ ...c, rule: BM.cardRuleWhy ? BM.cardRuleWhy(stage, c.cost) : null })), // VV1: why it may not deploy here
     cap: CAP,
     waves: stage.waves.map((w) => ({ ...w, next: w.start, spawned: 0 })),
     ace: stage.ace ? { ...stage.ace, out: false } : null, // leader's ace: once, at enemy base < 70% or 90 s (§4.4)
+    // Hoenn: more one-time giants per stage — a second ace (Tate & Liza's twin, Seafloor Cavern's Groudon) at its OWN base-HP
+    // threshold `at` (never inside a counter-burst), or a WW1 giant BLOCKER (`blocker: true`) that walks out at `time` seconds
+    extraAces: (stage.extraAces || []).map((a) => ({ ...a, out: false })),
     battled: [],                                           // line ids fielded at least once (team XP, §4.3)
     bursts: [],                                            // K2 log: { kind: 'timer' | 'threshold', t, at, n }
   };
@@ -62,8 +67,8 @@ BM.Battle = function (stage, profile, opts = {}) {
   if (items.includes('gen_lv8')) S.gen = C.GEN_MAX;
   if (items.includes('full_ap')) S.ap = C.GEN[S.gen][1];
   function count(side) { let n = 0; for (const u of S.units) if (u.side === side && !u.dead) n++; return n; }
-  function makeUnit(form, level, side, x) {
-    const st = BM.unitStats(form, level);
+  function makeUnit(form, level, side, x, statLevel = level) {
+    const st = BM.unitStats(form, statLevel); // statLevel: the home-region rule's fighting level (player units only)
     const u = { id: S.nextId++, form, level, side, x, yOff: rnd() * 2 - 1, ...st, maxHp: st.hp,
       atkTimer: 0, windup: -1, strikeT: 0, target: null, state: 'walk', dead: false, deadT: 0, animT: rnd(), st: null, sigT: C.SIG.first };
     // K4: a reliable status (legendaries' signature) is a SPECIAL move — it lands every C.SIG.every seconds, not every hit
@@ -90,7 +95,7 @@ BM.Battle = function (stage, profile, opts = {}) {
     const c = S.team[slot];
     S.ap -= c.cost;
     c.cd = c.form.cd;
-    makeUnit(c.form, c.level, 1, C.PLAYER_BASE_FRONT - 8 + rnd() * 16); // jitter: BR-001
+    makeUnit(c.form, c.level, 1, C.PLAYER_BASE_FRONT - 8 + rnd() * 16, c.fightLv); // jitter: BR-001
     if (!S.battled.includes(c.line)) S.battled.push(c.line);
     return 'ok';
   }
@@ -246,7 +251,8 @@ BM.Battle = function (stage, profile, opts = {}) {
       // OOO1: a trickle release is a PACK of fodder / medium units (extras 1–2 levels lower); large units come solo (a pair
       // late on, when the pack range allows 3+); aces / bosses always solo
       const n = packSize(BM.FORMS[w.form]);
-      for (let k = 0; k < n && count(-1) < CAP; k++) makeUnit(BM.FORMS[w.form], k ? Math.max(1, w.level - CAD.packLv) : w.level, -1, C.ENEMY_BASE_FRONT + 8 - k * 12 - rnd() * 16);
+      // BR-099 (Hoenn tables, `packBase`): the extras come as the line's BASE form — more, weaker bodies, not more power
+      for (let k = 0; k < n && count(-1) < CAP; k++) makeUnit(BM.FORMS[k && stage.packBase ? BM.packBaseOf(w.form) : w.form], k ? Math.max(1, w.level - CAD.packLv) : w.level, -1, C.ENEMY_BASE_FRONT + 8 - k * 12 - rnd() * 16);
       w.spawned++; w.next += w.every;
     }
 
@@ -269,6 +275,18 @@ BM.Battle = function (stage, profile, opts = {}) {
         if (A.sig) { u.sig = A.sig; if (A.sig.reach) u.range = Math.max(u.range, A.sig.reach); } // used every C.SIG.every s
       }
       S.events.push({ type: 'ace', unit: u, leader: stage.leader, giant: !!A.giant });
+    }
+    for (const X of S.extraAces) {
+      if (X.out || gated(X.form) || !((X.at != null && S.enemyBase.hp < S.enemyBase.max * X.at) || (X.time != null && S.t >= X.time))) continue;
+      X.out = true;
+      const u = makeUnit(BM.FORMS[X.form], X.level, -1, C.ENEMY_BASE_FRONT - 4);
+      u.ace = true; // boss bounty + the ace marker (a blocker too)
+      if (X.giant) {
+        u.boss = true; u.giant = true; u.kbResist = true;
+        u.hp = u.maxHp = Math.round(u.hp * C.GIANT.hp); u.dmg = Math.round(u.dmg * C.GIANT.dmg);
+        if (X.sig) { u.sig = X.sig; if (X.sig.reach) u.range = Math.max(u.range, X.sig.reach); }
+      }
+      S.events.push({ type: 'ace', unit: u, leader: X.blocker ? null : stage.leader, giant: !!X.giant, blocker: !!X.blocker });
     }
 
     // K4 status: tick durations, poison damage over time

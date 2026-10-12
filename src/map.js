@@ -92,7 +92,7 @@ BM.MapScreen = function (ui) {
     }
     // town blocks under the location nodes (not gyms / Elite Four)
     for (const st of ST) {
-      if (['gym', 'e4', 'champion'].includes(st.kind) || ['kanto_03_forest', 'kanto_06_mtmoon', 'johto_03_route31', 'johto_06_unioncave', 'johto_09_ilex', 'johto_12_nationalpark', 'johto_18_lakeofrage', 'johto_20_icepath', 'johto_22_victoryroad'].includes(st.id)) continue;
+      if (['gym', 'e4', 'champion'].includes(st.kind) || ['kanto_03_forest', 'kanto_06_mtmoon', 'johto_03_route31', 'johto_06_unioncave', 'johto_09_ilex', 'johto_12_nationalpark', 'johto_18_lakeofrage', 'johto_20_icepath', 'johto_22_victoryroad', 'hoenn_03_petalburg_woods', 'hoenn_05_granite_cave', 'hoenn_10_meteor_falls', 'hoenn_12_desert', 'hoenn_15_mt_pyre', 'hoenn_18_seafloor_cavern', 'hoenn_25_sky_pillar'].includes(st.id)) continue;
       const [x, y] = P(M.nodes[st.id]), s = bw * 0.012;
       for (const [dx, dy, c] of [[-1.6, -1.2, '#e8463c'], [1.2, -1.4, '#3d7dd8'], [-1.4, 1.2, '#f4efe2'], [1.4, 1.1, '#e8463c']]) {
         g.fillStyle = c; g.fillRect(x + dx * s * 1.4 - s / 2, y + dy * s * 1.4 - s / 2, s, s);

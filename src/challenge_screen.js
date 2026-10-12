@@ -24,7 +24,7 @@ BM.ChallengeScreen = function (ui) {
     show('scr-chmode', true); ui.fit($('scr-chmode'));
   }
   tap($('btn-ch-clear'), () => { BM.Audio.sfx('tap'); show('scr-chmode', false); open('clear'); });
-  tap($('btn-ch-tickets'), () => { BM.Audio.sfx('deny'); toast('Poké Balls are earned in the 🎰 Safari Zone!'); });
+  tap($('btn-ch-tickets'), () => { BM.Audio.sfx('deny'); toast('Poké Balls are earned in the Safari Zone!'); });
   const closeChooser = () => show('scr-chmode', false);
   tap($('btn-chmode-x'), closeChooser);
   $('scr-chmode').addEventListener('pointerdown', (e) => { if (e.target.id === 'scr-chmode') { e.preventDefault(); closeChooser(); } });

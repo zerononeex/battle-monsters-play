@@ -33,6 +33,11 @@ BM.ITEM_INFO = {
   electirizer: { name: 'Electirizer', kind: 'evo', emoji: '🔌', region: 'johto' },
   magmarizer: { name: 'Magmarizer', kind: 'evo', emoji: '🌋', region: 'johto' },
   peat_block: { name: 'Peat Block', kind: 'evo', emoji: '🟫', region: 'johto' },
+  // Hoenn (Step 2, §4.6 translations C9; icons in the Hoenn queue): Dawn Stone (Kirlia → Gallade), Prism Scale (Feebas → Milotic),
+  // Reaper Cloth (Dusclops → Dusknoir). Hoenn-era: they drop only from Hoenn stages and the Tower vault's Hoenn-gated rows.
+  dawn_stone: { name: 'Dawn Stone', kind: 'evo', emoji: '🌅', region: 'hoenn' },
+  prism_scale: { name: 'Prism Scale', kind: 'evo', emoji: '🌈', region: 'hoenn' },
+  reaper_cloth: { name: 'Reaper Cloth', kind: 'evo', emoji: '🧣', region: 'hoenn' },
   poke_ball: { name: 'Poké Ball', kind: 'ball', emoji: '🔴', blurb: '1 = one pull · 9 = a 10-pull' },
   master_ball: { name: 'Master Ball', kind: 'ball', emoji: '🟣', blurb: 'Opens the Legendary Safari Zone' },
   // MEGA STONES (Johto Step 6): kind 'mega' — OWNING one (never used up) lets its line field that Mega form once Mega Evolution is
@@ -47,6 +52,18 @@ BM.ITEM_INFO = {
   meganiumite: { name: 'Meganiumite', kind: 'mega', emoji: '💎' }, feraligite: { name: 'Feraligite', kind: 'mega', emoji: '💎' },
   dragoninite: { name: 'Dragoninite', kind: 'mega', emoji: '💎' }, raichunite_x: { name: 'Raichunite X', kind: 'mega', emoji: '💎' },
   raichunite_y: { name: 'Raichunite Y', kind: 'mega', emoji: '💎' },
+  // Hoenn (Step 6): the 18 classic Hoenn stones + Absolite Z (Legends: Z-A Mega Dimension). Ids = the queued icon save-as keys
+  // EXACTLY (assets/ui/icons/<id>.png). Mega Rayquaza has NO stone (gate: own Rayquaza + Hoenn Champion cleared — mega.js).
+  sceptilite: { name: 'Sceptilite', kind: 'mega', emoji: '💎', region: 'hoenn' }, blazikenite: { name: 'Blazikenite', kind: 'mega', emoji: '💎', region: 'hoenn' },
+  swampertite: { name: 'Swampertite', kind: 'mega', emoji: '💎', region: 'hoenn' }, gardevoirite: { name: 'Gardevoirite', kind: 'mega', emoji: '💎', region: 'hoenn' },
+  galladite: { name: 'Galladite', kind: 'mega', emoji: '💎', region: 'hoenn' }, sablenite: { name: 'Sablenite', kind: 'mega', emoji: '💎', region: 'hoenn' },
+  mawilite: { name: 'Mawilite', kind: 'mega', emoji: '💎', region: 'hoenn' }, aggronite: { name: 'Aggronite', kind: 'mega', emoji: '💎', region: 'hoenn' },
+  medichamite: { name: 'Medichamite', kind: 'mega', emoji: '💎', region: 'hoenn' }, manectite: { name: 'Manectite', kind: 'mega', emoji: '💎', region: 'hoenn' },
+  sharpedonite: { name: 'Sharpedonite', kind: 'mega', emoji: '💎', region: 'hoenn' }, altarianite: { name: 'Altarianite', kind: 'mega', emoji: '💎', region: 'hoenn' },
+  banettite: { name: 'Banettite', kind: 'mega', emoji: '💎', region: 'hoenn' }, absolite: { name: 'Absolite', kind: 'mega', emoji: '💎', region: 'hoenn' },
+  salamencite: { name: 'Salamencite', kind: 'mega', emoji: '💎', region: 'hoenn' }, metagrossite: { name: 'Metagrossite', kind: 'mega', emoji: '💎', region: 'hoenn' },
+  latiasite: { name: 'Latiasite', kind: 'mega', emoji: '💎', region: 'hoenn' }, latiosite: { name: 'Latiosite', kind: 'mega', emoji: '💎', region: 'hoenn' },
+  absolite_z: { name: 'Absolite Z', kind: 'mega', emoji: '💎', region: 'hoenn' },
   // battle items (Phase 5): armed before a battle, used up only when you WIN
   speed_up: { name: 'Speed Up', kind: 'battle', battle: true, emoji: '⏩', blurb: 'The battle runs 1.5× faster' },
   gen_lv8: { name: 'Generator Lv 8', kind: 'battle', battle: true, emoji: '🔋', blurb: 'Start with the AP Generator at Lv 8' },
@@ -73,7 +90,7 @@ BM.levelFromXp = (xp, cap = BM.C.LEVEL_CAP) => Math.max(1, Math.min(cap, Math.fl
 // EEE1 (Phase 7.6): REGION GATES on evolutions. A region counts as REACHED only once it has shipped AND the region before it is
 // beaten (beating Kanto unlocks Johto — the regionsDone flag from Phase 7). Johto prompt Step 1: Johto SHIPS — a profile that has
 // beaten Kanto reaches it (its home card goes live, the cap rises to 65, `requiresRegion: 'johto'` evolutions open).
-BM.SHIPPED_REGIONS = ['kanto', 'johto'];
+BM.SHIPPED_REGIONS = ['kanto', 'johto', 'hoenn']; // Hoenn prompt Step 1: Hoenn ships, reached once Johto is beaten (cap 70)
 BM.REGION_ORDER = ['kanto', 'johto', 'hoenn', 'sinnoh', 'unova', 'kalos', 'alola', 'galar', 'paldea'];
 BM.REGION_NAMES = { kanto: 'Kanto', johto: 'Johto', hoenn: 'Hoenn', sinnoh: 'Sinnoh', unova: 'Unova', kalos: 'Kalos', alola: 'Alola', galar: 'Galar', paldea: 'Paldea' };
 BM.regionReached = (region, p) => {

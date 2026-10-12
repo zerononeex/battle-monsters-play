@@ -33,6 +33,7 @@ BM.BonusScreen = function (ui) {
     }
     // Johto Step 6: the Mega Stone section opens with Mega Evolution (the Johto Champion's first clear) — four themed floors;
     // until then the one locked card ("Beat Johto to unlock 🔒")
+    mg.classList.toggle('open', BM.megaUnlocked(prof())); // Hoenn Step 5: 6 floors in one row once open
     if (BM.megaUnlocked(prof())) {
       for (const st of BM.BONUS_STAGES.filter((s) => s.bonus === 'mega')) {
         mg.appendChild(card(st, `<span class="bz-icon">${st.icon}</span><b class="bz-name">${st.name}</b><span class="bz-band">Lv ${st.level}</span>` +

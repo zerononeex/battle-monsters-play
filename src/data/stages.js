@@ -288,7 +288,10 @@ window.BM = window.BM || {};
   BM.isPlayable = (st) => !!st && !st.locked && Array.isArray(st.waves);
 
   // Rewards (stored in Phase 3, spent from Phase 4/5). §4.5 tickets: first clear location 10 · gym 20 · E4 25 ·
-  // Champion 50 · any replay win 2. §4.3 team XP: every line that BATTLED gets 4 × level² (first) / 2 × level² (replay).
+  // Champion 50 · any replay win 2. §4.3 team XP: every line that BATTLED gets 2 × level² (first) / 1 × level² (replay).
+  // Johto fix batch 1 step 3 (user 2026-10-12): halved from 4× / 2× — the party should not power-level passively; XP mostly
+  // arrives as the guaranteed win candies (now 2 per win, below) that the player aims at ONE chosen Pokémon. Loss XP (M1) is a %
+  // of this, so it halves with it; Prism Tower stages keep their own bonusXp.
   const FIRST_TICKETS = { wild: 10, trainer: 10, gym: 20, e4: 25, champion: 50 };
   BM.stageRewards = function (st, first) {
     // BONUS ZONE stages (data/bonus.js): the §4.5 grind ticket (1 per win), the tier's bonus team XP (XP stages) or 2 × L²
@@ -298,7 +301,7 @@ window.BM = window.BM || {};
     return {
       first,
       tickets: first ? FIRST_TICKETS[st.kind] || 10 : 2,
-      xp: (first ? 4 : 2) * st.level * st.level,
+      xp: (first ? 2 : 1) * st.level * st.level,
       gift: first && st.gift ? st.gift : null,
       item: first && st.item ? st.item : null,
       ...(first && st.prize ? { prize: st.prize } : {}), // Johto: a capstone's extra first-clear items { itemId: n } (Mt. Silver)
@@ -336,6 +339,8 @@ window.BM = window.BM || {};
     { upTo: 16, table: [['xp_candy_s', 0.5], ['xp_candy_m', 0.5]] },
     { upTo: 99, table: [['xp_candy_m', 0.75], ['xp_candy_l', 0.25]] },
   ];
+  // Johto fix batch 1 step 3 (user 2026-10-12): 2 guaranteed candies per win (was 1), each rolled independently on the band table.
+  BM.WIN_CANDY_N = 2;
   BM.winCandyBand = (st) => BM.WIN_CANDY.find((b) => (st.curveAt || st.num || 1) <= b.upTo);
   BM.winCandy = function (st, rnd = Math.random) {
     if (!st || st.dev || st.bonus === 'xp') return null; // XP floors already pay their tier's candy every win
@@ -343,6 +348,7 @@ window.BM = window.BM || {};
     for (const [id, w] of t) { if ((x -= w) < 0) return id; }
     return t[t.length - 1][0];
   };
+  BM.winCandies = (st, rnd = Math.random) => { const out = []; for (let i = 0; i < BM.WIN_CANDY_N; i++) { const c = BM.winCandy(st, rnd); if (c) out.push(c); } return out; };
   // Distinct things a stage can drop, for the pre-battle "May find" row.
   BM.dropPreview = (st, p = null) => [...new Set(BM.dropsFor(st, p).map((d) => d.item))];
   // Enemy preview for the pre-battle screen: each wave form once (lowest–highest level), the ace last.

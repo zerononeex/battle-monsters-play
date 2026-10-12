@@ -6,7 +6,7 @@ BM.Save = (function () {
   const KEY = 'battle-monsters.save';
   const VERSION = 9;
   const SLOTS = 3;
-  const GRADES = [2, 3, 4, 5, 6, 7]; // grade drives the Phase 6 math difficulty; set at creation only
+  const GRADES = [2, 3, 4, 5, 6, 7]; // grade drives the Phase 6 math difficulty; set at creation, then a Setting (batch1 step 6: setGrade)
   // MIGRATIONS[n] upgrades a WHOLE save from version n to n+1. Never edit a shipped step; append.
   const MIGRATIONS = {
     // v1 (Phase 1): one profile, lines {level, form}, no grade picker.
@@ -130,7 +130,7 @@ BM.Save = (function () {
       loadoutSlots: LOADOUT.FREE, // preset teams (F4)
       loadouts: Array(LOADOUT.FREE).fill(null), // null | { team: [lineIds], forms: { lineId: formId } }
       loadoutAt: 0,              // T3: the preset being edited (the team auto-saves into it)
-      pity: {},                  // bannerId -> pulls since that banner's last legendary (§4.5 pity; HHH1: at BM.GACHA.PITY = 60)
+      pity: {},                  // bannerId -> pulls since that banner's last legendary (§4.5 pity; batch1: at BM.GACHA.PITY = 100)
       pulls: {},                 // bannerId -> total pulls
       armed: [],                 // battle items armed for the next battle (consumed only on a WIN)
       regionsDone: {},           // Phase 7: regions fully beaten (the Champion's first clear: Mewtwo + Master Ball + ending)
@@ -231,7 +231,7 @@ BM.Save = (function () {
     data.active = slot; persist();
     return profile();
   }
-  // Only for a profile that has no grade yet (a migrated Phase 1 save) — grade is not a setting.
+  // Only for a profile that has no grade yet (a migrated Phase 1 save). Changing an existing grade = setGrade (Settings).
   function finishSetup(slot, grade, name) {
     const p = data.profiles[slot];
     if (p && p.grade == null && GRADES.includes(grade)) {
@@ -398,9 +398,10 @@ BM.Save = (function () {
       if (rare) { const o = r.drops.find((d) => d.item === rare); if (o) o.n++; else r.drops.push({ item: rare, n: 1 }); r.dowsed = rare; }
     }
     for (const d of r.drops) { if (d.item === 'tickets') p.tickets += d.n; else give(p, d.item, d.n); }
-    // T1: every win adds a guaranteed XP candy on top of the drop roll (rolled after it, so seeded drop tests are unchanged) (the Tower's XP floors keep their own tier candy)
-    const wc = BM.winCandy(st, rnd);
-    if (wc) { r.candy = { ...(r.candy || {}) }; r.candy[wc] = (r.candy[wc] || 0) + 1; r.winCandy = wc; }
+    // T1: every win adds guaranteed XP candies on top of the drop roll (rolled after it, so seeded drop tests are unchanged) (the Tower's XP floors keep their own tier candy)
+    // Johto fix batch 1 step 3: BM.WIN_CANDY_N (2) candies, each rolled on its own; r.winCandies lists them, r.winCandy = the first
+    const wcs = BM.winCandies(st, rnd);
+    if (wcs.length) { r.candy = { ...(r.candy || {}) }; for (const wc of wcs) r.candy[wc] = (r.candy[wc] || 0) + 1; r.winCandies = wcs; r.winCandy = wcs[0]; }
     if (r.candy) for (const [id, n] of Object.entries(r.candy)) give(p, id, n); // Tower XP floor candy + the T1 win candy
     // REGION COMPLETE (Phase 7): the region's final stage (the Champion) on its FIRST clear grants the region's Master Ball
     // (§4 economy: 1 per region fully beaten) — the Mewtwo line comes as the stage gift below (rewardOnly, joins at Lv 1).
@@ -414,6 +415,8 @@ BM.Save = (function () {
     }
     // Johto Step 6: the Johto Champion's first clear unlocks Mega Evolution; a dropped Mega Stone readies its form
     if (r.regionComplete === 'johto') r.megaUnlocked = true;
+    // Hoenn Step 6 (U4): the Hoenn Champion's first clear (which also grants Rayquaza) opens Mega Rayquaza — no stone exists
+    if (r.regionComplete === 'hoenn') r.megaRayquaza = true;
     if (BM.syncMegas) BM.syncMegas(p);
     persist();
     return r;
@@ -514,6 +517,14 @@ BM.Save = (function () {
     p.settings[key] = Math.max(r.min, Math.min(r.max, Math.round(Number(v)) || r.def)); persist();
     return p.settings[key];
   }
+  // Johto fix batch 1 step 6 (user 2026-10-12): grade is a per-profile Setting — the kids grow, and can fall back. ONE grade
+  // drives both subjects (BM.Challenge.gradeFor reads p.grade: earn = grade, clear = grade + 2 capped at 7, spelling likewise).
+  function setGrade(grade) {
+    const p = profile(), g = Number(grade);
+    if (!p || !GRADES.includes(g)) return null;
+    p.grade = g; persist();
+    return p.grade;
+  }
   // TA: rename the current preset (✏️). Empty = back to the default "Team N".
   function renameLoadout(i, name) {
     const p = profile(); if (!(i >= 0 && i < p.loadoutSlots)) return false;
@@ -531,7 +542,7 @@ BM.Save = (function () {
   // Dev/test only (hidden dev mode): own every Kanto line, unlock every form, set levels.
   function devUnlockAll() {
     const p = profile();
-    for (const id of [...BM.KANTO_LINES, ...BM.JOHTO_LINES]) {
+    for (const id of [...BM.KANTO_LINES, ...BM.JOHTO_LINES, ...(BM.HOENN_LINES || [])]) {
       giveLine(p, id);
       const l = p.lines[id];
       l.unlocked = BM.LINES[id].forms.map((f) => f.id);
@@ -545,5 +556,5 @@ BM.Save = (function () {
 
   return { load, persist, profile, list, select, create, finishSetup, eraseProfile, exportCode, decodeCode, importCode,
     setForm, devUnlockAll, devGrantItems, giveLine, recordWin, setMapAt, addXpTo: (p, id, n) => addXp(p, id, n), addXp: (id, n) => { const r = addXp(profile(), id, n); persist(); return r; },
-    pendingEvolution, evolve, useItem, saveLoadout, loadLoadout, buyLoadoutSlot, saveTeam, switchLoadout, placeInTeam, removeFromTeam, toggleArmed, setMistakes, recordLoss, winXp, renameLoadout, loadoutName, revealed, MISTAKES, LOADOUT, START_TICKETS, VERSION, SLOTS, GRADES, KEY, get memoryOnly() { return memoryOnly; } };
+    pendingEvolution, evolve, useItem, saveLoadout, loadLoadout, buyLoadoutSlot, saveTeam, switchLoadout, placeInTeam, removeFromTeam, toggleArmed, setMistakes, setGrade, recordLoss, winXp, renameLoadout, loadoutName, revealed, MISTAKES, LOADOUT, START_TICKETS, VERSION, SLOTS, GRADES, KEY, get memoryOnly() { return memoryOnly; } };
 })();

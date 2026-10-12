@@ -12,9 +12,11 @@ BM.C = {
   // (was 300…1200). Rates unchanged. Pacing is balanced with waves (Q1 rule), never by re-raising these.
   // NNN1 (user playtest 2026-10-11, Johto prompt Step 0c): upgrade costs rise slightly 50·75·100·130·160·190·220 (925) →
   // 55·80·105·135·165·195·230 (total 965). Rates and the AA2 caps do NOT move.
+  // Johto fix batch 1 step 2 (user playtest 2026-10-12, anti-spam): upgrade costs 55·80·105·135·165·195·230 (965) →
+  // 85·120·160·200·250·295·345 (total 1,455). Rates (15→56/s), caps (400→1800), unit prices + the 150 AP cap do NOT move.
   GEN: [null,
-    [15, 400, 55], [20, 550, 80], [25, 700, 105], [30, 900, 135],
-    [36, 1100, 165], [42, 1300, 195], [49, 1550, 230], [56, 1800, null]],
+    [15, 400, 85], [20, 550, 120], [25, 700, 160], [30, 900, 200],
+    [36, 1100, 250], [42, 1300, 295], [49, 1550, 345], [56, 1800, null]],
   GEN_MAX: 8,
   LEVEL_CAP: 60,
   baseHP: (stageLevel) => 1000 + 300 * stageLevel,
@@ -95,6 +97,21 @@ BM.traitText = function (form) {
   if (!t) return '';
   return form.trait === 'dodger' ? `dodges ${Math.round((form.dodge || t.dodge) * 100)}% of hits` : t.text;
 };
+
+// HOME-REGION RULE (Johto fix batch 1 step 7, user 2026-10-12): a PLAYER Pokémon fighting a campaign stage outside its home
+// region fights with the stats of HALF its level, rounded up. Home = its line's data `region` (default 'kanto'; a Mega form is
+// on its line, so it shares the line's home). Only the level-scaled battle stats (HP + damage, via levelScale) use it — XP,
+// evolution, AP cost and cooldown keep the true level. Enemy spawns are never adjusted. Region-neutral: Prism Tower (bonus)
+// stages and anything without a region (dev stages). Data-driven: no per-species code.
+BM.homeRegion = (formOrLine) => {
+  const L = formOrLine && (formOrLine.forms ? formOrLine : BM.LINES[formOrLine.line]);
+  return (L && L.region) || 'kanto';
+};
+BM.stageRegion = (st) => (!st || st.bonus || st.dev || !st.region ? null : st.region);
+BM.isAway = (form, st) => { const r = BM.stageRegion(st); return !!r && BM.homeRegion(form) !== r; };
+BM.awayLevel = (level) => Math.ceil(level / 2);
+BM.battleLevel = (form, level, st) => (BM.isAway(form, st) ? BM.awayLevel(level) : level);
+BM.awayTag = (form, level, st) => (BM.isAway(form, st) ? `Away from home — fights at Lv ${BM.awayLevel(level)}` : '');
 
 // Battle stats for a form at a level. Any form may override hp/dmg/speed/range/interval in data. Trait effects are
 // applied last and also returned (dodge / immune / splash / kbResist) for the battle engine.

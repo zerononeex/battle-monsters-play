@@ -68,10 +68,10 @@ BM.Screens = function (ui) {
   // Johto (Step 2): the PC Box shows ONE region's lines at a time (Kanto 37 · Johto 36 — together they would shrink every card on a
   // phone); region tabs appear once the profile reaches Johto. The Bellossom branch belongs to Johto (EEE1).
   let collRegion = 'kanto';
-  const regionLines = (r) => (r === 'johto' ? BM.JOHTO_LINES : BM.KANTO_LINES);
+  const regionLines = (r) => (r === 'hoenn' ? BM.HOENN_LINES : r === 'johto' ? BM.JOHTO_LINES : BM.KANTO_LINES); // Hoenn Step 2: a third tab
   const ownedLines = () => regionLines(collRegion).filter((id) => prof().lines[id]);
   // every owned line of every region (the Team screen's PC Box strip): Kanto first, then Johto
-  const allOwned = () => [...BM.KANTO_LINES, ...BM.JOHTO_LINES].filter((id) => prof().lines[id]);
+  const allOwned = () => [...BM.KANTO_LINES, ...BM.JOHTO_LINES, ...BM.HOENN_LINES].filter((id) => prof().lines[id]);
   // How a not-yet-owned line is met, in kid words.
   function meetText(line) {
     if (line.rewardOnly) return `Beat the ${BM.REGION_NAMES[BM.regionOfStage(BM.stageById(line.rewardStage))]} Champion to meet this legend!`;
@@ -201,7 +201,7 @@ BM.Screens = function (ui) {
     if (!BM.regionReached(collRegion, p)) collRegion = 'kanto';
     const all = regionLines(collRegion), owned = ownedLines(), ids = applyFilter(all, false);
     $('coll-count').textContent = `${owned.length} / ${all.length}`;
-    const rt = $('coll-regions'), regs = ['kanto', 'johto'].filter((r) => BM.regionReached(r, p));
+    const rt = $('coll-regions'), regs = ['kanto', 'johto', 'hoenn'].filter((r) => BM.regionReached(r, p));
     ui.show('coll-regions', regs.length > 1); rt.innerHTML = '';
     for (const r of regs) { const b = document.createElement('button'); b.className = 'pill-btn coll-reg' + (r === collRegion ? ' on' : ''); b.dataset.region = r; b.textContent = BM.REGION_NAMES[r];
       tap(b, () => { if (collRegion === r) return; collRegion = r; BM.Audio.sfx('tap'); renderCollection(); }); rt.appendChild(b); }
@@ -256,6 +256,10 @@ BM.Screens = function (ui) {
     $('btn-cry').disabled = locked;
     const tags = $('dex-tags'); tags.innerHTML = '';
     if (!locked) { tags.appendChild(typePills(f.types)); const tc = traitChip(f, true); if (tc) tags.appendChild(tc); }
+    // batch1 step 7 HOME-REGION RULE: every entry names its home (away from home it fights at half its level)
+    const home = document.createElement('span'); home.className = 'home-tag'; home.dataset.home = BM.homeRegion(line);
+    home.textContent = `🏠 Home: ${BM.REGION_NAMES[BM.homeRegion(line)]}`; home.title = 'Away from home it fights at half its level';
+    tags.appendChild(home);
     // RIGHT: the six real base stats (Pokédex style, bars) + battle numbers at the line's level
     const box = $('dex-stats'); box.innerHTML = '';
     const bs = BM.BASE_STATS[f.id] || [f.baseHP, 0, 0, 0, 0, f.baseSpe];
@@ -305,7 +309,7 @@ BM.Screens = function (ui) {
       b.className = 'line-form mega' + (lk ? ' locked' : '') + (g.id === formId ? ' sel' : ''); b.dataset.form = g.id;
       b.appendChild(thumb(g, 72, lk));
       const n = document.createElement('span'); n.className = 'fname'; n.textContent = lk && !BM.megaUnlocked(prof()) ? 'Mega ???' : g.name; b.appendChild(n);
-      if (lk) { const k = document.createElement('span'); k.className = 'lock'; k.innerHTML = (BM.megaUnlocked(prof()) ? itemIcon(g.stone) + ' ' : '🔒 '); k.appendChild(document.createTextNode(BM.megaLockText(prof(), g))); b.appendChild(k); }
+      if (lk) { const k = document.createElement('span'); k.className = 'lock'; k.innerHTML = (BM.megaUnlocked(prof()) && g.stone ? itemIcon(g.stone) + ' ' : '🔒 '); /* Mega Rayquaza: no stone (U4) */ k.appendChild(document.createTextNode(BM.megaLockText(prof(), g))); b.appendChild(k); }
       tap(b, () => { BM.Audio.sfx('tap'); openLine(id, g.id); });
       forms.appendChild(b);
     }
@@ -351,7 +355,7 @@ BM.Screens = function (ui) {
   tap($('btn-line-x'), closeLine);
   $('scr-line').addEventListener('pointerdown', (e) => { if (e.target.id === 'scr-line') { e.preventDefault(); closeLine(); } });
   tap($('btn-coll-back'), () => { BM.Audio.sfx('tap'); ui.go('title'); });
-  tap($('btn-dev-unlock'), () => { BM.Save.devUnlockAll(); toast('DEV: every Kanto + Johto line + form unlocked (Lv 36)'); renderCollection(); });
+  tap($('btn-dev-unlock'), () => { BM.Save.devUnlockAll(); toast('DEV: every Kanto + Johto + Hoenn line + form unlocked (Lv 36)'); renderCollection(); });
   tap($('btn-dev-items'), () => { BM.Save.devGrantItems(); toast('DEV: +5 of every item'); renderCollection(); });
 
   // ---------- item bag ----------

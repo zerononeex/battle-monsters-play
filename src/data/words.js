@@ -246,3 +246,5 @@ BM.WORDS_POKEMON = [
 // Johto (Step 2): every new species is a word too (johto.js BM.JOHTO_WORDS — regional / Mega / hyphenated names skip)
 if (BM.JOHTO_WORDS) BM.WORDS_POKEMON.push(...BM.JOHTO_WORDS);
 BM.SPELL_POKEMON_SHARE = 0.15; // share of spelling words drawn from the Pokémon bonus list
+// Hoenn (Step 2): the same for Hoenn's species (hoenn.js BM.HOENN_WORDS)
+if (BM.HOENN_WORDS) BM.WORDS_POKEMON.push(...BM.HOENN_WORDS);

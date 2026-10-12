@@ -16,7 +16,7 @@ BM.GachaScreen = function (ui) {
     const b = Ga.banner(bannerId);
     ui.renderWallet();
     // tabs (Johto Step 3: a region's banners appear once the profile reaches it — Kanto A/B, then Johto A/B)
-    const tabs = $('banner-tabs'); tabs.innerHTML = ''; tabs.classList.toggle('many', list.length > 2);
+    const tabs = $('banner-tabs'); tabs.innerHTML = ''; tabs.classList.toggle('many', list.length > 2); tabs.classList.toggle('six', list.length > 4); // Hoenn: 6 tabs = a 2-column grid
     for (const bb of list) {
       const t = document.createElement('button'); t.className = 'banner-tab' + (bb.id === bannerId ? ' on' : ''); t.dataset.banner = bb.id;
       t.innerHTML = `<span class="bt-name">${bb.short || bb.name.replace('Kanto ', '')}</span><span class="bt-leg">${bb.legendaries.map((id) => BM.LINES[id].name).join(' + ')}</span>`;
@@ -46,6 +46,7 @@ BM.GachaScreen = function (ui) {
     card.appendChild(stage);
     const info = document.createElement('div'); info.className = 'bc-info'; info.id = 'bc-info';
     const names = document.createElement('div'); names.className = 'bc-names ss1';
+    names.classList.toggle('crowd', b.legendaries.length > 3); // Hoenn's 5 / 4 legendaries: sprite + name only (chips hidden) so the row fits
     for (const id of b.legendaries) {
       const d = document.createElement('div'); d.className = 'bc-leg-info'; d.dataset.line = id;
       // SS1: the legendary's battle sprite leads its name row (key art above stays uncropped; this is UI below it)
@@ -147,10 +148,19 @@ BM.GachaScreen = function (ui) {
     show('scr-legend', false); reveal(r.results);
   });
   // ---------- Mega Stone section (Johto Step 6) ----------
+  // Hoenn Step 6: the stones in two tabs — Kanto · Johto (19) and Hoenn (19, once the profile reaches Hoenn) — so the grid never scrolls
+  let megaTab = 'kj';
+  const MEGA_TABS = [['kj', 'Kanto · Johto', (s) => BM.ITEM_INFO[s].region !== 'hoenn'], ['hoenn', 'Hoenn', (s) => BM.ITEM_INFO[s].region === 'hoenn']];
   function openMegaShop() {
     const p = prof(), box = $('megashop-grid'); box.innerHTML = '';
     $('megashop-help').innerHTML = `Own a Mega Stone and that Pokémon can Mega Evolve — cycle to its Mega form on the Team screen! ${TK()} ${G.MEGA_STONE_TICKETS} each · you have ${p.tickets}.`;
-    for (const stone of BM.MEGA_STONES) {
+    const tabs = MEGA_TABS.filter(([id]) => id !== 'hoenn' || BM.regionReached('hoenn', p));
+    if (!tabs.some(([id]) => id === megaTab)) megaTab = 'kj';
+    const tb = $('megashop-tabs'); tb.innerHTML = ''; show('megashop-tabs', tabs.length > 1);
+    for (const [id, name] of tabs) { const t = document.createElement('button'); t.className = 'pill-btn coll-reg' + (id === megaTab ? ' on' : ''); t.dataset.tab = id; t.textContent = name;
+      tap(t, () => { if (megaTab === id) return; megaTab = id; BM.Audio.sfx('tap'); openMegaShop(); }); tb.appendChild(t); }
+    const inTab = MEGA_TABS.find(([id]) => id === megaTab)[2];
+    for (const stone of BM.MEGA_STONES.filter(inTab)) {
       const f = BM.megaOfStone(stone), own = p.items[stone] > 0, b = document.createElement('button');
       b.className = 'mega-stone' + (own ? ' owned' : p.tickets < G.MEGA_STONE_TICKETS ? ' cant' : ''); b.dataset.stone = stone;
       b.innerHTML = `<span class="ms-icon">${ui.itemIcon(stone)}</span><b>${BM.ITEMS[stone]}</b><small>${f.name}</small><span class="ms-price">${own ? '✓ yours' : `${TK()} ${G.MEGA_STONE_TICKETS}`}</span>`;

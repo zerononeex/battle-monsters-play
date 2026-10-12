@@ -614,6 +614,10 @@ button { font: inherit; color: inherit; border: 0; cursor: pointer; touch-action
 .chover-n { font-size: 72px; font-weight: 900; color: var(--gold); text-shadow: 2.5px 0px 0 var(--ink), 2.5px 1px 0 var(--ink), 2px 2px 0 var(--ink), 1px 2.5px 0 var(--ink), 0px 2.5px 0 var(--ink), -1px 2.5px 0 var(--ink), -2px 2px 0 var(--ink), -2.5px 1px 0 var(--ink), -2.5px 0px 0 var(--ink), -2.5px -1px 0 var(--ink), -2px -2px 0 var(--ink), -1px -2.5px 0 var(--ink), 0px -2.5px 0 var(--ink), 1px -2.5px 0 var(--ink), 2px -2px 0 var(--ink), 2.5px -1px 0 var(--ink); }
 .result-art { width: 100%; height: 120px; border-radius: 18px; border: 4px solid var(--ink); background-size: cover; background-position: center; }
 .pause-panel { gap: 14px; }
+.grade-set { display: flex; align-items: center; gap: 10px; font-size: 19px; font-weight: 800; background: #eef3fb; border: 3px solid var(--ink); border-radius: 16px; padding: 6px 14px; width: 100%; box-sizing: border-box; justify-content: center; }
+.grade-set .grade-btns { gap: 6px; flex-wrap: nowrap; }
+.grade-set .grade-btn { width: 46px; height: 46px; border-radius: 13px; border-width: 3px; font-size: 20px; }
+.grade-set .grade-btn small { font-size: 9px; margin-top: -3px; }
 .sliders { display: flex; flex-direction: column; gap: 8px; width: 100%; }
 .slider { display: flex; flex-direction: column; gap: 2px; font-size: 19px; font-weight: 800; background: #eef3fb; border: 3px solid var(--ink); border-radius: 16px; padding: 6px 14px; }
 .slider input { width: 100%; height: 34px; accent-color: var(--accent2); touch-action: pan-x; }
@@ -641,6 +645,10 @@ button { font: inherit; color: inherit; border: 0; cursor: pointer; touch-action
 .ball.b-cherish_ball::before { background: radial-gradient(circle at 30% 24%, #ff8a8a .06em, transparent .07em), radial-gradient(circle at 66% 30%, #ff8a8a .05em, transparent .06em); }
 .ball.b-master_ball { --top: #7a3fc0; }
 .ball.b-master_ball::before { background: radial-gradient(circle at 24% 28%, #f07ad0 .09em, transparent .1em), radial-gradient(circle at 76% 28%, #f07ad0 .09em, transparent .1em); }
+.ball.b-safari_ball { --top: #6f8f3a; --bot: #efe4c4; }
+.ball.b-safari_ball::before { clip-path: inset(0 0 56% 0); background: radial-gradient(ellipse .2em .13em at 26% 22%, #7a5a2e 98%, transparent), radial-gradient(ellipse .17em .12em at 70% 18%, #3f5a22 98%, transparent),
+  radial-gradient(ellipse .15em .1em at 52% 36%, #7a5a2e 98%, transparent), radial-gradient(ellipse .13em .09em at 14% 40%, #3f5a22 98%, transparent), radial-gradient(ellipse .14em .1em at 86% 38%, #7a5a2e 98%, transparent); }
+.hb-i.safari-ico { display: inline-flex; align-items: center; } .hb-i.safari-ico .ball, .hb-i.safari-ico .ball-img { font-size: 1.1em; }
 .ball-img { height: 1em; width: auto; vertical-align: -.14em; }
 .ap-icon .ball, .ap-icon .ball-img { font-size: 30px; }
 .ccost .ball, .ccost .ball-img, .dcost .ball, .dcost .ball-img, .gen-cost .ball, .gen-cost .ball-img { font-size: .85em; margin-right: .12em; }
@@ -680,6 +688,15 @@ button { font: inherit; color: inherit; border: 0; cursor: pointer; touch-action
 .rename-panel { align-items: center; gap: 14px; }
 /* J1 hidden enemy intel: black silhouettes + "?" until the first attempt; type icons after */
 .foe { position: relative; }
+/* Johto fix batch 1 step 7: the home-region rule's tag — pre-battle team row + the summon bar */
+.home-tag { display: inline-block; font-size: 14px; font-weight: 900; background: #eef3fb; border: 2px solid var(--ink); border-radius: 10px; padding: 1px 8px; }
+.pre-team { display: flex; gap: 8px; flex-wrap: nowrap; justify-content: center; }
+.pt-mon { width: clamp(92px, 11vw, 114px); border-radius: 14px; background: #fff; border: 3px solid var(--ink); padding: 2px 3px; display: flex; flex-direction: column; align-items: center; }
+.pt-mon canvas { width: 60%; aspect-ratio: 1; }
+.pt-mon .pt-lv { font-size: 13px; font-weight: 900; line-height: 1.1; }
+.pt-mon.away { background: #ffe9d6; }
+.away-tag { display: block; font-size: 11px; font-weight: 900; line-height: 1.05; text-align: center; color: #fff; background: #b5470b; border-radius: 6px; padding: 1px 3px; margin-top: 1px; }
+.card .away-tag { position: absolute; left: 3px; right: 3px; top: clamp(17px, 2.6vh, 24px); font-size: clamp(8px, 1.5vh, 11px); pointer-events: none; z-index: 2; opacity: .95; }
 .foe.hidden-foe { background: #e8ecf5; }
 .foe.hidden-foe canvas { filter: brightness(0); opacity: .85; }
 .foe .fq { position: absolute; top: 18%; left: 0; right: 0; text-align: center; font-size: clamp(28px, 5vh, 46px); font-weight: 900; color: var(--gold); pointer-events: none; text-shadow: 1.5px 0px 0 var(--ink), 1px 1px 0 var(--ink), 0px 1.5px 0 var(--ink), -1px 1px 0 var(--ink), -1.5px 0px 0 var(--ink), -1px -1px 0 var(--ink), 0px -1.5px 0 var(--ink), 1px -1px 0 var(--ink); }
@@ -760,11 +777,13 @@ button { font: inherit; color: inherit; border: 0; cursor: pointer; touch-action
 .bz-h small { font-size: .6em; text-shadow: none; opacity: .85; font-weight: 700; }
 .bz-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
 .bz-row.treasure-row { grid-template-columns: repeat(8, 1fr); }
+/* Hoenn Step 5: the XP ladder gains a 5th floor and the open Mega section 6 floors — one row each, never a second one */
+#bz-xp, #bz-mega.open { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); }
 .bz-card { position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 4px; border-radius: 16px; border: 4px solid var(--ink);
   background: var(--panel); box-shadow: 0 4px 0 rgba(0,0,0,.35); min-width: 0; text-align: center; }
 .bz-card > * { pointer-events: none; }
 .bz-card.xp { background: linear-gradient(var(--panel), #ffe7a0); }
-.bz-card.tier-great { background: linear-gradient(#e8f2ff, #9cc4ff); } .bz-card.tier-ultra { background: linear-gradient(var(--cream-hi), #d9c25a); } .bz-card.tier-master { background: linear-gradient(#f3e6ff, #c49cf0); }
+.bz-card.tier-great { background: linear-gradient(#e8f2ff, #9cc4ff); } .bz-card.tier-ultra { background: linear-gradient(var(--cream-hi), #d9c25a); } .bz-card.tier-master { background: linear-gradient(#f3e6ff, #c49cf0); } .bz-card.tier-hoenn { background: linear-gradient(#e2fbf6, #7fd3c8); }
 .bz-card.locked { filter: grayscale(.85); opacity: .75; }
 .bz-ball .ball, .bz-ball img { font-size: clamp(28px, 7vh, 54px); height: clamp(28px, 7vh, 54px); width: auto; }
 .bz-ball .ball { width: clamp(28px, 7vh, 54px); }
@@ -794,7 +813,6 @@ button { font: inherit; color: inherit; border: 0; cursor: pointer; touch-action
 .home-tower > * { pointer-events: none; }
 .home-tower:active { transform: translateY(4px); }
 .home-tower .ht-art { position: absolute; inset: 0; background-size: cover; background-position: center; }
-.home-tower .ht-art:empty::before { content: '🗼'; position: absolute; top: 18%; left: 50%; transform: translateX(-50%); font-size: clamp(40px, 13vh, 100px); }
 .home-tower .ht-name { position: relative; font-size: clamp(16px, 3.6vh, 28px); font-weight: 900; text-align: center; line-height: 1; text-shadow: 2px 0px 0 var(--ink), 2px 1px 0 var(--ink), 1.5px 1.5px 0 var(--ink), 1px 2px 0 var(--ink), 0px 2px 0 var(--ink), -1px 2px 0 var(--ink), -1.5px 1.5px 0 var(--ink), -2px 1px 0 var(--ink), -2px 0px 0 var(--ink), -2px -1px 0 var(--ink), -1.5px -1.5px 0 var(--ink), -1px -2px 0 var(--ink), 0px -2px 0 var(--ink), 1px -2px 0 var(--ink), 1.5px -1.5px 0 var(--ink), 2px -1px 0 var(--ink); }
 .home-tower .ht-sub { position: relative; font-size: clamp(10px, 1.9vh, 14px); font-weight: 900; background: rgba(20,28,50,.82); border-radius: 9px; padding: 1px 8px; text-align: center; }
 .home-tower.locked { filter: grayscale(.7) brightness(.85); }
@@ -895,6 +913,18 @@ button { font: inherit; color: inherit; border: 0; cursor: pointer; touch-action
 .banner-tabs.many .bt-sprites .leg-sprite { width: clamp(30px, 6.5vh, 58px); height: clamp(30px, 6.5vh, 58px); }
 .banner-tabs.many .bt-leg { display: none; }
 .banner-tabs.many .bt-name { font-size: clamp(11px, 2.4vh, 18px); }
+/* Hoenn Step 3: six banners — the tab column becomes a 2-column grid (3 rows), each tab showing its first legendaries */
+.banner-tabs.six { flex-basis: clamp(150px, 21vw, 280px); display: grid; grid-template-columns: 1fr 1fr; grid-auto-rows: 1fr; gap: 6px; }
+.banner-tabs.six .banner-tab { min-width: 0; min-height: 0; max-height: none; border-radius: 14px; }
+.banner-tabs.six .bt-sprites { overflow: hidden; flex-wrap: nowrap; justify-content: safe center; }
+.banner-tabs.six .bt-sprites .leg-sprite { width: clamp(22px, 5.2vh, 44px); height: clamp(22px, 5.2vh, 44px); flex: 0 0 auto; }
+.banner-tabs.six .bt-name { font-size: clamp(10px, 2.2vh, 16px); white-space: nowrap; }
+/* Hoenn Step 3: a banner with 4–5 legendaries shows each as sprite + name (no chips) so the row never overflows */
+.bc-names.crowd { gap: clamp(2px, 1vw, 12px); justify-content: center; }
+.bc-names.crowd .bc-chips { display: none; }
+.bc-names.crowd .bc-leg-info { gap: 2px; }
+.bc-names.crowd .bc-leg-info .leg-sprite { width: clamp(34px, 8vh, 72px); height: clamp(34px, 8vh, 72px); }
+.bc-names.crowd .bc-name { font-size: clamp(11px, 2.3vh, 18px); }
 /* Johto Step 2: PC Box region tabs (Kanto · Johto) */
 .coll-regions { display: flex; gap: 6px; }
 .coll-regions .coll-reg { opacity: .65; }
@@ -905,6 +935,7 @@ button { font: inherit; color: inherit; border: 0; cursor: pointer; touch-action
 .deck-slot .dots i.mega, .dots i.mega { background: #b04fe0; }
 .side-btn.mega { background: linear-gradient(160deg, #c38cff, #7a3fd1); color: #fff; }
 .megashop-panel { width: min(96vw, 1000px); }
+.megashop-tabs { justify-content: center; margin-top: 4px; }
 .megashop-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 8px; }
 .mega-stone { border: 3px solid var(--ink); border-radius: 14px; background: #fff; padding: 4px; display: flex; flex-direction: column; align-items: center; gap: 1px; font-size: 13px; }
 .mega-stone > * { pointer-events: none; }

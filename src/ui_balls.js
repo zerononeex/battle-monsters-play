@@ -5,7 +5,8 @@
 window.BM = window.BM || {};
 BM.GEN_BALLS = [null, 'poke_ball', 'great_ball', 'quick_ball', 'ultra_ball', 'luxury_ball', 'premier_ball', 'cherish_ball', 'master_ball'];
 BM.BALL_NAMES = { poke_ball: 'Poké Ball', great_ball: 'Great Ball', quick_ball: 'Quick Ball', ultra_ball: 'Ultra Ball', luxury_ball: 'Luxury Ball',
-  premier_ball: 'Premier Ball', cherish_ball: 'Cherish Ball', master_ball: 'Master Ball' };
+  premier_ball: 'Premier Ball', cherish_ball: 'Cherish Ball', master_ball: 'Master Ball',
+  safari_ball: 'Safari Ball' }; // batch1 step 8: the Safari Zone's home-button icon (art queued; CSS ball until it lands)
 // <img> of the ball's art, else a CSS ball (`.ball.b-<id>`, drawn in style.css). `cls` adds a size class.
 BM.ballHtml = function (id = 'poke_ball', cls = '') {
   const src = BM.Sprites && BM.Sprites.artSrc('icons/' + id);

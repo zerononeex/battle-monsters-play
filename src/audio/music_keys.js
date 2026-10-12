@@ -1,4 +1,4 @@
-// The ONLY music keys the game may play (docs/MUSIC_PROMPTS.md, 41 keys). Never rename a shipped key
+// The ONLY music keys the game may play (docs/MUSIC_PROMPTS.md, 57 keys). Never rename a shipped key
 // (BUG_REGISTRY BR-007); never add per-leader / per-person battle keys.
 window.BM = window.BM || {};
 BM.MUSIC_KEYS = {
@@ -27,8 +27,19 @@ BM.MUSIC_KEYS = {
   town_goldenrod: { loop: true, fallback: 'town_celadon' }, town_ecruteak: { loop: true, fallback: 'town_lavender' },
   town_olivine: { loop: true, fallback: 'town_vermilion' }, town_cianwood: { loop: true, fallback: 'town_cinnabar' },
   town_mahogany: { loop: true, fallback: 'town_pewter' }, town_blackthorn: { loop: true, fallback: 'town_indigo' },
+  // Hoenn (MUSIC_PROMPTS #42–#57, Hoenn prompt Step 0, prep C12 pairings CONFIRMED): the same fallback rule. Verdanturf (stage 9)
+  // plays town_fallarbor (the two towns share one theme in RSE).
+  map_hoenn: { loop: true, fallback: 'map_kanto' },
+  town_littleroot: { loop: true, fallback: 'town_pallet' }, town_oldale: { loop: true, fallback: 'town_viridian' },
+  town_petalburg: { loop: true, fallback: 'town_pewter' }, town_rustboro: { loop: true, fallback: 'town_saffron' },
+  town_dewford: { loop: true, fallback: 'town_cinnabar' }, town_slateport: { loop: true, fallback: 'town_vermilion' },
+  town_mauville: { loop: true, fallback: 'town_celadon' }, town_lavaridge: { loop: true, fallback: 'town_cinnabar' },
+  town_fallarbor: { loop: true, fallback: 'town_lavender' }, town_fortree: { loop: true, fallback: 'town_fuchsia' },
+  town_lilycove: { loop: true, fallback: 'town_celadon' }, town_mossdeep: { loop: true, fallback: 'town_saffron' },
+  town_sootopolis: { loop: true, fallback: 'town_cerulean' }, town_pacifidlog: { loop: true, fallback: 'town_vermilion' },
+  town_evergrande: { loop: true, fallback: 'town_indigo' },
 };
-// Which file a key plays: its own supplied MP3, else (Johto) its paired Kanto key's MP3, else null (= the synth fallback).
+// Which file a key plays: its own supplied MP3, else (Johto / Hoenn) its paired Kanto key's MP3, else null (= the synth fallback).
 // Returns { file, via } — `via` = the key whose file plays.
 BM.musicSource = function (key) {
   const k = BM.MUSIC_KEYS[key];

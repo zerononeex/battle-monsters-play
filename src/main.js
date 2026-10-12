@@ -57,6 +57,16 @@
     applySliders();
   }
   // Phase 6: per-profile mistake allowances for challenges (sliders)
+  // batch1 step 6: the Grade row in Settings (2–7, current lit); a tap saves it and refreshes the home chip + the picker card
+  function applyGrade() {
+    const p = prof(), gb = $('set-grade-btns');
+    if (!gb.children.length) for (const g of BM.Save.GRADES) {
+      const b = document.createElement('button'); b.className = 'grade-btn'; b.dataset.grade = g; b.innerHTML = `${g}<small>grade</small>`;
+      tap(b, () => { if (!prof() || BM.Save.setGrade(g) == null) return; BM.Audio.sfx('tap'); applyGrade(); renderChip(); renderProfiles(); });
+      gb.appendChild(b);
+    }
+    for (const b of gb.children) b.classList.toggle('on', !!p && Number(b.dataset.grade) === p.grade);
+  }
   function applySliders() {
     const s = prof() ? prof().settings : { mathMistakes: 2, spellMistakes: 3 };
     $('sl-math').value = s.mathMistakes; $('sl-math-v').textContent = s.mathMistakes;
@@ -246,6 +256,8 @@
     { id: 'hoenn', name: 'Hoenn', art: 'ui/region_hoenn', color: ['#5ec9c9', '#2f5fa8'], emoji: '🌊' },
     { id: 'sinnoh', name: 'Sinnoh & Beyond', art: 'ui/region_sinnoh', color: ['#a8b8e8', '#4f4f8f'], emoji: '❄️' },
   ];
+  // a shipped region's locked card says which Champion opens it (Hoenn Step 1: Hoenn opens after the Johto Champion)
+  const LOCK_TEXT = { johto: 'Beat the Kanto Champion to open Johto', hoenn: 'Beat the Johto Champion to open Hoenn' };
   const titleSpriteEl = $('title-sprite'); // (addendum: the region card shows the REGION — no Pokémon pasted on top)
   // H2 Region Carousel: ONE big region card (its map art), ◀ ▶ arrows + dots flip regions; tap the card = its map.
   let regionAt = 0, swiped = false;
@@ -265,13 +277,13 @@
     b.style.backgroundImage = wide ? `url("${wide}")` : tall ? `url("${tall}"), ${grad}` : grad;
     b.classList.toggle('portrait', !!tall);
     b.innerHTML = (art ? '' : `<span class="rt-emoji">${r.emoji}</span>`) + `<span class="rt-name">${r.name}</span>` +
-      `<span class="rt-sub">${open ? (p && p.regionsDone && p.regionsDone[r.id] ? `🏆 ${r.name} complete! · ${cleared} / ${total} stages ✓` : `${cleared} / ${total} stages ✓ · tap to play!`) : r.id === 'johto' ? '🔒 Beat the Kanto Champion to open Johto' : '🔒 Coming later'}</span>`;
+      `<span class="rt-sub">${open ? (p && p.regionsDone && p.regionsDone[r.id] ? `🏆 ${r.name} complete! · ${cleared} / ${total} stages ✓` : `${cleared} / ${total} stages ✓ · tap to play!`) : LOCK_TEXT[r.id] ? '🔒 ' + LOCK_TEXT[r.id] : '🔒 Coming later'}</span>`;
     b.classList.toggle('complete', !!(p && p.regionsDone && p.regionsDone[r.id]));
     // opens on RELEASE (pointerup) so a sideways swipe flips the region instead of opening it
     b.addEventListener('pointerdown', (e) => { e.preventDefault(); BM.Audio.unlock(); });
     b.addEventListener('pointerup', () => {
       if (swiped) return;
-      if (!open) { BM.Audio.sfx('deny'); toast(r.id === 'johto' ? 'Beat the Kanto Champion to open Johto!' : `${r.name} opens in a later update!`); return; }
+      if (!open) { BM.Audio.sfx('deny'); toast(LOCK_TEXT[r.id] ? LOCK_TEXT[r.id] + '!' : `${r.name} opens in a later update!`); return; }
       BM.Audio.sfx('tap'); mapRegion = r.id; go('map');
     });
     box.appendChild(b);
@@ -330,7 +342,7 @@
     if (r.item) add(`${itemIconHtml(r.item)} ${BM.ITEMS[r.item]}`, 'new');
     if (r.candy) for (const [id, n] of Object.entries(r.candy)) add(`${itemIconHtml(id)} ${n > 1 ? n + '× ' : ''}${BM.ITEMS[id]}`, 'new');
     // T1 (pre-battle preview): the guaranteed win candy's size range
-    if (r.preview && BM.winCandy(r.preview)) add(`${BM.winCandyBand(r.preview).table.map(([id]) => itemIconHtml(id)).join('')} + an XP candy every win`, 'new');
+    if (r.preview && BM.winCandy(r.preview)) add(`${BM.winCandyBand(r.preview).table.map(([id]) => itemIconHtml(id)).join('')} + ${BM.WIN_CANDY_N} XP candies every win`, 'new');
     // stage drop table rolls (Phase 4): stored in the bag / ticket wallet
     for (const d of r.drops || []) {
       if (d.item === 'tickets') add(`${tkHtml} +${d.n} bonus tickets`, 'drop');
@@ -340,6 +352,7 @@
     if (r.masterBall) add(`${itemIconHtml('master_ball')} Master Ball! (the Legendary Safari Zone)`, 'new legend');
     if (r.gift && r.giftNew !== false) add(`🎁 New character: ${BM.LINES[r.gift].name}!`, 'new');
     if (r.megaUnlocked) add('💎 Mega Evolution unlocked! (Mega Stones: the Safari Zone, the Prism Tower, Johto stages)', 'new legend'); // Johto Step 6
+    if (r.megaRayquaza) add('💎 Mega Rayquaza unlocked! (no stone needed)', 'new legend'); // Hoenn Step 6 (U4)
   }
   function renderPrebattle() {
     const st = BM.stageById(preStage), p = prof();
@@ -379,6 +392,17 @@
       }
       const l = document.createElement('span'); l.className = 'fl'; l.textContent = !known ? 'Lv ?' : e.min === e.max ? `Lv ${e.min}` : `Lv ${e.min}–${e.max}`; d.appendChild(l);
       foes.appendChild(d);
+    }
+    // batch1 step 7: the team row — a Pokémon away from its home region says so ("Away from home — fights at Lv N")
+    const tr = $('pre-team'); tr.innerHTML = '';
+    for (const id of p.team) {
+      const l = p.lines[id]; if (!l) continue;
+      const f = BM.FORMS[l.form], tag = BM.awayTag(f, l.level, st), d = document.createElement('div');
+      d.className = 'pt-mon' + (tag ? ' away' : ''); d.dataset.line = id;
+      d.appendChild(Scr.thumb(f, 72, false));
+      const lv = document.createElement('span'); lv.className = 'pt-lv'; lv.textContent = `Lv ${l.level}`; d.appendChild(lv);
+      if (tag) { const a = document.createElement('span'); a.className = 'away-tag'; a.textContent = tag; d.appendChild(a); }
+      tr.appendChild(d);
     }
     const wins = p.cleared[st.id] || 0;
     $('pre-rew-h').textContent = wins ? `Cleared ×${wins} — replay rewards` : 'First-clear rewards';
@@ -439,6 +463,9 @@
       el.innerHTML = '<span class="cd"></span><span class="cdnum"></span>';
       el.prepend(cv);
       const lv = document.createElement('span'); lv.className = 'clv'; lv.textContent = 'Lv ' + c.level; el.appendChild(lv);
+      // batch1 step 7: away from its home region → the card says so and the level it fights at
+      const away = BM.awayTag(c.form, c.level, B.S.stage);
+      if (away) { el.classList.add('away'); const a = document.createElement('span'); a.className = 'away-tag'; a.textContent = away; el.appendChild(a); }
       const name = document.createElement('span'); name.className = 'cname'; name.textContent = c.form.name; el.appendChild(name);
       const cost = document.createElement('span'); cost.className = 'ccost'; cost.innerHTML = BM.apIcon() + c.cost; el.appendChild(cost);
       // VV1: a card this stage's rule keeps out is greyed for the whole battle and SAYS why, in kid words
@@ -629,7 +656,9 @@
     const lg = $('end-legends'); lg.innerHTML = '';
     for (const id of legends) { const c = Scr.thumb(BM.LINES[id].forms[0], 96, false); c.dataset.line = id; lg.appendChild(c); }
     // Johto: Kanto's ending opens Johto (it is live now); Johto's ending unlocks Mega Evolution and points at Mt. Silver
-    $('end-next').textContent = region === 'kanto' ? 'Johto is open — find it on the home screen!' : 'Mega Evolution is unlocked! And someone is waiting at the top of Mt. Silver…';
+    // Hoenn: Johto's ending also opens Hoenn; Hoenn's ending opens Mega Rayquaza and points at the falling star over Sky Pillar
+    $('end-next').textContent = { kanto: 'Johto is open — find it on the home screen!', johto: 'Mega Evolution is unlocked — and Hoenn is open! Someone is waiting at the top of Mt. Silver…',
+      hoenn: 'Rayquaza can Mega Evolve now! And a falling star is heading for the top of Sky Pillar…' }[region] || 'A new adventure is waiting!';
     show('scr-ending', true); fit($('scr-ending'));
     BM.Audio.playMusic('credits');
   }
@@ -688,6 +717,7 @@
     show('pause-battle-btns', from === 'battle');
     show('btn-close-settings', from !== 'battle');
     show('mistake-sliders', !!prof());
+    show('grade-set', !!prof()); applyGrade();
     // Johto Step 6: the profile's Mega Evolution state, in kid words
     show('mega-status', !!prof() && settingsFrom !== 'battle');
     if (prof()) { const p = prof(), own = BM.MEGA_STONES.filter((s) => p.items[s] > 0).length;
@@ -784,6 +814,8 @@
     document.querySelector('.ap-icon').innerHTML = BM.apIcon('ap-pill-ball');
     // S1: every PC Box spot shows the Pokémon Center PC terminal (📦 until ASSET_PROMPTS #317 lands)
     for (const el of document.querySelectorAll('.pc-ico')) el.innerHTML = BM.pcIcon();
+    // batch1 step 8: the Safari Zone button = the Safari Ball (its icon art when icons/safari_ball lands, the CSS ball until then)
+    for (const el of document.querySelectorAll('.safari-ico')) el.innerHTML = BM.ballHtml('safari_ball');
   }
 
   // ---------- boot ----------

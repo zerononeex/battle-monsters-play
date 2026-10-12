@@ -16,6 +16,8 @@ window.BM = window.BM || {};
     { id: 'great', name: 'Great', ball: 'great_ball', minLv: 15, level: 22, xp: 6000, candy: { xp_candy_m: 1 }, curveAt: 9 },
     { id: 'ultra', name: 'Ultra', ball: 'ultra_ball', minLv: 30, level: 38, xp: 20000, candy: { xp_candy_l: 1 }, curveAt: 15 },
     { id: 'master', name: 'Master', ball: 'master_ball', minLv: 45, level: 54, xp: 45000, candy: { xp_candy_l: 2 }, curveAt: 21 },
+    // Hoenn Step 5: the 5th XP floor — the band above Johto's (Lv 61+ entry), open once Littleroot is cleared (Hoenn reached)
+    { id: 'hoenn', name: 'Hoenn', ball: 'master_ball', minLv: 61, level: 68, xp: 90000, candy: { xp_candy_l: 3 }, curveAt: 25, hoenn: true },
   ];
   // the highest tier a team of `lv` can sensibly farm (the sim's grind; the UI just recommends the band)
   BM.bonusTierFor = (lv) => BM.BONUS_TIERS.filter((t) => lv >= t.minLv).pop() || null;
@@ -26,10 +28,12 @@ window.BM = window.BM || {};
     great: (L) => [W('rattata', L - 2, 3, 6), W('pidgeot', L - 1, 12, 12), W('persian', L, 22, 13), W('clefairy', L, 30, 14)],
     ultra: (L) => [W('persian', L - 2, 3, 8), W('pidgeot', L, 10, 10), W('wigglytuff', L, 22, 14), W('snorlax', L - 2, 40, 26)],
     master: (L) => [W('persian', L - 2, 3, 7), W('pidgeot', L, 9, 9), W('snorlax', L, 25, 20), W('porygon2', L, 35, 18)],
+
+    hoenn: (L) => [W('linoone', L - 2, 3, 7), W('swellow', L, 9, 9), W('exploud', L - 1, 22, 16), W('vigoroth', L, 30, 18)],
   };
   const xpStages = BM.BONUS_TIERS.map((t) => ({
     id: 'bonus_xp_' + t.id, name: `${t.name} XP Stage`, bonus: 'xp', tier: t.id, kind: 'bonus', level: t.level, curveAt: t.curveAt,
-    background: { regular: 'pallet_town', great: 'cerulean_city', ultra: 'celadon_city', master: 'saffron_city' }[t.id],
+    background: { regular: 'pallet_town', great: 'cerulean_city', ultra: 'celadon_city', master: 'saffron_city', hoenn: 'hoenn_slateport_city' }[t.id], ...(t.hoenn ? { hoenn: true } : {}),
     // FF3: Tower pre-battle = `tower`, Tower battles = `battle_tower`
     music: 'battle_tower', townMusic: 'tower', ball: t.ball, minLv: t.minLv, bonusXp: t.xp, candy: t.candy,
     waves: XPW[t.id](t.level),
@@ -60,6 +64,8 @@ window.BM = window.BM || {};
   // Johto Step 5: the Sun Stone enters the Tower's item-vault pool — a Johto-era drop (`needs: 'johto'`: it rolls only for a
   // profile that has reached Johto; BM.dropOk, stages.js). Nothing else in the Tower changes structurally.
   treasure.find((st) => st.id === 'bonus_tr_item').drops.push({ item: 'sun_stone', w: 6, n: 1, needs: 'johto' });
+  // Hoenn Step 5: the Hoenn evolution items join the vault the same way (`needs: 'hoenn'`: they roll only once Hoenn is reached)
+  treasure.find((st) => st.id === 'bonus_tr_item').drops.push({ item: 'dawn_stone', w: 4, n: 1, needs: 'hoenn' }, { item: 'prism_scale', w: 3, n: 1, needs: 'hoenn' }, { item: 'reaper_cloth', w: 3, n: 1, needs: 'hoenn' });
   // MEGA STONE FLOORS (Johto Step 6): the section that was "Beat Johto to unlock 🔒" — four themed floors, open once Mega
   // Evolution is (the Johto Champion's first clear). Each drops its theme's Mega Stones (the first clear guarantees the headline
   // stone). Johto-level foes (Lv 62–65, late cadence), a Kanto + Johto-cleared deck.
@@ -71,6 +77,12 @@ window.BM = window.BM || {};
     M('jungle', 'Mega Jungle', 'venusaurite', ['venusaurite', 'meganiumite', 'pinsirite', 'scizorite'], [['sunkern', -2], ['skiploom', -1], ['ledian', -1], ['heracross', 0, 40, 22], ['scyther', 0, 50, 24]], 'johto_ilex_forest', 64, '🌿'),
     M('sky', 'Mega Sky Ruins', 'tyranitarite', ['tyranitarite', 'dragoninite', 'aerodactylite', 'alakazite', 'gengarite', 'raichunite_x', 'raichunite_y', 'mewtwonite_x', 'mewtwonite_y'], [['natu', -2], ['misdreavus', -1], ['xatu', -1], ['skarmory', 0, 30, 20], ['dragonair', 0, 45, 24], ['tyranitar', 1, 60, 30]], 'johto_mt_silver', 65, '🐉'),
   ];
+  // Hoenn Step 5 / 6: two Hoenn Mega Stone floors (the Johto Step 6 pattern) — open once Hoenn's desert (stage 12) is cleared;
+  // Hoenn-level foes (Lv 68–69), the Hoenn stones by theme. Latiasite / Latiosite are NOT here (the Safari Mega section only).
+  mega.push(
+    { ...M('hoenn_land', 'Mega Magma Peak', 'blazikenite', ['blazikenite', 'sceptilite', 'aggronite', 'medichamite', 'manectite', 'galladite', 'mawilite', 'metagrossite'], [['numel', -3], ['aron', -3], ['meditite', -2, 12, 14], ['camerupt', -2, 26, 18], ['aggron', -1, 45, 28]], 'hoenn_meteor_falls', 68, '🌋'), hoenn: true },
+    { ...M('hoenn_sea', 'Mega Abyss Trench', 'swampertite', ['swampertite', 'sharpedonite', 'gardevoirite', 'sablenite', 'banettite', 'absolite', 'absolite_z', 'altarianite', 'salamencite'], [['carvanha', -3], ['shuppet', -3], ['swablu', -2, 12, 14], ['sharpedo', -2, 26, 18], ['salamence', -1, 45, 28]], 'hoenn_seafloor_cavern', 69, '🌊'), hoenn: true },
+  );
   for (const st of mega) st.burst = { pool: [...new Set(st.waves.map((w) => w.form))] };
   BM.BONUS_STAGES = [...xpStages, ...treasure, ...mega];
   // Y1 (Phase 7.5): the Tower's strongest wave form (the evolved headline foe / the tier's heavy) waits for a 35 s timer gate
@@ -90,7 +102,7 @@ window.BM = window.BM || {};
   // Unlocks (BUILD_PLAN §4.3 spirit: Easy after Brock …): the zone itself opens after Brock; XP tiers after Brock / Lt. Surge /
   // Koga / Giovanni; each treasure stage once the campaign stage its band matches (`curveAt`) is cleared.
   BM.BONUS_OPEN_AFTER = 'kanto_05_brock';
-  const TIER_AFTER = { regular: 'kanto_05_brock', great: 'kanto_10_surge', ultra: 'kanto_15_koga', master: 'kanto_20_giovanni' };
-  BM.bonusUnlockStage = (st) => (st.bonus === 'mega' ? 'johto_24_champion' : st.tier ? TIER_AFTER[st.tier] : BM.KANTO_STAGES[Math.max(0, st.curveAt - 1)].id);
+  const TIER_AFTER = { regular: 'kanto_05_brock', great: 'kanto_10_surge', ultra: 'kanto_15_koga', master: 'kanto_20_giovanni', hoenn: 'hoenn_01_littleroot' };
+  BM.bonusUnlockStage = (st) => (st.bonus === 'mega' ? (st.hoenn ? 'hoenn_12_desert' : 'johto_24_champion') : st.tier ? TIER_AFTER[st.tier] : BM.KANTO_STAGES[Math.max(0, st.curveAt - 1)].id);
   BM.bonusOpen = (st, p) => !!(p && p.cleared[BM.bonusUnlockStage(st)] > 0);
 })();

@@ -47,7 +47,7 @@
     <button id="btn-team" class="home-btn"><span class="hb-i">🎴</span>Teams</button>
     <button id="btn-collection" class="home-btn"><span class="hb-i pc-ico">📦</span>PC Box</button>
     <button id="btn-items" class="home-btn"><span class="hb-i">🎒</span>Items</button>
-    <button id="btn-gacha" class="home-btn gacha"><span class="hb-i">🎰</span>Safari Zone</button>
+    <button id="btn-gacha" class="home-btn gacha"><span class="hb-i safari-ico"></span>Safari Zone</button>
   </div>
   <canvas id="title-sprite" width="200" height="140"></canvas>
 </section>
@@ -79,7 +79,7 @@
     </div>
     <div class="tower">
       <div class="floor top"><span class="fl-plate"><b>TOP</b>Mega floor</span><div id="bz-mega" class="bz-row"></div></div>
-      <div class="floor"><span class="fl-plate"><b>4F–1F</b>XP training<small>team XP for everyone you bring + an XP candy</small></span><div id="bz-xp" class="bz-row"></div></div>
+      <div class="floor"><span class="fl-plate"><b>5F–1F</b>XP training<small>team XP for everyone you bring + an XP candy</small></span><div id="bz-xp" class="bz-row"></div></div>
       <div class="floor ground"><span class="fl-plate"><b>B1</b>Treasure vaults<small>the first clear always finds the treasure</small></span><div id="bz-treasure" class="bz-row treasure-row"></div></div>
     </div>
   </div>
@@ -94,6 +94,9 @@
     <div id="pre-rules" class="pre-rules hidden"></div>
     <h3 class="pre-h" id="pre-foes-h">Who you'll meet</h3>
     <div id="pre-foes" class="pre-foes"></div>
+    <!-- Johto fix batch 1 step 7: the team you bring, with the home-region tag on any Pokémon away from home -->
+    <h3 class="pre-h">Your team</h3>
+    <div id="pre-team" class="pre-team"></div>
     <h3 class="pre-h" id="pre-rew-h">Rewards</h3>
     <div id="pre-rewards" class="rewards"></div>
     <h3 class="pre-h">Battle items <small>— tap to take one along · used up only if you WIN</small></h3>
@@ -225,6 +228,8 @@
     </div>
     <!-- Johto Step 6: Mega Evolution status (per profile) -->
     <div id="mega-status" class="mega-status hidden"></div>
+    <!-- Johto fix batch 1 step 6: grade is a per-profile setting (one grade drives math + spelling) -->
+    <div class="grade-set hidden" id="grade-set"><span>🎓 Grade</span><div class="grade-btns" id="set-grade-btns"></div></div>
     <div class="sliders" id="mistake-sliders">
       <label class="slider"><span>🧮 Math mistakes allowed: <b id="sl-math-v">2</b></span><input id="sl-math" type="range" min="2" max="10" step="1" value="2"></label>
       <label class="slider"><span>🔤 Spelling mistakes allowed: <b id="sl-spell-v">3</b></span><input id="sl-spell" type="range" min="3" max="10" step="1" value="3"></label>
@@ -451,6 +456,8 @@
     <button id="btn-megashop-x" class="panel-x" aria-label="Close">✕</button>
     <h2>💎 Mega Stones</h2>
     <p id="megashop-help"></p>
+    <!-- Hoenn Step 6: 37 stones would need scrolling — two tabs (Kanto · Johto stones / Hoenn stones), each one no-scroll grid -->
+    <div id="megashop-tabs" class="coll-regions megashop-tabs"></div>
     <div id="megashop-grid" class="megashop-grid"></div>
   </div>
 </section>
@@ -484,14 +491,18 @@
 <script src="src/data/base_stats.js"></script>
 <script src="src/data/johto.js"></script>
 <script src="src/data/johto_chain.js"></script>
+<script src="src/data/hoenn.js"></script>
+<script src="src/data/hoenn_chain.js"></script>
 <script src="src/data/combat.js"></script>
 <script src="src/data/stages.js"></script>
 <script src="src/data/johto_stages.js"></script>
+<script src="src/data/hoenn_stages.js"></script>
 <script src="src/data/mega.js"></script>
 <script src="src/data/bonus.js"></script>
 <script src="src/data/restrictions.js"></script>
 <script src="src/data/kanto_map.js"></script>
 <script src="src/data/johto_map.js"></script>
+<script src="src/data/hoenn_map.js"></script>
 <script src="src/data/banners.js"></script>
 <script src="src/data/math_gen.js"></script>
 <script src="src/data/words.js"></script>

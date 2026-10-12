@@ -281,7 +281,7 @@ BM.Render = function (canvas) {
       moveFx(BM.combatOf(a.form), a, L.sx(a.x), L.ground() + L.depth(a) - L.unitH(a.form) * 0.55,
         x + (Math.random() - 0.5) * bw * 0.4, L.ground() - bw * 0.5 + (Math.random() - 0.5) * bw * 0.4, BM.TYPE_COLORS[a.form.attackType], now + (ev.k || 0) * 0.11);
     } else if (ev.type === 'ace') {
-      texts.push({ text: `${ev.leader || 'The leader'} sends out ${ev.giant ? 'GIANT ' : ''}${ev.unit.form.name}!`, x: W * 0.5, y: fieldH * 0.32, t0: now, dur: 2.2, size: ev.giant ? 42 : 36, color: '#ffb347' });
+      texts.push({ text: ev.blocker ? `A GIANT ${ev.unit.form.name} blocks the way!` : `${ev.leader || 'The leader'} sends out ${ev.giant ? 'GIANT ' : ''}${ev.unit.form.name}!`, x: W * 0.5, y: fieldH * 0.32, t0: now, dur: 2.2, size: ev.giant ? 42 : 36, color: '#ffb347' });
     } else if (ev.type === 'burst') { // K2: a burst group / counter-burst pushes out
       texts.push({ text: ev.kind === 'threshold' ? 'The den fights back!' : 'Here they come!', x: W * 0.62, y: fieldH * 0.4, t0: now, dur: 1.4, size: ev.kind === 'threshold' ? 34 : 26, color: ev.kind === 'threshold' ? '#ff7a59' : '#ffd84a' });
     } else if (ev.type === 'gate') { // Y1: the stage's strongest Pokémon join in
