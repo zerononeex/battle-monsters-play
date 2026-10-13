@@ -1,4 +1,4 @@
-// The ONLY music keys the game may play (docs/MUSIC_PROMPTS.md, 57 keys). Never rename a shipped key
+// The ONLY music keys the game may play (docs/MUSIC_PROMPTS.md, 85 keys). Never rename a shipped key
 // (BUG_REGISTRY BR-007); never add per-leader / per-person battle keys.
 window.BM = window.BM || {};
 BM.MUSIC_KEYS = {
@@ -38,6 +38,24 @@ BM.MUSIC_KEYS = {
   town_lilycove: { loop: true, fallback: 'town_celadon' }, town_mossdeep: { loop: true, fallback: 'town_saffron' },
   town_sootopolis: { loop: true, fallback: 'town_cerulean' }, town_pacifidlog: { loop: true, fallback: 'town_vermilion' },
   town_evergrande: { loop: true, fallback: 'town_indigo' },
+  // Sinnoh (MUSIC_PROMPTS #58–#73, Sinnoh + Unova prompt Step 0e / S7, the pack's pairings): the same fallback rule.
+  map_sinnoh: { loop: true, fallback: 'map_kanto' },
+  town_twinleaf: { loop: true, fallback: 'town_pallet' }, town_sandgem: { loop: true, fallback: 'town_viridian' },
+  town_jubilife: { loop: true, fallback: 'town_saffron' }, town_oreburgh: { loop: true, fallback: 'town_pewter' },
+  town_floaroma: { loop: true, fallback: 'town_fuchsia' }, town_eterna: { loop: true, fallback: 'town_celadon' },
+  town_hearthome: { loop: true, fallback: 'town_cerulean' }, town_solaceon: { loop: true, fallback: 'town_viridian' },
+  town_veilstone: { loop: true, fallback: 'town_celadon' }, town_pastoria: { loop: true, fallback: 'town_fuchsia' },
+  town_celestic: { loop: true, fallback: 'town_lavender' }, town_canalave: { loop: true, fallback: 'town_vermilion' },
+  town_snowpoint: { loop: true, fallback: 'town_cinnabar' }, town_sunyshore: { loop: true, fallback: 'town_vermilion' },
+  town_sinnoh_league: { loop: true, fallback: 'town_indigo' },
+  // Unova (MUSIC_PROMPTS #74–#85, Step 0e / U-S7): each Kanto town paired once.
+  map_unova: { loop: true, fallback: 'map_kanto' },
+  town_nuvema: { loop: true, fallback: 'town_pallet' }, town_accumula: { loop: true, fallback: 'town_viridian' },
+  town_striaton: { loop: true, fallback: 'town_cerulean' }, town_nacrene: { loop: true, fallback: 'town_pewter' },
+  town_castelia: { loop: true, fallback: 'town_saffron' }, town_nimbasa: { loop: true, fallback: 'town_celadon' },
+  town_driftveil: { loop: true, fallback: 'town_vermilion' }, town_mistralton: { loop: true, fallback: 'town_fuchsia' },
+  town_icirrus: { loop: true, fallback: 'town_lavender' }, town_opelucid: { loop: true, fallback: 'town_cinnabar' },
+  town_unova_league: { loop: true, fallback: 'town_indigo' },
 };
 // Which file a key plays: its own supplied MP3, else (Johto / Hoenn) its paired Kanto key's MP3, else null (= the synth fallback).
 // Returns { file, via } — `via` = the key whose file plays.

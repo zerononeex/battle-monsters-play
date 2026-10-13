@@ -292,6 +292,8 @@ BM.Render = function (canvas) {
       // it replaces the 50% counter-burst's own line (same frame) and sits mid-field, sized to the field (phone landscape is short)
       for (let k = texts.length - 1; k >= 0; k--) if (texts[k].text === 'The den fights back!' && now - texts[k].t0 < 0.3) texts.splice(k, 1);
       texts.push({ text: BM.LAST_STAND_TEXT, x: W * 0.5, y: fieldH * 0.5, t0: now, dur: 2.6, size: Math.round(Math.min(40, Math.max(22, fieldH * 0.075))), color: '#ff7a3a' });
+    } else if (ev.type === 'summon') { // Sinnoh node 26: Arceus calls its guardians
+      texts.push({ text: `${ev.unit.form.name} calls for help!`, x: W * 0.55, y: fieldH * 0.36, t0: now, dur: 1.6, size: Math.round(Math.min(34, Math.max(20, fieldH * 0.065))), color: '#ffe680' });
     } else if (ev.type === 'burst') { // K2: a burst group / counter-burst pushes out
       texts.push({ text: ev.kind === 'threshold' ? 'The den fights back!' : 'Here they come!', x: W * 0.62, y: fieldH * 0.4, t0: now, dur: 1.4, size: ev.kind === 'threshold' ? 34 : 26, color: ev.kind === 'threshold' ? '#ff7a59' : '#ffd84a' });
     } else if (ev.type === 'gate') { // Y1: the stage's strongest Pokémon join in

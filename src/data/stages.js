@@ -72,7 +72,10 @@ window.BM = window.BM || {};
     {
       id: 'kanto_07_cerulean', num: 7, name: 'Cerulean City', drops: D('mid', { water_stone: 2, moon_stone: 1 }), kind: 'trainer', level: 17,
       background: 'cerulean_city', music: 'battle_trainer', townMusic: 'town_cerulean',
-      burst: { pool: ['oddish', 'psyduck', 'meowth'] }, // Phase 7.5: the EE1 evolutions stay in the trickle, not the bursts / wall-breaker
+      // BR-109 fix (Sinnoh + Unova prompt Step 0a, Kakashi's call): 0/6 since the batch-1 generator costs — the flood buried the
+      // on-level Kanto deck by ~80 s with the den untouched. Thinner: packs 1–2, trickle ×2, bursts 2–3 every 30–40 s, one
+      // counter-burst (50%) — waves / levels / forms unchanged (native deck 0/6 → 4/6, 12 seeds 8/12)
+      burst: { pool: ['oddish', 'psyduck', 'meowth'], pack: [1, 2], trickle: 2, size: [2, 3], every: [30, 40], thresholds: [0.5] }, // Phase 7.5: the EE1 evolutions stay in the trickle, not the bursts / wall-breaker
       waves: [W('oddish', 15, 4, 11), W('psyduck', 16, 16, 15), W('meowth', 17, 30, 15), W('oddish', 16, 90, 12), W('meowth', 17, 120, 13), W('pidgeotto', 16, 60, 32)],
     },
     {
@@ -84,7 +87,8 @@ window.BM = window.BM || {};
     {
       id: 'kanto_09_vermilion', num: 9, name: 'Vermilion City', place: 'S.S. Anne', drops: D('mid', { thunder_stone: 2, metal_coat: 1, water_stone: 1 }), kind: 'trainer', level: 22,
       background: 'vermilion_city', music: 'battle_trainer', townMusic: 'town_vermilion',
-      burst: { pool: ['tentacool', 'machop', 'growlithe'] }, // Phase 7.5: the EE1 evolutions stay in the trickle, not the bursts / wall-breaker
+      // BR-109 fix (Step 0a): 1/6 → packs 1–2, trickle ×1.6, bursts 2–3 every 24–32 s, one counter-burst (50%) → 5/6 (12 seeds 11/12)
+      burst: { pool: ['tentacool', 'machop', 'growlithe'], pack: [1, 2], trickle: 1.6, size: [2, 3], every: [24, 32], thresholds: [0.5] }, // Phase 7.5: the EE1 evolutions stay in the trickle, not the bursts / wall-breaker
       waves: [W('tentacool', 20, 4, 11), W('machop', 21, 16, 15), W('growlithe', 22, 32, 17), W('tentacool', 21, 90, 11), W('machop', 22, 120, 15), W('raticate', 20, 60, 30), W('tentacruel', 20, 95, 40)],
     },
     {

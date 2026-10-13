@@ -240,8 +240,6 @@ window.BM = window.BM || {};
     E('gorebyss', 'Gorebyss', ['water'], 485, 55, 52, 'ranged', {size: 1.25, sizeClass: 'medium'}),
     E('relicanth', 'Relicanth', ['water', 'rock'], 485, 100, 55, 'tank', {trait: 'tank', size: 1.3, sizeClass: 'medium'}),
     E('luvdisc', 'Luvdisc', ['water'], 330, 43, 97, 'balanced', {size: 0.7, sizeClass: 'fodder'}),
-    E('roselia', 'Roselia', ['grass', 'poison'], 400, 50, 65, 'ranged', {size: 0.85, sizeClass: 'fodder'}),
-    E('roserade', 'Roserade', ['grass', 'poison'], 515, 60, 90, 'ranged', {size: 1.2, sizeClass: 'medium'}),
     E('volbeat', 'Volbeat', ['bug'], 430, 65, 85, 'balanced', {size: 0.9, sizeClass: 'fodder'}),
     E('illumise', 'Illumise', ['bug'], 430, 65, 85, 'ranged', {size: 0.9, sizeClass: 'fodder'}),
     E('magnemite', 'Magnemite', ['electric', 'steel'], 325, 25, 45, 'ranged', {size: 0.75, sizeClass: 'fodder'}),
@@ -250,6 +248,8 @@ window.BM = window.BM || {};
     E('goldeen', 'Goldeen', ['water'], 320, 45, 63, 'rusher', {size: 0.8, sizeClass: 'fodder'}),
     E('seaking', 'Seaking', ['water'], 450, 80, 68, 'bruiser', {size: 1.2, sizeClass: 'medium'}),
   ];
+  // Sinnoh + Unova Act 1 S2 (U1, Budew IN): Roselia + Roserade left this list — they are the Sinnoh PLAYER line Budew → Roselia →
+  // Roserade now (sinnoh.js); Hoenn waves keep fielding them as enemy forms by id.
   for (const f of foes) BM.addLine({ id: f.id, name: f.name, enemyOnly: true, region: 'hoenn', forms: [{ ...f, runOnly: !f.aceClass }] });
   BM.ENEMY_ONLY.push(...foes.map((f) => f.id));
   // ---- Mega forms: PokéAPI / Showdown stats, own move / cooldown; priced by mega.js (base final form + 15, cap 130). Appended —

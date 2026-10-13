@@ -46,7 +46,7 @@ BM.GachaScreen = function (ui) {
     card.appendChild(stage);
     const info = document.createElement('div'); info.className = 'bc-info'; info.id = 'bc-info';
     const names = document.createElement('div'); names.className = 'bc-names ss1';
-    names.classList.toggle('crowd', b.legendaries.length > 3); // Hoenn's 5 / 4 legendaries: sprite + name only (chips hidden) so the row fits
+    names.classList.toggle('crowd', b.legendaries.length > 3); names.classList.toggle('crowd6', b.legendaries.length > 5); // Sinnoh / Unova's six: name under the sprite // Hoenn's 5 / 4 legendaries: sprite + name only (chips hidden) so the row fits
     for (const id of b.legendaries) {
       const d = document.createElement('div'); d.className = 'bc-leg-info'; d.dataset.line = id;
       // SS1: the legendary's battle sprite leads its name row (key art above stays uncropped; this is UI below it)
@@ -150,11 +150,12 @@ BM.GachaScreen = function (ui) {
   // ---------- Mega Stone section (Johto Step 6) ----------
   // Hoenn Step 6: the stones in two tabs — Kanto · Johto (19) and Hoenn (19, once the profile reaches Hoenn) — so the grid never scrolls
   let megaTab = 'kj';
-  const MEGA_TABS = [['kj', 'Kanto · Johto', (s) => BM.ITEM_INFO[s].region !== 'hoenn'], ['hoenn', 'Hoenn', (s) => BM.ITEM_INFO[s].region === 'hoenn']];
+  // Sinnoh / Unova: one more tab each (9 / 8 stones), shown once the profile reaches that region
+  const MEGA_TABS = [['kj', 'Kanto · Johto', (s) => !['hoenn', 'sinnoh', 'unova'].includes(BM.ITEM_INFO[s].region)], ...['hoenn', 'sinnoh', 'unova'].map((r) => [r, BM.REGION_NAMES[r], (s) => BM.ITEM_INFO[s].region === r])];
   function openMegaShop() {
     const p = prof(), box = $('megashop-grid'); box.innerHTML = '';
     $('megashop-help').innerHTML = `Own a Mega Stone and that Pokémon can Mega Evolve — cycle to its Mega form on the Team screen! ${TK()} ${G.MEGA_STONE_TICKETS} each · you have ${p.tickets}.`;
-    const tabs = MEGA_TABS.filter(([id]) => id !== 'hoenn' || BM.regionReached('hoenn', p));
+    const tabs = MEGA_TABS.filter(([id]) => id === 'kj' || BM.regionReached(id, p));
     if (!tabs.some(([id]) => id === megaTab)) megaTab = 'kj';
     const tb = $('megashop-tabs'); tb.innerHTML = ''; show('megashop-tabs', tabs.length > 1);
     for (const [id, name] of tabs) { const t = document.createElement('button'); t.className = 'pill-btn coll-reg' + (id === megaTab ? ' on' : ''); t.dataset.tab = id; t.textContent = name;

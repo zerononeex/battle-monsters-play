@@ -259,10 +259,11 @@
     { id: 'kanto', name: 'Kanto', art: 'ui/region_kanto', color: ['#7ec86a', '#2f7fb8'], emoji: '🌋' },
     { id: 'johto', name: 'Johto', art: 'ui/region_johto', color: ['#c9a36a', '#7a4f2f'], emoji: '🔔' },
     { id: 'hoenn', name: 'Hoenn', art: 'ui/region_hoenn', color: ['#5ec9c9', '#2f5fa8'], emoji: '🌊' },
-    { id: 'sinnoh', name: 'Sinnoh & Beyond', art: 'ui/region_sinnoh', color: ['#a8b8e8', '#4f4f8f'], emoji: '❄️' },
+    { id: 'sinnoh', name: 'Sinnoh', art: 'ui/region_sinnoh', color: ['#a8b8e8', '#4f4f8f'], emoji: '❄️' },
+    { id: 'unova', name: 'Unova', art: 'ui/region_unova', color: ['#9aa4b8', '#2f3f5f'], emoji: '🌉' }, // the roadmap ends at Unova
   ];
   // a shipped region's locked card says which Champion opens it (Hoenn Step 1: Hoenn opens after the Johto Champion)
-  const LOCK_TEXT = { johto: 'Beat the Kanto Champion to open Johto', hoenn: 'Beat the Johto Champion to open Hoenn' };
+  const LOCK_TEXT = { johto: 'Beat the Kanto Champion to open Johto', hoenn: 'Beat the Johto Champion to open Hoenn', sinnoh: 'Beat the Hoenn Champion to open Sinnoh', unova: 'Beat the Sinnoh Champion to open Unova' };
   const titleSpriteEl = $('title-sprite'); // (addendum: the region card shows the REGION — no Pokémon pasted on top)
   // H2 Region Carousel: ONE big region card (its map art), ◀ ▶ arrows + dots flip regions; tap the card = its map.
   let regionAt = 0, swiped = false;
@@ -650,11 +651,13 @@
   function celebrate(r) {
     const box = $('result-cele');
     box.innerHTML = '';
-    show('result-cele', !!(r && r.regionComplete && r.giftNew));
-    if (!(r && r.regionComplete && r.giftNew)) return;
+    // Sinnoh node 26: a legendary gift WITHOUT a region ending (Arceus, "The Original One") gets the same celebration
+    const cele = !!(r && r.giftNew && r.gift && (r.regionComplete || BM.LINES[r.gift].legendary));
+    show('result-cele', cele);
+    if (!cele) return;
     const f = BM.LINES[r.gift].forms[0];
     box.appendChild(Scr.thumb(f, 150, false));
-    box.insertAdjacentHTML('beforeend', `<div class="rc-text"><b>${f.name} joins your team!</b><span>The legend of ${BM.REGION_NAMES[r.regionComplete] || 'Kanto'} chose YOU — it's in your PC Box at Lv 1${r.giftOnTeam ? ' and on your team' : ''}.</span></div>`);
+    box.insertAdjacentHTML('beforeend', `<div class="rc-text"><b>${f.name} joins your team!</b><span>The legend of ${BM.REGION_NAMES[r.regionComplete || BM.LINES[r.gift].region] || 'Kanto'} chose YOU — it's in your PC Box at Lv 1${r.giftOnTeam ? ' and on your team' : ''}.</span></div>`);
     setTimeout(() => BM.Audio.cry(f.id, f.size, 1, 'ui'), 700);
   }
   // ENDING (Phase 7): after the Champion falls for the first time — the `credits` track, a region-complete summary
@@ -672,7 +675,8 @@
     // Johto: Kanto's ending opens Johto (it is live now); Johto's ending unlocks Mega Evolution and points at Mt. Silver
     // Hoenn: Johto's ending also opens Hoenn; Hoenn's ending opens Mega Rayquaza and points at the falling star over Sky Pillar
     $('end-next').textContent = { kanto: 'Johto is open — find it on the home screen!', johto: 'Mega Evolution is unlocked — and Hoenn is open! Someone is waiting at the top of Mt. Silver…',
-      hoenn: 'Rayquaza can Mega Evolve now! And a falling star is heading for the top of Sky Pillar…' }[region] || 'A new adventure is waiting!';
+      hoenn: 'Rayquaza can Mega Evolve now! And a falling star is heading for the top of Sky Pillar… — and Sinnoh is open!',
+      sinnoh: 'Unova is open! And a strange rift is tearing open above Spear Pillar…', unova: 'You are the hero of five regions! Champion Alder is waiting for one more battle…' }[region] || 'A new adventure is waiting!';
     show('scr-ending', true); fit($('scr-ending'));
     BM.Audio.playMusic('credits');
   }

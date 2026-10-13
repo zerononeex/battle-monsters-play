@@ -58,6 +58,42 @@ BM.BANNERS.push(
     lines: ['ralts', 'sableye', 'minun', 'carvanha', 'wailmer', 'spoink', 'swablu', 'barboach', 'feebas', 'duskull', 'spheal', 'beldum'],
   },
 );
+// SINNOH (Sinnoh + Unova prompt Act 1 S3, pack C2 / C3 — "Diamond / Pearl", 6 + 6 legendaries): same economy, the guarantee on the
+// 100th pull; shown once the profile REACHES Sinnoh (Hoenn beaten). Banner A ("Diamond", time) = Dialga + Heatran + Regigigas + Uxie +
+// Darkrai + Shaymin (the two mythicals) · Banner B ("Pearl", space) = Palkia + Cresselia + Mesprit + Azelf + Enamorus + Manaphy.
+// GIRATINA (the Champion's reward) and ARCEUS (node 26's reward) are on NO banner. 12 lines each: Cranidos / Stunky (Diamond) → A,
+// Shieldon / Glameow (Pearl) → B; the one pseudo (Gible) → A, the other Super Rare (Spiritomb) → B; Riolu on A AND the stage-13 gift
+// (the Beldum precedent). The starters + the Hisuian Typhlosion branch (stage gifts) are on neither.
+BM.BANNERS.push(
+  {
+    id: 'sinnoh_a', region: 'sinnoh', name: 'Sinnoh Banner A', short: 'Sinnoh A', theme: 'Diamond',
+    legendaries: ['dialga', 'heatran', 'regigigas', 'uxie', 'darkrai', 'shaymin'],
+    lines: ['shinx', 'cranidos', 'combee', 'drifloon', 'stunky', 'riolu', 'snover', 'gible', 'starly', 'hippopotas', 'bronzor', 'growlithe_hisui'],
+  },
+  {
+    id: 'sinnoh_b', region: 'sinnoh', name: 'Sinnoh Banner B', short: 'Sinnoh B', theme: 'Pearl',
+    legendaries: ['palkia', 'cresselia', 'mesprit', 'azelf', 'enamorus', 'manaphy'],
+    lines: ['roselia', 'buizel', 'buneary', 'croagunk', 'rotom', 'shieldon', 'glameow', 'pachirisu', 'skorupi', 'spiritomb', 'shellos', 'finneon'],
+  },
+);
+// UNOVA (Act 2 U-S3, pack C4 / C5 — "Black / White", 6 + 6 legendaries, two mythicals each): shown once the profile REACHES Unova
+// (Sinnoh beaten). Banner A ("Black") = Reshiram + Tornadus + Cobalion + Terrakion + Victini + Meloetta · Banner B ("White") = Zekrom +
+// Thundurus + Virizion + Landorus + Keldeo + Genesect. KYUREM (N's Castle reward) is on NO banner; Enamorus stays on Sinnoh B.
+// Lines: version exclusives follow their version (Vullaby / Cottonee → A, Rufflet / Petilil → B); branch pairs apart (Zorua A / Hisuian
+// Zorua B, Rufflet B / Hisuian Braviary A, Petilil B / Hisuian Lilligant A); the pseudo Deino → A, the other Super Rare Larvesta → B;
+// Basculegion (user ruling) → A. The starters + the Hisuian Samurott branch (stage gifts) are on neither.
+BM.BANNERS.push(
+  {
+    id: 'unova_a', region: 'unova', name: 'Unova Banner A', short: 'Unova A', theme: 'Black',
+    legendaries: ['reshiram', 'tornadus', 'cobalion', 'terrakion', 'victini', 'meloetta'],
+    lines: ['zorua', 'drilbur', 'scraggy', 'golett', 'deino', 'vullaby', 'cottonee', 'timburr', 'pawniard', 'archen', 'rufflet_braviary_hisui', 'petilil_lilligant_hisui', 'basculin_white_striped'],
+  },
+  {
+    id: 'unova_b', region: 'unova', name: 'Unova Banner B', short: 'Unova B', theme: 'White',
+    legendaries: ['zekrom', 'thundurus', 'virizion', 'landorus', 'keldeo', 'genesect'],
+    lines: ['zorua_hisui', 'joltik', 'litwick', 'tynamo', 'venipede', 'audino', 'axew', 'rufflet', 'petilil', 'sandile', 'tirtouga', 'emolga', 'larvesta'],
+  },
+);
 // Banners the profile can see: its reached regions' (Kanto always; Johto once Kanto is beaten)
 BM.bannersFor = (p) => BM.BANNERS.filter((b) => BM.regionReached(b.region, p));
 // Every line a banner can give (legendaries + the rest).

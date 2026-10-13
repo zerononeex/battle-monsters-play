@@ -70,6 +70,17 @@ window.BM = window.BM || {};
     hoenn_17_tate_liza: ['gardevoirite'], hoenn_20_sidney: ['absolite_z', 'absolite'], hoenn_23_drake: ['salamencite'], hoenn_24_champion: ['metagrossite'],
     hoenn_25_sky_pillar: ['metagrossite', 'salamencite'],
   });
+  // Sinnoh (Act 1 S6, the pack's C11 table): one type-matched stage per stone. Heatranite + Darkranite drop nowhere — the Safari Mega
+  // section ONLY (legendary stones, the Latiasite / Latiosite precedent).
+  Object.assign(MEGA_DROPS, {
+    sinnoh_06_eterna_forest: ['lopunnite'], sinnoh_09_solaceon: ['staraptite'], sinnoh_10_maylene: ['lucarionite'], sinnoh_13_iron_island: ['lucarionite_z'],
+    sinnoh_15_candice: ['abomasite'], sinnoh_21_bertha: ['garchompite_z'], sinnoh_24_champion: ['garchompite'], sinnoh_25_hisui_rift: ['garchompite', 'lucarionite'],
+  });
+  // Unova (Act 2 U-S6, the pack's C11 table): one type-matched stage per stone (no Safari-only stone this region)
+  Object.assign(MEGA_DROPS, {
+    unova_06_pinwheel: ['audinite'], unova_07_burgh: ['scolipite'], unova_11_clay: ['excadrite'], unova_12_chargestone: ['eelektrossite'],
+    unova_13_celestial: ['chandelurite'], unova_20_shauntal: ['golurkite', 'chandelurite'], unova_21_grimsley: ['scraftinite'], unova_23_marshal: ['emboarite'],
+  });
   for (const [id, stones] of Object.entries(MEGA_DROPS)) { const st = BM.stageById(id); for (const s of stones) st.drops.push({ item: s, w: 0.6, n: 1, needs: 'mega' }); }
   BM.MEGA_DROPS = MEGA_DROPS;
 })();

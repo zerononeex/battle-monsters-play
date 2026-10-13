@@ -3,7 +3,7 @@
 //   forms:  every form of every line (+ Mega forms) whose sheets are not wired: the run sheet always; the attack sheet too for
 //           anything that is not run-only fodder (runOnly forms lunge — §4.10)
 //   images: the stage backgrounds, enemy bases, region maps, banner key art and item icons the data names but the manifest lacks
-// Each entry carries its region ('kanto' | 'johto' | 'hoenn') so an Act 1 can prove the shipped regions stay at ZERO while the new
+// Each entry carries its region ('kanto' | 'johto' | 'hoenn' | 'sinnoh' | 'unova') so an Act 1 can prove the shipped regions stay at ZERO while the new
 // region lists exactly its queue.
 window.BM = window.BM || {};
 BM.artAudit = function () {
@@ -13,13 +13,14 @@ BM.artAudit = function () {
     const k = f.sprite || f.id, sf = SF[k] || {}, need = [];
     if (!sf.run) need.push('run');
     if (!f.runOnly && f.attackArt !== 'run' && !sf.attack) need.push('attack'); // attackArt 'run': the run-sheet lunge fallback (Hoenn #892 / #902)
-    const lr = BM.LINES[f.line] && BM.LINES[f.line].region;
-    if (need.length) forms.push({ id: f.id, need, region: lr === 'hoenn' ? 'hoenn' : f.mega || lr === 'johto' ? 'johto' : 'kanto' });
+    // `artRegion` on a form = the region whose queue holds its missing sheet (Froslass's Sinnoh-queued attack sheet on a Hoenn line)
+    const lr = f.artRegion || (BM.LINES[f.line] && BM.LINES[f.line].region);
+    if (need.length) forms.push({ id: f.id, need, region: ['hoenn', 'sinnoh', 'unova'].includes(lr) ? lr : f.mega || lr === 'johto' ? 'johto' : 'kanto' });
   }
   const images = [], want = (key, have, region) => { if (!have) images.push({ key, region }); };
   for (const st of BM.STAGES) {
     if (st.dev) continue;
-    const r = st.region === 'hoenn' || st.hoenn ? 'hoenn' : st.region === 'johto' || st.bonus === 'mega' ? 'johto' : 'kanto';
+    const r = st.artRegion || (['hoenn', 'sinnoh', 'unova'].includes(st.region) ? st.region : st.hoenn ? 'hoenn' : st.region === 'johto' || st.bonus === 'mega' ? 'johto' : 'kanto');
     want('bg/' + (st.bgArt || st.background), BG[st.bgArt] || BG[st.background], r); // a gym / E4 interior (bgArt) or its town
     if (st.baseArt) want('bases/' + st.baseArt, ART['bases/' + st.baseArt], r);
   }

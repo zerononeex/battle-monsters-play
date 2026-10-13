@@ -299,7 +299,7 @@ BM.Battle = function (stage, profile, opts = {}) {
       // late on, when the pack range allows 3+); aces / bosses always solo
       const n = packSize(BM.FORMS[w.form]);
       // BR-099 (Hoenn tables, `packBase`): the extras come as the line's BASE form — more, weaker bodies, not more power
-      for (let k = 0; k < n && count(-1) < CAP; k++) makeUnit(BM.FORMS[k && stage.packBase ? BM.packBaseOf(w.form) : w.form], k ? Math.max(1, w.level - CAD.packLv) : w.level, -1, C.ENEMY_BASE_FRONT + 8 - k * 12 - rnd() * 16);
+      for (let k = 0; k < n && count(-1) < CAP; k++) makeUnit(BM.FORMS[k && stage.packBase ? BM.packBaseOf(w.form, stage.region) : w.form], k ? Math.max(1, w.level - CAD.packLv) : w.level, -1, C.ENEMY_BASE_FRONT + 8 - k * 12 - rnd() * 16);
       w.spawned++; w.next += w.every;
     }
 
@@ -347,7 +347,17 @@ BM.Battle = function (stage, profile, opts = {}) {
         if (X.sig) { u.sig = X.sig; if (X.sig.reach) u.range = Math.max(u.range, X.sig.reach); }
       }
       if (!X.blocker) applyMenace(u); // Tate & Liza's twin shares the leaders' menace
+      // Sinnoh node 26 (U2): a SUMMONER ace calls reinforcements while it stands — `summon: { pool, n: [lo, hi], every: [lo, hi],
+      // first, level }` (Arceus summons pseudo-legendary-class Pokémon at will); they come at its feet, inside the side cap
+      if (X.summon) u.summon = { ...X.summon, next: S.t + (X.summon.first != null ? X.summon.first : X.summon.every[0]) };
       S.events.push({ type: 'ace', unit: u, leader: X.blocker ? null : stage.leader, giant: !!X.giant, blocker: !!X.blocker });
+    }
+    for (const u of S.units) {
+      if (u.dead || !u.summon || S.t < u.summon.next) continue;
+      const M = u.summon, n = rint(M.n[0], M.n[1]); let k = 0;
+      for (; k < n && count(-1) < CAP; k++) { const f = M.pool[Math.floor(rnd() * M.pool.length)]; const v = makeUnit(BM.FORMS[f], M.level, -1, Math.min(C.ENEMY_BASE_FRONT, u.x + 30) - k * 14 - rnd() * 8); v.summoned = true; }
+      M.next = S.t + rint(M.every[0], M.every[1]);
+      if (k) S.events.push({ type: 'summon', unit: u, n: k });
     }
 
     // K4 status: tick durations, poison damage over time

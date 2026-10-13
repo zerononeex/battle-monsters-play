@@ -68,12 +68,13 @@ BM.Screens = function (ui) {
   // Johto (Step 2): the PC Box shows ONE region's lines at a time (Kanto 37 · Johto 36 — together they would shrink every card on a
   // phone); region tabs appear once the profile reaches Johto. The Bellossom branch belongs to Johto (EEE1).
   let collRegion = 'kanto';
-  const regionLines = (r) => (r === 'hoenn' ? BM.HOENN_LINES : r === 'johto' ? BM.JOHTO_LINES : BM.KANTO_LINES); // Hoenn Step 2: a third tab
+  const regionLines = (r) => BM[(r || 'kanto').toUpperCase() + '_LINES'] || BM.KANTO_LINES; // Hoenn Step 2: a third tab; Sinnoh / Unova: a tab each
   const ownedLines = () => regionLines(collRegion).filter((id) => prof().lines[id]);
   // every owned line of every region (the Team screen's PC Box strip): Kanto first, then Johto
-  const allOwned = () => [...BM.KANTO_LINES, ...BM.JOHTO_LINES, ...BM.HOENN_LINES].filter((id) => prof().lines[id]);
+  const allOwned = () => BM.SHIPPED_REGIONS.flatMap((r) => regionLines(r)).filter((id) => prof().lines[id]);
   // How a not-yet-owned line is met, in kid words.
   function meetText(line) {
+    if (line.rewardText) return line.rewardText; // Arceus (Sinnoh node 26): not a Champion reward
     if (line.rewardOnly) return `Beat the ${BM.REGION_NAMES[BM.regionOfStage(BM.stageById(line.rewardStage))]} Champion to meet this legend!`;
     const gift = BM.STAGES.find((s) => !s.dev && s.gift === line.id && !line.legendary);
     if (gift) return `A gift at ${gift.name}`;
@@ -201,7 +202,7 @@ BM.Screens = function (ui) {
     if (!BM.regionReached(collRegion, p)) collRegion = 'kanto';
     const all = regionLines(collRegion), owned = ownedLines(), ids = applyFilter(all, false);
     $('coll-count').textContent = `${owned.length} / ${all.length}`;
-    const rt = $('coll-regions'), regs = ['kanto', 'johto', 'hoenn'].filter((r) => BM.regionReached(r, p));
+    const rt = $('coll-regions'), regs = BM.SHIPPED_REGIONS.filter((r) => BM.regionReached(r, p));
     ui.show('coll-regions', regs.length > 1); rt.innerHTML = '';
     for (const r of regs) { const b = document.createElement('button'); b.className = 'pill-btn coll-reg' + (r === collRegion ? ' on' : ''); b.dataset.region = r; b.textContent = BM.REGION_NAMES[r];
       tap(b, () => { if (collRegion === r) return; collRegion = r; BM.Audio.sfx('tap'); renderCollection(); }); rt.appendChild(b); }
@@ -355,7 +356,7 @@ BM.Screens = function (ui) {
   tap($('btn-line-x'), closeLine);
   $('scr-line').addEventListener('pointerdown', (e) => { if (e.target.id === 'scr-line') { e.preventDefault(); closeLine(); } });
   tap($('btn-coll-back'), () => { BM.Audio.sfx('tap'); ui.go('title'); });
-  tap($('btn-dev-unlock'), () => { BM.Save.devUnlockAll(); toast('DEV: every Kanto + Johto + Hoenn line + form unlocked (Lv 36)'); renderCollection(); });
+  tap($('btn-dev-unlock'), () => { BM.Save.devUnlockAll(); toast('DEV: every line + form of every shipped region unlocked (Lv 36)'); renderCollection(); });
   tap($('btn-dev-items'), () => { BM.Save.devGrantItems(); toast('DEV: +5 of every item'); renderCollection(); });
 
   // ---------- item bag ----------

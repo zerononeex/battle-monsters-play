@@ -44,6 +44,20 @@ BM.LEADER_MENACE = {
   hoenn_13_norman: ['giant'], hoenn_14_winona: ['status', 'paralyze'], hoenn_17_tate_liza: ['status', 'sleep'], hoenn_19_wallace: ['area'],
   hoenn_20_sidney: ['giant'], hoenn_21_phoebe: ['status', 'burn'], hoenn_22_glacia: ['status', 'freeze'], hoenn_23_drake: ['area'],
   hoenn_24_champion: ['giant'],
+  // Sinnoh (Act 1 S4, from day one — the type rule: Grass → Poison, Ice → Freeze, Electric → Paralyze, Fire → Burn; Fantina's Ghost
+  // Hypnosis → Sleep; Aaron's Drapion (Poison) → Poison). Cynthia's GIANT is the ruled one (U4: giant Mega Garchomp).
+  sinnoh_04_roark: ['giant'], sinnoh_07_gardenia: ['status', 'poison'], sinnoh_08_fantina: ['status', 'sleep'], sinnoh_10_maylene: ['area'],
+  sinnoh_11_wake: ['area'], sinnoh_12_byron: ['giant'], sinnoh_15_candice: ['status', 'freeze'], sinnoh_19_volkner: ['status', 'paralyze'],
+  sinnoh_20_aaron: ['status', 'poison'], sinnoh_21_bertha: ['giant'], sinnoh_22_flint: ['status', 'burn'], sinnoh_23_lucian: ['area'],
+  sinnoh_24_champion: ['giant'],
+  // Unova (Act 2 U-S4, from day one): the triple Striaton monkeys hit an AREA; Lenora's Watchog GIANT; Burgh's Leavanny (Bug/Grass →
+  // Poison); Elesa's Zebstrika PARALYZE; Clay's Excadrill GIANT; Skyla's Swanna AREA; Brycen's Beartic FREEZE; Drayden's Haxorus AREA;
+  // Shauntal's Chandelure (Ghost/Fire → Burn); Grimsley's Bisharp GIANT; Caitlin's Gothitelle SLEEP; Marshal's Conkeldurr GIANT;
+  // N's Zekrom PARALYZE (Electric); Alder's Volcarona GIANT (ruled, U2).
+  unova_04_striaton: ['area'], unova_05_lenora: ['giant'], unova_07_burgh: ['status', 'poison'], unova_09_elesa: ['status', 'paralyze'],
+  unova_11_clay: ['giant'], unova_14_skyla: ['area'], unova_16_brycen: ['status', 'freeze'], unova_18_drayden: ['area'],
+  unova_20_shauntal: ['status', 'burn'], unova_21_grimsley: ['giant'], unova_22_caitlin: ['status', 'sleep'], unova_23_marshal: ['giant'],
+  unova_24_ns_castle: ['status', 'paralyze', 'N'], unova_25_alder: ['giant'],
 };
 BM.LAST_STAND_TEXT = '🔥 The Leader is making a last stand!';
 BM.isLeaderStage = (st) => !!(st && !st.dev && !st.bonus && st.leader && ['gym', 'e4', 'champion'].includes(st.kind));

@@ -205,6 +205,9 @@ window.BM = window.BM || {};
     legend: { lo: 250, hi: 350, name: 'Legendary' }, legendBig: { lo: 400, hi: 500, name: 'Legendary (the biggest names)' },
   };
   BM.LEGEND_BIG = ['ho_oh', 'groudon', 'kyogre', 'mewtwo', 'lugia', 'rayquaza', 'mew', 'celebi', 'jirachi'];
+  // Sinnoh / Unova (Step 0f): later regions add their biggest names (box-art legendaries, region rewards, mythicals) from their data
+  // file (BM.LEGEND_BIG_ADD, loaded before this one) — same 400–500 tier
+  BM.LEGEND_BIG.push(...(BM.LEGEND_BIG_ADD || []));
   BM.COST_RARITY_BANDS = ['stage1', 'stage2', 'legend']; // where rarity moves the price (basics untouched)
   // NNN1 class (the first pass); `costClass` on a form overrides it (Hoenn's prep-pack prices were banded by the pack — e.g. the weak
   // single-stage Plusle / Minun / Sableye / Mawile as standard basics)

@@ -194,9 +194,12 @@ window.BM = window.BM || {};
   BM.HOENN_CADENCE = { pack: [3, 4], e4pack: [2, 4], trickle: 1.1, e4trickle: 1.8 };
   // the base form of a wave form's line: a player line's first form, else the canon pre-evolution chain walked back while the
   // species is in the game (Mightyena → Poochyena, Claydol → Baltoy, Crobat → Zubat; a single-stage species is its own base)
-  BM.packBaseOf = function (id) {
+  // Sinnoh Act 1 (U1): a player line from a LATER region than the stage (the Budew → Roselia line, home Sinnoh, in Hoenn's waves)
+  // keeps its wave form — a Hoenn stage never spawns Budew, so Hoenn's tables play exactly as tuned.
+  BM.packBaseOf = function (id, region) {
     const f = BM.FORMS[id], line = f && BM.LINES[f.line];
     if (!f) return id;
+    if (line && !line.enemyOnly && region && BM.REGION_ORDER.indexOf(line.region || 'kanto') > BM.REGION_ORDER.indexOf(region)) return id;
     if (line && !line.enemyOnly && !f.mega) return line.forms[0].id;
     let cur = id;
     for (let i = 0; i < 4; i++) { const pre = BM.PRE_CANON[cur]; if (!pre || !BM.FORMS[pre]) break; cur = pre; }

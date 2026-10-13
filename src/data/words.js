@@ -248,3 +248,5 @@ if (BM.JOHTO_WORDS) BM.WORDS_POKEMON.push(...BM.JOHTO_WORDS);
 BM.SPELL_POKEMON_SHARE = 0.15; // share of spelling words drawn from the Pokémon bonus list
 // Hoenn (Step 2): the same for Hoenn's species (hoenn.js BM.HOENN_WORDS)
 if (BM.HOENN_WORDS) BM.WORDS_POKEMON.push(...BM.HOENN_WORDS);
+// Sinnoh (Act 1 S2) / Unova (Act 2 U-S2): the same for their species (sinnoh.js BM.SINNOH_WORDS · unova.js BM.UNOVA_WORDS)
+for (const W of [BM.SINNOH_WORDS, BM.UNOVA_WORDS]) if (W) BM.WORDS_POKEMON.push(...W);

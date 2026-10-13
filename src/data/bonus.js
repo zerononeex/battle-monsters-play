@@ -18,6 +18,10 @@ window.BM = window.BM || {};
     { id: 'master', name: 'Master', ball: 'master_ball', minLv: 45, level: 54, xp: 45000, candy: { xp_candy_l: 2 }, curveAt: 21 },
     // Hoenn Step 5: the 5th XP floor — the band above Johto's (Lv 61+ entry), open once Littleroot is cleared (Hoenn reached)
     { id: 'hoenn', name: 'Hoenn', ball: 'master_ball', minLv: 61, level: 68, xp: 90000, candy: { xp_candy_l: 3 }, curveAt: 25, hoenn: true },
+    // Sinnoh Act 1 S5: the 6th XP floor — the band above Hoenn's (Lv 66+ entry), open once Twinleaf is cleared (Sinnoh reached)
+    { id: 'sinnoh', name: 'Sinnoh', ball: 'master_ball', minLv: 66, level: 73, xp: 115000, candy: { xp_candy_l: 3 }, curveAt: 25, sinnoh: true },
+    // Unova Act 2 U-S5: the 7th XP floor (Lv 71+ entry), open once Nuvema is cleared (Unova reached) — the top of the Tower
+    { id: 'unova', name: 'Unova', ball: 'master_ball', minLv: 71, level: 78, xp: 140000, candy: { xp_candy_l: 3 }, curveAt: 25, unova: true },
   ];
   // the highest tier a team of `lv` can sensibly farm (the sim's grind; the UI just recommends the band)
   BM.bonusTierFor = (lv) => BM.BONUS_TIERS.filter((t) => lv >= t.minLv).pop() || null;
@@ -30,10 +34,12 @@ window.BM = window.BM || {};
     master: (L) => [W('persian', L - 2, 3, 7), W('pidgeot', L, 9, 9), W('snorlax', L, 25, 20), W('porygon2', L, 35, 18)],
 
     hoenn: (L) => [W('linoone', L - 2, 3, 7), W('swellow', L, 9, 9), W('exploud', L - 1, 22, 16), W('vigoroth', L, 30, 18)],
+    sinnoh: (L) => [W('bibarel', L - 2, 3, 7), W('staraptor', L, 9, 9), W('purugly', L - 1, 22, 16), W('lickilicky', L, 30, 18)],
+    unova: (L) => [W('watchog', L - 2, 3, 7), W('unfezant', L, 9, 9), W('stoutland', L - 1, 22, 16), W('bouffalant', L, 30, 18)],
   };
   const xpStages = BM.BONUS_TIERS.map((t) => ({
     id: 'bonus_xp_' + t.id, name: `${t.name} XP Stage`, bonus: 'xp', tier: t.id, kind: 'bonus', level: t.level, curveAt: t.curveAt,
-    background: { regular: 'pallet_town', great: 'cerulean_city', ultra: 'celadon_city', master: 'saffron_city', hoenn: 'hoenn_slateport_city' }[t.id], ...(t.hoenn ? { hoenn: true } : {}),
+    background: { regular: 'pallet_town', great: 'cerulean_city', ultra: 'celadon_city', master: 'saffron_city', hoenn: 'hoenn_slateport_city', sinnoh: 'sinnoh_jubilife_city', unova: 'unova_accumula_town' }[t.id], ...(t.hoenn ? { hoenn: true } : {}), ...(t.sinnoh ? { sinnoh: true, artRegion: 'sinnoh' } : {}), ...(t.unova ? { unova: true, artRegion: 'unova' } : {}),
     // FF3: Tower pre-battle = `tower`, Tower battles = `battle_tower`
     music: 'battle_tower', townMusic: 'tower', ball: t.ball, minLv: t.minLv, bonusXp: t.xp, candy: t.candy,
     waves: XPW[t.id](t.level),
@@ -83,6 +89,18 @@ window.BM = window.BM || {};
     { ...M('hoenn_land', 'Mega Magma Peak', 'blazikenite', ['blazikenite', 'sceptilite', 'aggronite', 'medichamite', 'manectite', 'galladite', 'mawilite', 'metagrossite'], [['numel', -3], ['aron', -3], ['meditite', -2, 12, 14], ['camerupt', -2, 26, 18], ['aggron', -1, 45, 28]], 'hoenn_meteor_falls', 68, '🌋'), hoenn: true },
     { ...M('hoenn_sea', 'Mega Abyss Trench', 'swampertite', ['swampertite', 'sharpedonite', 'gardevoirite', 'sablenite', 'banettite', 'absolite', 'absolite_z', 'altarianite', 'salamencite'], [['carvanha', -3], ['shuppet', -3], ['swablu', -2, 12, 14], ['sharpedo', -2, 26, 18], ['salamence', -1, 45, 28]], 'hoenn_seafloor_cavern', 69, '🌊'), hoenn: true },
   );
+  // Sinnoh Act 1 S5 / S6: two Sinnoh Mega Stone floors (the Hoenn pattern) — open once Canalave Gym (Byron, stage 12) is cleared;
+  // Sinnoh-level foes (Lv 73–74), the Sinnoh stones by theme (the first clear guarantees the headline stone). Heatranite / Darkranite
+  // are NOT here (the Safari Mega section only).
+  mega.push(
+    { ...M('sinnoh_iron', 'Mega Iron Ruins', 'lucarionite', ['lucarionite', 'lucarionite_z', 'garchompite', 'garchompite_z', 'staraptite'], [['riolu', -3], ['gible', -3], ['machoke', -2, 12, 14], ['gabite', -2, 26, 18], ['lucario', -1, 45, 28]], 'sinnoh_iron_island', 73, '⚙️'), sinnoh: true, artRegion: 'sinnoh', megaAfter: 'sinnoh_12_byron' },
+    { ...M('sinnoh_snow', 'Mega Snow Temple', 'abomasite', ['abomasite', 'lopunnite', 'lucarionite', 'garchompite'], [['snover', -3], ['buneary', -3], ['sneasel', -2, 12, 14], ['lopunny', -2, 26, 18], ['abomasnow', -1, 45, 28]], 'sinnoh_gym_candice', 74, '❄️'), sinnoh: true, artRegion: 'sinnoh', megaAfter: 'sinnoh_12_byron' },
+  );
+  // Unova Act 2 U-S5 / U-S6: two Unova Mega Stone floors — open once Driftveil Gym (Clay, stage 11) is cleared; Lv 78–79 foes
+  mega.push(
+    { ...M('unova_spark', 'Mega Spark Cavern', 'eelektrossite', ['eelektrossite', 'excadrite', 'golurkite', 'scolipite'], [['tynamo', -3], ['drilbur', -3], ['joltik', -2, 12, 14], ['eelektrik', -2, 26, 18], ['excadrill', -1, 45, 28]], 'unova_chargestone_cave', 78, '🔋'), unova: true, artRegion: 'unova', megaAfter: 'unova_11_clay' },
+    { ...M('unova_flame', 'Mega Ember Tower', 'emboarite', ['emboarite', 'chandelurite', 'scraftinite', 'audinite'], [['litwick', -3], ['scraggy', -3], ['pignite', -2, 12, 14], ['lampent', -2, 26, 18], ['scrafty', -1, 45, 28]], 'unova_dragonspiral_tower', 79, '🔥'), unova: true, artRegion: 'unova', megaAfter: 'unova_11_clay' },
+  );
   for (const st of mega) st.burst = { pool: [...new Set(st.waves.map((w) => w.form))] };
   // Hoenn Step 9.5 regression tune (the +~13% prices dropped Mega Ocean Cave / Mega Sky Ruins to 2/6 for the Lv 65 deck): first
   // releases at 1.5× their start, packs 1–2, trickle ×2 — waves only, the floors' foes / stones / levels unchanged (→ 6/6)
@@ -102,13 +120,17 @@ window.BM = window.BM || {};
     // level, 4 levels under the vault (Water / Thunder / Ice, combined sim)
     if (st.bonus === 'treasure') st.burst = { pool: [...new Set(st.waves.map((w) => w.form))].filter((f) => f !== best), trickle: 1.9, size: [3, 4], every: [20, 26] };
   }
+  // BR-109 fix (Sinnoh + Unova prompt Step 0a, Kakashi's call): four vaults fell to 0–2/6 at their unlock level after the batch-1
+  // generator costs. Stage-side only: their trickle sends ONE body per release (no pack extras); Leaf Stone Garden also spaces it
+  // ×2.1. Foes, levels, drops, gates unchanged → Water 4/6 · Thunder 5/6 · Leaf 4/6 · Ice 4/6 (best style, 6 seeds).
+  for (const [id, extra] of [['water', {}], ['thunder', {}], ['leaf', { trickle: 2.1 }], ['ice', {}]]) Object.assign(BM.BONUS_STAGES.find((s) => s.id === 'bonus_tr_' + id).burst, { pack: [1, 1] }, extra);
   BM.BONUS_MEGA = { locked: true, text: 'Beat Johto to unlock 🔒', name: 'Mega Stone Stages' }; // the locked card's words (until the unlock)
   BM.STAGES.push(...BM.BONUS_STAGES);
   BM.isBonus = (st) => !!(st && st.bonus);
   // Unlocks (BUILD_PLAN §4.3 spirit: Easy after Brock …): the zone itself opens after Brock; XP tiers after Brock / Lt. Surge /
   // Koga / Giovanni; each treasure stage once the campaign stage its band matches (`curveAt`) is cleared.
   BM.BONUS_OPEN_AFTER = 'kanto_05_brock';
-  const TIER_AFTER = { regular: 'kanto_05_brock', great: 'kanto_10_surge', ultra: 'kanto_15_koga', master: 'kanto_20_giovanni', hoenn: 'hoenn_01_littleroot' };
-  BM.bonusUnlockStage = (st) => (st.bonus === 'mega' ? (st.hoenn ? 'hoenn_12_desert' : 'johto_24_champion') : st.tier ? TIER_AFTER[st.tier] : BM.KANTO_STAGES[Math.max(0, st.curveAt - 1)].id);
+  const TIER_AFTER = { regular: 'kanto_05_brock', great: 'kanto_10_surge', ultra: 'kanto_15_koga', master: 'kanto_20_giovanni', hoenn: 'hoenn_01_littleroot', sinnoh: 'sinnoh_01_twinleaf', unova: 'unova_01_nuvema' };
+  BM.bonusUnlockStage = (st) => (st.bonus === 'mega' ? (st.megaAfter || (st.hoenn ? 'hoenn_12_desert' : 'johto_24_champion')) : st.tier ? TIER_AFTER[st.tier] : BM.KANTO_STAGES[Math.max(0, st.curveAt - 1)].id);
   BM.bonusOpen = (st, p) => !!(p && p.cleared[BM.bonusUnlockStage(st)] > 0);
 })();

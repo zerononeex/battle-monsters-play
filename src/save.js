@@ -542,7 +542,7 @@ BM.Save = (function () {
   // Dev/test only (hidden dev mode): own every Kanto line, unlock every form, set levels.
   function devUnlockAll() {
     const p = profile();
-    for (const id of [...BM.KANTO_LINES, ...BM.JOHTO_LINES, ...(BM.HOENN_LINES || [])]) {
+    for (const id of BM.SHIPPED_REGIONS.flatMap((r) => BM[r.toUpperCase() + '_LINES'] || [])) {
       giveLine(p, id);
       const l = p.lines[id];
       l.unlocked = BM.LINES[id].forms.map((f) => f.id);

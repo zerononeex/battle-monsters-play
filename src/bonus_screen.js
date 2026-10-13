@@ -21,6 +21,7 @@ BM.BonusScreen = function (ui) {
   }
   function render() {
     const xp = $('bz-xp'), tr = $('bz-treasure'), mg = $('bz-mega');
+    $('bz-xp-floors').textContent = `${BM.BONUS_TIERS.length}F–1F`; // Sinnoh / Unova add floors
     xp.innerHTML = ''; tr.innerHTML = ''; mg.innerHTML = '';
     for (const st of BM.BONUS_STAGES.filter((s) => s.bonus === 'xp')) {
       const t = BM.BONUS_TIERS.find((x) => x.id === st.tier), candy = Object.entries(st.candy).map(([id, n]) => (n > 1 ? n + '× ' : '') + icon(id)).join('');
@@ -35,6 +36,7 @@ BM.BonusScreen = function (ui) {
     // until then the one locked card ("Beat Johto to unlock 🔒")
     mg.classList.toggle('open', BM.megaUnlocked(prof())); // Hoenn Step 5: 6 floors in one row once open
     if (BM.megaUnlocked(prof())) {
+      mg.classList.toggle('many', BM.BONUS_STAGES.filter((s) => s.bonus === 'mega').length > 6); // Sinnoh / Unova: two rows of 5
       for (const st of BM.BONUS_STAGES.filter((s) => s.bonus === 'mega')) {
         mg.appendChild(card(st, `<span class="bz-icon">${st.icon}</span><b class="bz-name">${st.name}</b><span class="bz-band">Lv ${st.level}</span>` +
           `<span class="bz-pay">${(prof().cleared[st.id] || 0) ? 'Mega Stones likely' : '1st clear: ' + BM.ITEMS[st.headline] + '!'}</span>`, 'treasure mega'));
