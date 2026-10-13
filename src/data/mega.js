@@ -6,18 +6,18 @@
 //   Data: johto.js BM.MEGA_FORMS (PokéAPI stats, combat identity) · items.js (the 19 stones, kind 'mega', ids = the queued icon
 //   keys) · Mega Stones come from rare themed stage drops (+ the Dowsing Machine's rarest slot), the Prism Tower's Mega Stone
 //   floors and the Safari Zone's Mega Stone section — all three only after the unlock.
-//   Price: the base final form's + 15 (≈ one evolution step), the Mewtwo pair 140 (above every legendary) — the 150 AP
-//   effective cap still holds at any level.
+//   Price: the base final form's + 15 (≈ one evolution step) for every Mega, the Mewtwo pair included (Hoenn Step 9.5) — the
+//   500 AP effective cap still holds at any level.
 window.BM = window.BM || {};
 (function () {
-  BM.MEGA = { STEP: 15, MEWTWO: 140 };
+  BM.MEGA = { STEP: 15 };
   for (const m of BM.MEGA_FORMS) {
     const from = BM.FORMS[m.from], line = BM.LINES[from.line]; // the line is the base form's (Scizor → the Scyther line)
     const f = { ...m, mega: true, line: from.line, stage: from.stage + 1, evolvesFrom: m.from, speciesId: BM.speciesOf(from), size: m.size || from.size };
     f.attackType = f.attackType || f.types[0];
-    // U7 (Hoenn): every Mega = its base final form's cost + 15 — the Latis 135, Mega Rayquaza 145 (legendary lines may pass the
-    // 130 band top; the 150 AP EFFECTIVE cap, BM.effCost, still holds at any level). Non-legendary Megas never reach 130.
-    f.cost = from.line === 'mewtwo' ? BM.MEGA.MEWTWO : line.legendary ? from.cost + BM.MEGA.STEP : Math.min(BM.COST_BANDS.legend.hi, from.cost + BM.MEGA.STEP);
+    // U7 (Hoenn) + Step 9.5: every Mega = its base final form's cost + 15 (Mewtwo's pair included — the old fixed 140 retired with the
+    // 400–500 tier); the 500 AP effective cap (BM.effCost) applies at any level.
+    f.cost = Math.min(BM.C.COST_MAX, from.cost + BM.MEGA.STEP);
     BM.FORMS[f.id] = f;
     (line.megas = line.megas || []).push(f);
   }

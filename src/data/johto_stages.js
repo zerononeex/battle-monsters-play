@@ -135,6 +135,9 @@ window.BM = window.BM || {};
       waves: [W('espeon', 62, 4, 12), W('snorlax', 63, 14, 18), W('venusaur', 63, 26, 18), W('blastoise', 64, 40, 20), W('charizard', 64, 54, 22)],
       gate: { by: 'hp', at: 0.9, forms: ['snorlax', 'venusaur', 'blastoise', 'charizard', 'pikachu'] },
       ace: { form: 'pikachu', level: 65, giant: true, sig: { move: 'Volt Tackle', aoe: 160, status: 'paralyze', reach: 120 } },
+      // Hoenn Step 9.5 WINNABILITY tune: Red's 50% counter-burst steps aside for the LAST STAND (10 Lv 65 finals at once) — with both
+      // on the same frame the native deck fell 6/6 → 2/6; without it 6/6 (the escalation stays: menace + last stand)
+      burst: { thresholds: [0.75, 0.25] },
       prize: { master_ball: 1, xp_candy_l: 3 }, capstone: true },
   ];
   // carriers: the AoE / status units mixed into bursts (OOO1 late tier from stage 1 — Johto starts at Lv 50)

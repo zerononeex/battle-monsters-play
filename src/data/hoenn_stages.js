@@ -34,10 +34,14 @@ window.BM = window.BM || {};
       drops: M({ water_stone: 1, leaf_stone: 1 }),
       waves: [W('zigzagoon', 57, 4, 10), W('poochyena', 57, 8, 11), W('lotad', 57, 12, 11), W('seedot', 57, 16, 11), W('wingull', 58, 22, 13), W('surskit', 58, 28, 14), W('taillow', 58, 34, 14), W('ralts', 59, 50, 30), W('linoone', 60, 44, 22)],
       gate: { by: 'time', at: 38, forms: ['linoone', 'ralts'] } },
+    // native-deck re-check (2026-10-12, BR-114): Shroomish Lv 58 → 56 keeps the opener kid-easy for the new home team
     { id: 'hoenn_03_petalburg_woods', name: 'Petalburg City', place: 'Petalburg Woods', kind: 'wild', level: 61, background: 'petalburg_woods', townMusic: 'town_petalburg', gift: 'mudkip',
       drops: M({ leaf_stone: 2, moon_stone: 1 }),
-      waves: [W('wurmple', 58, 4, 10), W('shroomish', 58, 9, 11), W('slakoth', 58, 14, 12), W('taillow', 58, 18, 12), W('poochyena', 58, 22, 13), W('beautifly', 60, 34, 18), W('dustox', 60, 40, 18), W('breloom', 61, 50, 24)],
-      gate: { by: 'time', at: 40, forms: ['beautifly', 'dustox', 'breloom'] } },
+      // Hoenn Step 9.5 regression tune (the +~13% prices left the AP-starved native deck behind the opening flood): every row's first
+      // release at 2× its start (+ the gate), packs 1–2, trickle ×2 — waves only, prices untouched (native deck → 6/6)
+      burst: { pack: [1, 2], trickle: 2 },
+      waves: [W('wurmple', 58, 8, 10), W('shroomish', 56, 18, 11), W('slakoth', 58, 28, 12), W('taillow', 58, 36, 12), W('poochyena', 58, 44, 13), W('beautifly', 60, 68, 18), W('dustox', 60, 80, 18), W('breloom', 61, 100, 24)],
+      gate: { by: 'time', at: 80, forms: ['beautifly', 'dustox', 'breloom'] } },
     { id: 'hoenn_04_roxanne', name: 'Rustboro Gym', leader: 'Roxanne', kind: 'gym', level: 62, background: 'gym_roxanne', townMusic: 'town_rustboro',
       drops: M({ moon_stone: 1, thunder_stone: 1 }),
       waves: [W('geodude', 59, 4, 10), W('aron', 59, 9, 11), W('lileep', 60, 14, 12), W('anorith', 60, 20, 13), W('graveler', 61, 30, 16), W('nosepass', 61, 44, 22)],
@@ -64,10 +68,15 @@ window.BM = window.BM || {};
       waves: [W('voltorb', 61, 4, 10), W('magnemite', 61, 9, 11), W('electrike', 61, 14, 12), W('plusle', 62, 20, 14), W('minun', 62, 22, 14), W('magneton', 63, 32, 18), W('electrode', 63, 42, 20)],
       gate: { by: 'hp', at: 0.9, forms: ['magneton', 'electrode', 'manectric'] },
       ace: { form: 'manectric', level: 64, giant: true, sig: { move: 'Thunder', aoe: 130, status: 'paralyze', reach: 220 } } },
+    // native-deck re-check (2026-10-12, BR-114): the Oddish row + its poison carrier dropped — the Grass swarm walled a Mudkip /
+    // Wailmer / Aron home team 0/6 (Route 117's Grass stays: Seedot, Roselia, Nuzleaf)
     { id: 'hoenn_09_verdanturf', name: 'Verdanturf Town', place: 'Route 117', kind: 'wild', level: 65, background: 'verdanturf_town', townMusic: 'town_fallarbor',
       drops: M({ dawn_stone: 2, leaf_stone: 1, moon_stone: 1 }),
-      waves: [W('whismur', 62, 4, 10), W('oddish', 62, 8, 11), W('seedot', 62, 12, 11), W('marill', 62, 16, 12), W('volbeat', 63, 22, 14), W('illumise', 63, 24, 14), W('roselia', 63, 30, 16), W('loudred', 64, 38, 18), W('nuzleaf', 64, 44, 20), W('linoone', 65, 52, 22)],
-      gate: { by: 'time', at: 40, forms: ['loudred', 'nuzleaf', 'linoone'] } },
+      // Hoenn Step 9.5 regression tune (the +~13% prices left the AP-starved native deck behind the opening flood): every row's first
+      // release at 2× its start (+ the gate), packs 1–2, trickle ×2 — waves only, prices untouched (native deck → 6/6)
+      burst: { pack: [1, 2], trickle: 2 },
+      waves: [W('whismur', 62, 8, 10), W('seedot', 62, 24, 11), W('marill', 62, 32, 12), W('volbeat', 63, 44, 14), W('illumise', 63, 48, 14), W('roselia', 63, 60, 16), W('loudred', 64, 76, 18), W('nuzleaf', 64, 88, 20), W('linoone', 65, 104, 22)],
+      gate: { by: 'time', at: 80, forms: ['loudred', 'nuzleaf', 'linoone'] } },
     { id: 'hoenn_10_meteor_falls', name: 'Fallarbor Town', place: 'Meteor Falls', kind: 'trainer', level: 65, background: 'meteor_falls', townMusic: 'town_fallarbor',
       drops: M({ moon_stone: 2, fire_stone: 1 }),
       waves: [W('numel', 62, 4, 10), W('zubat', 62, 8, 11), W('spinda', 62, 12, 12), W('swablu', 62, 16, 12), W('slugma', 62, 20, 13), W('lunatone', 63, 28, 16), W('solrock', 63, 30, 16), W('zangoose', 64, 38, 18), W('seviper', 64, 40, 18), W('golbat', 64, 46, 20), W('skarmory', 65, 52, 24), W('bagon', 63, 70, 40)],
@@ -95,7 +104,7 @@ window.BM = window.BM || {};
       drops: L({ reaper_cloth: 2, moon_stone: 1 }),
       waves: [W('shuppet', 64, 4, 10), W('duskull', 64, 8, 10), W('vulpix', 64, 12, 12), W('wingull', 64, 16, 12), W('meditite', 65, 22, 14), W('chimecho', 65, 28, 16), W('banette', 66, 36, 18), W('dusclops', 66, 42, 20), W('mightyena', 67, 50, 22), W('golbat', 66, 54, 22)],
       gate: { by: 'time', at: 40, forms: ['banette', 'dusclops', 'mightyena', 'chimecho'] } },
-    { id: 'hoenn_16_aqua_hideout', name: 'Lilycove City', place: 'Team Aqua Hideout', leader: 'Aqua Admin Matt', kind: 'trainer', level: 68, background: 'aqua_hideout', townMusic: 'town_lilycove',
+    { id: 'hoenn_16_aqua_hideout', name: 'Lilycove City', place: 'Team Aqua Hideout', leader: 'Aqua Admin Matt', mapLabel: 'Aqua Hideout', kind: 'trainer', level: 68, background: 'aqua_hideout', townMusic: 'town_lilycove',
       drops: L({ water_stone: 3, thunder_stone: 1 }),
       waves: [W('poochyena', 65, 4, 10), W('carvanha', 65, 8, 11), W('zubat', 65, 12, 11), W('tentacool', 65, 16, 12), W('wailmer', 66, 24, 15), W('mightyena', 66, 32, 16), W('golbat', 66, 38, 18), W('wailord', 67, 50, 26)],
       gate: { by: 'hp', at: 0.9, forms: ['mightyena', 'golbat', 'wailord', 'sharpedo'] },
@@ -109,7 +118,7 @@ window.BM = window.BM || {};
       extraAces: [{ form: 'solrock', level: 68, giant: true, at: 0.4, sig: { move: 'Solar Beam', aoe: 140, reach: 240 } }] },
     // Seafloor Cavern — the weather crisis: Kyogre awakens at the usual 70 % / 90 s, Groudon erupts at its own 40 % threshold
     // (two one-time entries, never both in one counter-burst). If a sim ever fails here: cut pack density, never the aces.
-    { id: 'hoenn_18_seafloor_cavern', name: 'Seafloor Cavern', place: 'the weather crisis', leader: 'Archie & Maxie', kind: 'trainer', level: 69, background: 'seafloor_cavern', townMusic: 'town_sootopolis',
+    { id: 'hoenn_18_seafloor_cavern', name: 'Seafloor Cavern', place: 'the weather crisis', leader: 'Archie & Maxie', mapLabel: 'Seafloor Cavern', kind: 'trainer', level: 69, background: 'seafloor_cavern', townMusic: 'town_sootopolis',
       drops: L({ water_stone: 2, fire_stone: 2 }),
       waves: [W('mightyena', 66, 4, 11), W('carvanha', 66, 8, 11), W('numel', 66, 12, 11), W('golbat', 67, 20, 14), W('tentacruel', 67, 28, 16), W('camerupt', 68, 36, 18), W('sharpedo', 68, 42, 20), W('crobat', 68, 50, 22)],
       gate: { by: 'time', at: 40, forms: ['camerupt', 'sharpedo', 'crobat', 'kyogre', 'groudon'] },
@@ -163,7 +172,7 @@ window.BM = window.BM || {};
   ];
   // carriers: the AoE / status units mixed into bursts (OOO1 late tier from stage 1, as Johto)
   const CARRIERS = { hoenn_03_petalburg_woods: ['shroomish'], hoenn_05_granite_cave: ['zubat'], hoenn_07_slateport: ['gulpin'], hoenn_08_wattson: ['voltorb'],
-    hoenn_09_verdanturf: ['oddish'], hoenn_10_meteor_falls: ['numel'], hoenn_11_flannery: ['koffing'], hoenn_12_desert: ['baltoy'], hoenn_13_norman: ['whismur'],
+    hoenn_10_meteor_falls: ['numel'], hoenn_11_flannery: ['koffing'], hoenn_12_desert: ['baltoy'], hoenn_13_norman: ['whismur'],
     hoenn_14_winona: ['castform'], hoenn_15_mt_pyre: ['duskull'], hoenn_16_aqua_hideout: ['tentacool'], hoenn_17_tate_liza: ['spoink'],
     hoenn_18_seafloor_cavern: ['numel'], hoenn_19_wallace: ['luvdisc'], hoenn_20_sidney: ['sableye'], hoenn_21_phoebe: ['duskull'], hoenn_22_glacia: ['snorunt'],
     hoenn_23_drake: ['horsea'], hoenn_24_champion: ['claydol'], hoenn_25_sky_pillar: ['baltoy'] };

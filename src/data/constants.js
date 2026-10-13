@@ -64,7 +64,9 @@ BM.sizeClass = function (form) {
 // L1 COST SCALING (user, REVISED 2026-10-11 — gentle): effective AP cost = the form's audited base cost (L2, `form.cost`)
 // × (1 + 0.01 × (level − 1)), hard-capped at ×1.5. Cooldown never scales. Cards / detail / team show this number.
 BM.C.COST_PER_LEVEL = 0.01; BM.C.COST_CAP = 1.5;
-BM.C.COST_MAX = 150; // Q1 kids' fun rule: no form ever costs more than 150 AP, at any level
+// Hoenn Act 2 Step 9.5 (user ruling 2026-10-12): the effective cost ceiling 150 → 500, so the 250–350 / 400–500 legendary tiers are
+// really priced. The generator's wallet already tops out at 1,800 AP (≥ 500 from generator Lv 3) — caps, rates, upgrade costs unchanged.
+BM.C.COST_MAX = 500; // no form ever costs more than 500 AP, at any level (was the Q1 150)
 BM.costMul = (level) => Math.min(BM.C.COST_CAP, 1 + BM.C.COST_PER_LEVEL * (Math.max(1, level) - 1));
 BM.effCost = (form, level) => Math.min(BM.C.COST_MAX, Math.round(form.cost * BM.costMul(level || 1)));
 BM.cryKey = (form) => form.cry || form.id;

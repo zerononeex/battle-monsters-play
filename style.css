@@ -870,6 +870,10 @@ button { font: inherit; color: inherit; border: 0; cursor: pointer; touch-action
 .pre-rules .rb-h { color: #b5470b; }
 .pre-rules .rb-r .ball, .pre-rules .rb-r .ball-img { font-size: .9em; }
 .pre-rules .rb-out { width: 100%; text-align: center; font-weight: 800; color: #7a2b10; font-size: .9em; }
+/* Hoenn Step 9.5 Part B: the leader's menace line (pre-battle) */
+.pre-menace { display: flex; align-items: center; justify-content: center; gap: 8px; background: #fff1d6; border: 3px solid var(--ink); border-radius: 14px;
+  padding: 2px 14px; font-weight: 900; font-size: clamp(13px, 2.8vh, 19px); color: #7a2b10; max-width: 96%; text-align: center; }
+.pre-menace .pm-i { font-size: 1.3em; }
 .card.rule { filter: grayscale(1) brightness(.75); }
 .card.rule .crule { position: absolute; inset: 22% 4px auto 4px; z-index: 2; background: rgba(20,20,30,.82); color: #fff; border-radius: 8px; font-size: clamp(9px, 1.6vh, 13px);
   font-weight: 900; line-height: 1.15; text-align: center; padding: 2px 3px; }

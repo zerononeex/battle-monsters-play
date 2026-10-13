@@ -380,6 +380,11 @@
       if (out.length) rb.insertAdjacentHTML('beforeend', `<span class="rb-out">Can't battle here: ${out.map((id) => BM.FORMS[p.lines[id].form].name).join(', ')}</span>`);
     }
     const foes = $('pre-foes'); foes.innerHTML = '';
+    // Hoenn Step 9.5 Part B: the leader's menace — its icon + one plain line (the ace's species stays hidden until a first win, X1)
+    const men = BM.menaceOf(st), pm = $('pre-menace');
+    show('pre-menace', !!men);
+    pm.innerHTML = men ? `<span class="pm-i">${men.icon}</span><span class="pm-t"></span>` : '';
+    if (men) { pm.dataset.menace = men.kind; pm.querySelector('.pm-t').textContent = BM.menaceLine(st, st.dev || BM.Save.revealed(st.id)); }
     // X1 HIDDEN ENEMY INTEL (amends J1): until the profile has DEFEATED this stage once (a challenge auto-clear counts) the
     // preview is black silhouettes + "?" (count visible, species/types hidden); a loss reveals nothing.
     const known = st.dev || BM.Save.revealed(st.id);

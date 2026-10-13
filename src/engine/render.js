@@ -192,7 +192,7 @@ BM.Render = function (canvas) {
   // operation with statuses on screen (≈ 2× the frame time at 3× speed), so each sprite frame is tinted ONCE per status into a
   // cached canvas (same filter strings, same pixels) and then drawn plainly. Where canvas filters are unsupported the cached
   // frame is an untinted copy — exactly what the per-draw filter drew there before.
-  const TINT = { freeze: 'saturate(.4) brightness(1.25) hue-rotate(160deg)', sleep: 'brightness(.8)', poison: 'hue-rotate(250deg) saturate(1.4)' };
+  const TINT = { freeze: 'saturate(.4) brightness(1.25) hue-rotate(160deg)', sleep: 'brightness(.8)', poison: 'hue-rotate(250deg) saturate(1.4)', burn: 'sepia(.5) saturate(2) hue-rotate(-20deg)' };
   const tintCache = new WeakMap();
   function tinted(img, type) {
     let m = tintCache.get(img); if (!m) tintCache.set(img, (m = {}));
@@ -209,7 +209,7 @@ BM.Render = function (canvas) {
     else if (u.strikeT > 0) frame = sp.attack[sp.attack.length - 1];
     else if (u.state === 'attack') frame = sp.run[0];
     else frame = sp.run[Math.floor(u.animT * 9) % sp.run.length];
-    const h = L.unitH(u.form) * (u.boss ? BM.C.GIANT.size : 1), s = h / sp.h;
+    const h = Math.min(fieldH * 0.6, L.unitH(u.form) * (u.boss ? BM.C.GIANT.size : 1) * (u.sizeMul || 1)), s = h / sp.h; // sizeMul: a GIANT menace (Step 9.5)
     let x = L.sx(u.x);
     const y = L.ground() + L.depth(u);
     // run-only sprites "lunge" on the strike (enemy wave fodder: run sheet + type effect only)
@@ -288,6 +288,10 @@ BM.Render = function (canvas) {
         x + (Math.random() - 0.5) * bw * 0.4, L.ground() - bw * 0.5 + (Math.random() - 0.5) * bw * 0.4, BM.TYPE_COLORS[a.form.attackType], now + (ev.k || 0) * 0.11);
     } else if (ev.type === 'ace') {
       texts.push({ text: ev.blocker ? `A GIANT ${ev.unit.form.name} blocks the way!` : `${ev.leader || 'The leader'} sends out ${ev.giant ? 'GIANT ' : ''}${ev.unit.form.name}!`, x: W * 0.5, y: fieldH * 0.32, t0: now, dur: 2.2, size: ev.giant ? 42 : 36, color: '#ffb347' });
+    } else if (ev.type === 'lastStand') { // Step 9.5 Part B: the leader's last stand (once per battle)
+      // it replaces the 50% counter-burst's own line (same frame) and sits mid-field, sized to the field (phone landscape is short)
+      for (let k = texts.length - 1; k >= 0; k--) if (texts[k].text === 'The den fights back!' && now - texts[k].t0 < 0.3) texts.splice(k, 1);
+      texts.push({ text: BM.LAST_STAND_TEXT, x: W * 0.5, y: fieldH * 0.5, t0: now, dur: 2.6, size: Math.round(Math.min(40, Math.max(22, fieldH * 0.075))), color: '#ff7a3a' });
     } else if (ev.type === 'burst') { // K2: a burst group / counter-burst pushes out
       texts.push({ text: ev.kind === 'threshold' ? 'The den fights back!' : 'Here they come!', x: W * 0.62, y: fieldH * 0.4, t0: now, dur: 1.4, size: ev.kind === 'threshold' ? 34 : 26, color: ev.kind === 'threshold' ? '#ff7a59' : '#ffd84a' });
     } else if (ev.type === 'gate') { // Y1: the stage's strongest Pokémon join in

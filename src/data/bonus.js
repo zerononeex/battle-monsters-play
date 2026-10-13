@@ -84,6 +84,12 @@ window.BM = window.BM || {};
     { ...M('hoenn_sea', 'Mega Abyss Trench', 'swampertite', ['swampertite', 'sharpedonite', 'gardevoirite', 'sablenite', 'banettite', 'absolite', 'absolite_z', 'altarianite', 'salamencite'], [['carvanha', -3], ['shuppet', -3], ['swablu', -2, 12, 14], ['sharpedo', -2, 26, 18], ['salamence', -1, 45, 28]], 'hoenn_seafloor_cavern', 69, '🌊'), hoenn: true },
   );
   for (const st of mega) st.burst = { pool: [...new Set(st.waves.map((w) => w.form))] };
+  // Hoenn Step 9.5 regression tune (the +~13% prices dropped Mega Ocean Cave / Mega Sky Ruins to 2/6 for the Lv 65 deck): first
+  // releases at 1.5× their start, packs 1–2, trickle ×2 — waves only, the floors' foes / stones / levels unchanged (→ 6/6)
+  for (const st of mega.filter((x) => ['bonus_mega_ocean', 'bonus_mega_sky'].includes(x.id))) {
+    for (const w of st.waves) w.start = Math.round(w.start * 1.5);
+    Object.assign(st.burst, { pack: [1, 2], trickle: 2 });
+  }
   BM.BONUS_STAGES = [...xpStages, ...treasure, ...mega];
   // Y1 (Phase 7.5): the Tower's strongest wave form (the evolved headline foe / the tier's heavy) waits for a 35 s timer gate
   for (const st of BM.BONUS_STAGES) {

@@ -36,15 +36,15 @@ BM.STAGES.push(
     waves: [{ form: 'caterpie', level: 6, start: 3, every: 9 }, { form: 'rattata', level: 6, start: 7, every: 10 }, { form: 'pidgey', level: 7, start: 14, every: 12 }],
   },
   {
-    id: 'dev_rule_ap', num: 0, name: 'Rule Test: Small Cards', kind: 'trainer', level: 22, dev: true, restrict: { apMax: 105 }, // NNN1: 100 → 105 keeps the same 4-card legal deck (Charmeleon 85 → 103 at Lv 22)
+    id: 'dev_rule_ap', num: 0, name: 'Rule Test: Small Cards', kind: 'trainer', level: 22, dev: true, restrict: { apMax: 120 }, // NNN1: 100 → 105 keeps the same 4-card legal deck (Charmeleon 85 → 103 at Lv 22); Hoenn Step 9.5: → 120 (Charmeleon 95 → 115)
     background: 'viridian_city', music: 'battle_trainer', townMusic: 'route',
-    waves: [{ form: 'rattata', level: 15, start: 3, every: 8 }, { form: 'pidgeotto', level: 16, start: 8, every: 11 }, { form: 'ekans', level: 17, start: 15, every: 13 }], // OOO1 (Johto Step 0d): foes −5 Lv and the pre-OOO1 K2 shape (no packs, bursts 2–3 every 22–30 s) — these prove the RULE (a 4-card deck incl. a Gastly that Normal foes can't touch), not the density
-    burst: { pack: [1, 1], size: [2, 3], every: [22, 30] },
+    waves: [{ form: 'rattata', level: 15, start: 3, every: 16 }, { form: 'pidgeotto', level: 16, start: 8, every: 22 }, { form: 'ekans', level: 17, start: 15, every: 26 }], // OOO1 (Johto Step 0d): foes −5 Lv and the pre-OOO1 K2 shape (no packs, bursts 2–3 every 22–30 s) — these prove the RULE (a 4-card deck incl. a Gastly that Normal foes can't touch), not the density. Hoenn Step 9.5 (prices +~13% on top of the batch-1 generator costs; HEAD was already 4/6 + 2/6): waves half as often, bursts 1–2 every 30–40 s, one counter-burst (50%)
+    burst: { pack: [1, 1], size: [1, 2], every: [30, 40], thresholds: [0.5] },
   },
   {
-    id: 'dev_rule_both', num: 0, name: 'Rule Test: Both Rules', kind: 'trainer', level: 22, dev: true, restrict: { fieldCap: 10, apMax: 105 },
+    id: 'dev_rule_both', num: 0, name: 'Rule Test: Both Rules', kind: 'trainer', level: 22, dev: true, restrict: { fieldCap: 10, apMax: 120 },
     background: 'viridian_city', music: 'battle_trainer', townMusic: 'route',
-    waves: [{ form: 'rattata', level: 15, start: 3, every: 5 }, { form: 'pidgeotto', level: 16, start: 6, every: 7 }, { form: 'ekans', level: 17, start: 12, every: 9 }],
-    burst: { pack: [1, 1], size: [2, 3], every: [22, 30] },
+    waves: [{ form: 'rattata', level: 15, start: 3, every: 10 }, { form: 'pidgeotto', level: 16, start: 6, every: 14 }, { form: 'ekans', level: 17, start: 12, every: 18 }],
+    burst: { pack: [1, 1], size: [1, 2], every: [30, 40], thresholds: [0.5] },
   },
 );

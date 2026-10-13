@@ -33,6 +33,8 @@ BM.Battle = function (stage, profile, opts = {}) {
     // threshold `at` (never inside a counter-burst), or a WW1 giant BLOCKER (`blocker: true`) that walks out at `time` seconds
     extraAces: (stage.extraAces || []).map((a) => ({ ...a, out: false })),
     battled: [],                                           // line ids fielded at least once (team XP, §4.3)
+    // Step 9.5 Part B LAST STAND (menace.js): leader stages only — the size, whether it fired, and the bodies still waiting for a slot
+    lastStand: BM.lastStandCount && !opts.pvp && BM.lastStandCount(stage) ? { n: BM.lastStandCount(stage), fired: false, t: null, spawned: 0, queue: [] } : null,
     bursts: [],                                            // K2 log: { kind: 'timer' | 'threshold', t, at, n }
   };
   // PvP: both teams come from the HELLO snapshots ({ line, form, level }); in a capped battle the FIGHT level (BM.Pvp.fightLevel)
@@ -141,6 +143,7 @@ BM.Battle = function (stage, profile, opts = {}) {
   }
   function baseDist(u) { return u.side === 1 ? C.ENEMY_BASE_FRONT - u.x : u.x - C.PLAYER_BASE_FRONT; }
 
+  const weak = (u) => (u.st && BM.STATUS[u.st.type].weak) || 1; // burn: a burned unit hits softer
   function dealHit(u) {
     let tgt = u.target;
     if (tgt && tgt !== 'base' && (tgt.dead || Math.abs(tgt.x - u.x) > u.range + 25)) tgt = null;
@@ -149,14 +152,15 @@ BM.Battle = function (stage, profile, opts = {}) {
     u.strikeT = 0.18;
     if (tgt === 'base') {
       const base = u.side === 1 ? S.enemyBase : S.playerBase;
-      base.hp = Math.max(0, base.hp - u.dmg);
-      for (let k = 0; k < (u.hits || 1); k++) S.events.push({ type: 'baseHit', side: -u.side, attacker: u, dmg: u.dmg / (u.hits || 1), k });
+      const bd = u.dmg * weak(u);
+      base.hp = Math.max(0, base.hp - bd);
+      for (let k = 0; k < (u.hits || 1); k++) S.events.push({ type: 'baseHit', side: -u.side, attacker: u, dmg: bd / (u.hits || 1), k });
       if (base.hp <= 0 && !S.result) end(u.side === 1 ? 'win' : 'lose');
       return;
     }
     // G9: a multi-hit move (Fury Swipes ×3…) splits the attack's damage across its hits (k = hit index, for the visuals).
     // K3: an AREA attack (aoe > 0) lands every hit on EVERY foe in the zone around the target, in front of the attacker.
-    const per = u.dmg / (u.hits || 1);
+    const per = (u.dmg * weak(u)) / (u.hits || 1);
     // SIGNATURE (giant aces' `sig`, legendaries' reliable status): every C.SIG.every s the attack becomes the special move —
     // its big area and its status on everything it hits (reliable)
     const sigNow = !!(u.sig && u.sigT <= 0);
@@ -232,6 +236,26 @@ BM.Battle = function (stage, profile, opts = {}) {
     S.bursts.push(rec);
     S.events.push({ type: 'burst', ...rec });
   }
+  // Step 9.5 Part B LEADER'S MENACE (menace.js): the leader's ace carries exactly one threat on top of its own build
+  const MEN = !opts.pvp && BM.menaceOf ? BM.menaceOf(stage) : null;
+  S.menace = MEN;
+  function applyMenace(u) {
+    if (!MEN) return;
+    const M = BM.MENACE; u.menace = MEN.kind;
+    if (MEN.kind === 'area') u.aoe = Math.max(u.aoe || 0, M.AREA_R);
+    else if (MEN.kind === 'status') { u.status = MEN.status; u.statusChance = stage.menaceChance != null ? stage.menaceChance : M.STATUS_CHANCE; } // a winnability tune may lower it
+    else if (MEN.kind === 'giant') { u.hp = u.maxHp = Math.round(u.hp * M.GIANT.hp); u.dmg = Math.round(u.dmg * M.GIANT.dmg); u.sizeMul = M.GIANT.size; u.kbResist = true; }
+  }
+  // the last-stand wave: the stage's own enemy pool (its wave forms, gated ones held back while their gate is shut), at the stage's
+  // level, dealt round-robin from a seeded shuffle so every themed species shows up
+  function lastStandList(n) {
+    let forms = [...new Set(S.waves.map((w) => w.form))];
+    if (forms.some((f) => !gated(f))) forms = forms.filter((f) => !gated(f));
+    if (!forms.length) return []; // a stage with no wave pool (the TTK harness) has nobody left to send
+    for (let i = forms.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [forms[i], forms[j]] = [forms[j], forms[i]]; }
+    const lv = stage.lastStandLv || stage.level;
+    return Array.from({ length: n }, (_, i) => ({ form: forms[i % forms.length], level: lv }));
+  }
   function end(result) {
     S.result = result;
     for (const u of S.units) {
@@ -285,6 +309,18 @@ BM.Battle = function (stage, profile, opts = {}) {
       CAD.thresholds.forEach((at, i) => { if (!S.thrFired[i] && S.enemyBase.hp < S.enemyBase.max * at) { S.thrFired[i] = true; spawnBurst('threshold', at); } });
     }
 
+    // Step 9.5 Part B LAST STAND: the first time the enemy base is at 50% or below, the leader's remaining themed Pokémon come ALL
+    // AT ONCE (exempt from trickle pacing); over the side cap the rest queue and pour in as slots free — never dropped
+    const LS = S.lastStand;
+    if (LS && !LS.fired && S.enemyBase.hp <= S.enemyBase.max * 0.5) {
+      LS.fired = true; LS.t = Math.round(S.t * 100) / 100;
+      LS.queue = lastStandList(LS.n);
+      S.events.push({ type: 'lastStand', n: LS.n, leader: stage.leader });
+    }
+    if (LS && LS.queue.length) {
+      while (LS.queue.length && count(-1) < CAP) { const w = LS.queue.shift(); const u = makeUnit(BM.FORMS[w.form], w.level, -1, C.ENEMY_BASE_FRONT + 8 - (LS.spawned % 6) * 14 - rnd() * 8); u.lastStand = true; LS.spawned++; }
+    }
+
     const A = S.ace;
     if (A && !A.out && !gated(A.form) && (S.enemyBase.hp < S.enemyBase.max * C.ACE_BASE_FRAC || S.t >= C.ACE_TIME)) {
       A.out = true; // the ace ignores the side cap: it always comes out (§4.4)
@@ -297,6 +333,7 @@ BM.Battle = function (stage, profile, opts = {}) {
         u.hp = u.maxHp = Math.round(u.hp * C.GIANT.hp); u.dmg = Math.round(u.dmg * C.GIANT.dmg);
         if (A.sig) { u.sig = A.sig; if (A.sig.reach) u.range = Math.max(u.range, A.sig.reach); } // used every C.SIG.every s
       }
+      applyMenace(u);
       S.events.push({ type: 'ace', unit: u, leader: stage.leader, giant: !!A.giant });
     }
     for (const X of S.extraAces) {
@@ -309,6 +346,7 @@ BM.Battle = function (stage, profile, opts = {}) {
         u.hp = u.maxHp = Math.round(u.hp * C.GIANT.hp); u.dmg = Math.round(u.dmg * C.GIANT.dmg);
         if (X.sig) { u.sig = X.sig; if (X.sig.reach) u.range = Math.max(u.range, X.sig.reach); }
       }
+      if (!X.blocker) applyMenace(u); // Tate & Liza's twin shares the leaders' menace
       S.events.push({ type: 'ace', unit: u, leader: X.blocker ? null : stage.leader, giant: !!X.giant, blocker: !!X.blocker });
     }
 

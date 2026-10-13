@@ -2,7 +2,8 @@
 // Showdown / @pkmn dex = PokéAPI's current stats, Kakashi spot-checked) + the builder-reviewed combat identities (G9 conventions:
 // role / trait / move / reach / hits / AoE / status / size), then hand-edited where noted. Adding a Pokémon = data + art, never
 // engine code. Costs are NOT written here (cost: 0): every form is priced by the L2 audit + the NNN1 bands (combat.js), exactly
-// like Kanto / Johto — EXCEPT the three Hoenn starter lines, pinned with `costFix` to the Kanto starters' 75 / 90 / 100 (C7 call).
+// like Kanto / Johto — EXCEPT the three Hoenn starter lines, pinned with `costFix` to the Kanto starters' 75 / 90 / 100 (C7 call)
+// — Step 9.5 (user ruling) re-pins them with `costFinal` 85 / 100 / 110.
 //   player lines   region 'hoenn' — the Hoenn banners, stage gifts (Birch's three starters) or the region reward (Rayquaza)
 //   enemy-only     waves / aces (run-only fodder unless aceClass: run + attack sheets — Nosepass, Makuhita, Torkoal, Slaking,
 //                  Lunatone, Solrock)
@@ -18,19 +19,19 @@
 window.BM = window.BM || {};
 (function () {
   BM.addLine({ id: 'treecko', name: 'Treecko', region: 'hoenn', rarity: 'basic', forms: [
-    {id: 'treecko', name: 'Treecko', types: ['grass'], bst: 310, baseHP: 40, baseSpe: 70, role: 'balanced', cost: 0, costFix: 75, cd: 4, size: 0.85},
-    {id: 'grovyle', name: 'Grovyle', types: ['grass'], bst: 405, baseHP: 50, baseSpe: 95, role: 'rusher', cost: 0, costFix: 90, cd: 8, size: 1.15, evo: {level: 16}},
-    {id: 'sceptile', name: 'Sceptile', trait: 'rusher', types: ['grass'], bst: 530, baseHP: 70, baseSpe: 120, role: 'rusher', cost: 0, costFix: 100, cd: 22, size: 1.45, evo: {level: 36}},
+    {id: 'treecko', name: 'Treecko', types: ['grass'], bst: 310, baseHP: 40, baseSpe: 70, role: 'balanced', cost: 0, costFix: 75, costFinal: 85, cd: 4, size: 0.85},
+    {id: 'grovyle', name: 'Grovyle', types: ['grass'], bst: 405, baseHP: 50, baseSpe: 95, role: 'rusher', cost: 0, costFix: 90, costFinal: 100, cd: 8, size: 1.15, evo: {level: 16}},
+    {id: 'sceptile', name: 'Sceptile', trait: 'rusher', types: ['grass'], bst: 530, baseHP: 70, baseSpe: 120, role: 'rusher', cost: 0, costFix: 100, costFinal: 110, cd: 22, size: 1.45, evo: {level: 36}},
   ] });
   BM.addLine({ id: 'torchic', name: 'Torchic', region: 'hoenn', rarity: 'basic', forms: [
-    {id: 'torchic', name: 'Torchic', types: ['fire'], bst: 310, baseHP: 45, baseSpe: 45, role: 'balanced', cost: 0, costFix: 75, cd: 4, size: 0.8},
-    {id: 'combusken', name: 'Combusken', types: ['fire', 'fighting'], bst: 405, baseHP: 60, baseSpe: 55, role: 'bruiser', cost: 0, costFix: 90, cd: 8, size: 1.2, evo: {level: 16}},
-    {id: 'blaziken', name: 'Blaziken', trait: 'swift', types: ['fire', 'fighting'], bst: 530, baseHP: 80, baseSpe: 80, role: 'bruiser', cost: 0, costFix: 100, cd: 22, size: 1.5, evo: {level: 36}},
+    {id: 'torchic', name: 'Torchic', types: ['fire'], bst: 310, baseHP: 45, baseSpe: 45, role: 'balanced', cost: 0, costFix: 75, costFinal: 85, cd: 4, size: 0.8},
+    {id: 'combusken', name: 'Combusken', types: ['fire', 'fighting'], bst: 405, baseHP: 60, baseSpe: 55, role: 'bruiser', cost: 0, costFix: 90, costFinal: 100, cd: 8, size: 1.2, evo: {level: 16}},
+    {id: 'blaziken', name: 'Blaziken', trait: 'swift', types: ['fire', 'fighting'], bst: 530, baseHP: 80, baseSpe: 80, role: 'bruiser', cost: 0, costFix: 100, costFinal: 110, cd: 22, size: 1.5, evo: {level: 36}},
   ] });
   BM.addLine({ id: 'mudkip', name: 'Mudkip', region: 'hoenn', rarity: 'basic', forms: [
-    {id: 'mudkip', name: 'Mudkip', types: ['water'], bst: 310, baseHP: 50, baseSpe: 40, role: 'balanced', cost: 0, costFix: 75, cd: 4, size: 0.85},
-    {id: 'marshtomp', name: 'Marshtomp', types: ['water', 'ground'], bst: 405, baseHP: 70, baseSpe: 50, role: 'tank', cost: 0, costFix: 90, cd: 8, size: 1.15, evo: {level: 16}},
-    {id: 'swampert', name: 'Swampert', trait: 'tank', types: ['water', 'ground'], bst: 535, baseHP: 100, baseSpe: 60, role: 'bruiser', cost: 0, costFix: 100, cd: 22, size: 1.5, evo: {level: 36}},
+    {id: 'mudkip', name: 'Mudkip', types: ['water'], bst: 310, baseHP: 50, baseSpe: 40, role: 'balanced', cost: 0, costFix: 75, costFinal: 85, cd: 4, size: 0.85},
+    {id: 'marshtomp', name: 'Marshtomp', types: ['water', 'ground'], bst: 405, baseHP: 70, baseSpe: 50, role: 'tank', cost: 0, costFix: 90, costFinal: 100, cd: 8, size: 1.15, evo: {level: 16}},
+    {id: 'swampert', name: 'Swampert', trait: 'tank', types: ['water', 'ground'], bst: 535, baseHP: 100, baseSpe: 60, role: 'bruiser', cost: 0, costFix: 100, costFinal: 110, cd: 22, size: 1.5, evo: {level: 36}},
   ] });
   BM.addLine({ id: 'ralts', name: 'Ralts', region: 'hoenn', branch: 'ralts', rarity: 'rare', forms: [
     {id: 'ralts', name: 'Ralts', types: ['psychic', 'fairy'], bst: 198, baseHP: 28, baseSpe: 40, role: 'ranged', cost: 0, cd: 3, size: 0.7},
@@ -166,6 +167,8 @@ window.BM = window.BM || {};
   // cost (species-data.csv, `cost`) — the starter lines keep the C7 override 75 / 90 / 100 above. Megas: base final + 15 (mega.js).
   BM.HOENN_COSTS = {ralts: 45, kirlia: 85, gardevoir: 100, ralts_gallade: 45, kirlia_gallade: 85, gallade: 100, sableye: 70, mawile: 70, aron: 65, lairon: 85, aggron: 100, meditite: 55, medicham: 85, electrike: 60, manectric: 85, plusle: 75, minun: 75, carvanha: 60, sharpedo: 85, wailmer: 75, wailord: 90, spoink: 65, grumpig: 85, trapinch: 60, vibrava: 85, flygon: 100, cacnea: 65, cacturne: 85, swablu: 60, altaria: 90, barboach: 60, whiscash: 85, corphish: 60, crawdaunt: 85, feebas: 45, milotic: 90, shuppet: 60, banette: 85, duskull: 60, dusclops: 85, dusknoir: 100, absol: 100, spheal: 60, sealeo: 85, walrein: 100, bagon: 60, shelgon: 90, salamence: 105, beldum: 60, metang: 90, metagross: 105, groudon: 130, latios: 120, regirock: 115, registeel: 115, jirachi: 120, kyogre: 130, latias: 120, regice: 115, deoxys: 120, rayquaza: 130};
   for (const [id, c] of Object.entries(BM.HOENN_COSTS)) BM.FORMS[id].costFix = c;
+  // the pack banded these single-stage forms as standard basics (70 / 75), not strong singles — the Step 9.5 re-band keeps that
+  for (const id of ['sableye', 'mawile', 'plusle', 'minun']) BM.FORMS[id].costClass = 'basic';
   // ---- enemy-only species (waves + aces). sizeClass = the G3 bounty class. Magnemite → Magnezone and Goldeen → Seaking are
   // support rows for the stage plan (Wattson / Wallace). Cascoon, Shedinja, Froslass and Gorebyss sit on their canon base's
   // branch: waves field the plain wurmple / nincada / snorunt / clamperl.
@@ -252,6 +255,8 @@ window.BM = window.BM || {};
   // ---- Mega forms: PokéAPI / Showdown stats, own move / cooldown; priced by mega.js (base final form + 15, cap 130). Appended —
   // never reassigned — so the Kanto / Johto Megas stay. Mega Absol Z: Legends: Z-A Mega Dimension (65/154/60/75/60/151, Dark/Ghost).
   // Mega Rayquaza: canon needs no stone (Dragon Ascent) — `stone: null` + `gate: 'rayquaza'` (mega.js owns the gate rule, U4).
+  // attackArt 'run' (Act 2 Step 9): #892 Mega Mawile attack + #902 Mega Altaria attack were SKIPPED by the user's ruling (the image
+  // pipeline refused them) — these two forms attack with their run sheet's lunge frame, the house run-only fallback (sprites.js).
   BM.MEGA_FORMS.push(
     {id: 'sceptile_mega', name: 'Mega Sceptile', from: 'sceptile', stone: 'sceptilite', cry: 'sceptile', trait: 'swift', types: ['grass', 'dragon'], bst: 630, baseHP: 70, baseSpe: 145, role: 'ranged', cd: 28, size: 1.55},
     {id: 'blaziken_mega', name: 'Mega Blaziken', from: 'blaziken', stone: 'blazikenite', cry: 'blaziken', trait: 'swift', types: ['fire', 'fighting'], bst: 630, baseHP: 80, baseSpe: 100, role: 'bruiser', cd: 28, size: 1.55},
@@ -259,12 +264,12 @@ window.BM = window.BM || {};
     {id: 'gardevoir_mega', name: 'Mega Gardevoir', from: 'gardevoir', stone: 'gardevoirite', cry: 'gardevoir', trait: 'sniper', types: ['psychic', 'fairy'], attackType: 'fairy', bst: 618, baseHP: 68, baseSpe: 100, role: 'ranged', cd: 28, size: 1.45},
     {id: 'gallade_mega', name: 'Mega Gallade', from: 'gallade', stone: 'galladite', cry: 'gallade', trait: 'swift', types: ['psychic', 'fighting'], attackType: 'fighting', bst: 618, baseHP: 68, baseSpe: 110, role: 'bruiser', cd: 28, size: 1.45},
     {id: 'sableye_mega', name: 'Mega Sableye', from: 'sableye', stone: 'sablenite', cry: 'sableye', trait: 'tank', types: ['dark', 'ghost'], bst: 480, baseHP: 50, baseSpe: 20, role: 'tank', cd: 28, size: 1.2},
-    {id: 'mawile_mega', name: 'Mega Mawile', from: 'mawile', stone: 'mawilite', cry: 'mawile', trait: 'tank', types: ['steel', 'fairy'], attackType: 'fairy', bst: 480, baseHP: 50, baseSpe: 50, role: 'bruiser', cd: 28, size: 1.2},
+    {id: 'mawile_mega', name: 'Mega Mawile', attackArt: 'run', from: 'mawile', stone: 'mawilite', cry: 'mawile', trait: 'tank', types: ['steel', 'fairy'], attackType: 'fairy', bst: 480, baseHP: 50, baseSpe: 50, role: 'bruiser', cd: 28, size: 1.2},
     {id: 'aggron_mega', name: 'Mega Aggron', from: 'aggron', stone: 'aggronite', cry: 'aggron', trait: 'tank', types: ['steel'], bst: 630, baseHP: 70, baseSpe: 50, role: 'tank', cd: 28, size: 1.65},
     {id: 'medicham_mega', name: 'Mega Medicham', from: 'medicham', stone: 'medichamite', cry: 'medicham', trait: 'swift', types: ['fighting', 'psychic'], bst: 510, baseHP: 60, baseSpe: 100, role: 'bruiser', cd: 28, size: 1.35},
     {id: 'manectric_mega', name: 'Mega Manectric', from: 'manectric', stone: 'manectite', cry: 'manectric', trait: 'swift', types: ['electric'], bst: 575, baseHP: 70, baseSpe: 135, role: 'ranged', cd: 28, size: 1.45},
     {id: 'sharpedo_mega', name: 'Mega Sharpedo', from: 'sharpedo', stone: 'sharpedonite', cry: 'sharpedo', trait: 'rusher', types: ['water', 'dark'], attackType: 'dark', bst: 560, baseHP: 70, baseSpe: 105, role: 'rusher', cd: 28, size: 1.45},
-    {id: 'altaria_mega', name: 'Mega Altaria', from: 'altaria', stone: 'altarianite', cry: 'altaria', types: ['dragon', 'fairy'], attackType: 'fairy', bst: 590, baseHP: 75, baseSpe: 80, role: 'ranged', cd: 28, size: 1.45},
+    {id: 'altaria_mega', name: 'Mega Altaria', attackArt: 'run', from: 'altaria', stone: 'altarianite', cry: 'altaria', types: ['dragon', 'fairy'], attackType: 'fairy', bst: 590, baseHP: 75, baseSpe: 80, role: 'ranged', cd: 28, size: 1.45},
     {id: 'banette_mega', name: 'Mega Banette', from: 'banette', stone: 'banettite', cry: 'banette', trait: 'swift', types: ['ghost'], bst: 555, baseHP: 64, baseSpe: 75, role: 'bruiser', cd: 28, size: 1.3},
     {id: 'absol_mega', name: 'Mega Absol', from: 'absol', stone: 'absolite', cry: 'absol', trait: 'swift', types: ['dark'], bst: 565, baseHP: 65, baseSpe: 115, role: 'rusher', cd: 28, size: 1.4},
     {id: 'absol_mega_z', name: 'Mega Absol Z', from: 'absol', stone: 'absolite_z', cry: 'absol', trait: 'swift', types: ['dark', 'ghost'], attackType: 'ghost', bst: 565, baseHP: 65, baseSpe: 151, role: 'rusher', cd: 28, size: 1.45},

@@ -12,7 +12,7 @@ BM.artAudit = function () {
   for (const f of Object.values(BM.FORMS)) {
     const k = f.sprite || f.id, sf = SF[k] || {}, need = [];
     if (!sf.run) need.push('run');
-    if (!f.runOnly && !sf.attack) need.push('attack');
+    if (!f.runOnly && f.attackArt !== 'run' && !sf.attack) need.push('attack'); // attackArt 'run': the run-sheet lunge fallback (Hoenn #892 / #902)
     const lr = BM.LINES[f.line] && BM.LINES[f.line].region;
     if (need.length) forms.push({ id: f.id, need, region: lr === 'hoenn' ? 'hoenn' : f.mega || lr === 'johto' ? 'johto' : 'kanto' });
   }
