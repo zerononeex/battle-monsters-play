@@ -99,8 +99,8 @@ BM.GachaScreen = function (ui) {
     show('btn-mega-shop', BM.megaUnlocked(p));
     if (BM.megaUnlocked(p)) { const own = BM.MEGA_STONES.filter((s) => p.items[s] > 0).length; $('btn-mega-shop').innerHTML = `💎 Mega Stones <small>${own} / ${BM.MEGA_STONES.length} · ${TK()} ${G.MEGA_STONE_TICKETS} each</small>`; }
     // KK1 + MM1 + VVV1: earning is as visible as spending — a pull-sized, full-width button with the Poké Ball art (no 🧠):
-    // every right answer pays one Poké Ball = one free Safari Zone spin, +3 bonus every 5 in a row
-    $('btn-earn').innerHTML = `<span class="pb-t">${BM.ballHtml('poke_ball', 'earn-ball')} Answer &amp; Earn</span><span class="pb-c">Poké Balls — 1 per right answer, +3 bonus every 5 in a row!</span>`;
+    // every right answer pays one Poké Ball = one free Safari Zone spin, +EARN_STREAK_BONUS every EARN_STREAK_EVERY in a row
+    $('btn-earn').innerHTML = `<span class="pb-t">${BM.ballHtml('poke_ball', 'earn-ball')} Answer &amp; Earn</span><span class="pb-c">Poké Balls — 1 per right answer, +${BM.CHALLENGE.EARN_STREAK_BONUS} bonus every ${BM.CHALLENGE.EARN_STREAK_EVERY} in a row!</span>`;
   }
   // R2: the art stage is exactly 2:1 and as big as the card allows once the info block below has its room — the art is
   // never cropped or stretched. Re-measured on every render and on resize.

@@ -125,6 +125,9 @@ window.BM = window.BM || {};
   // ×2.1. Foes, levels, drops, gates unchanged → Water 4/6 · Thunder 5/6 · Leaf 4/6 · Ice 4/6 (best style, 6 seeds).
   for (const [id, extra] of [['water', {}], ['thunder', {}], ['leaf', { trickle: 2.1 }], ['ice', {}]]) Object.assign(BM.BONUS_STAGES.find((s) => s.id === 'bonus_tr_' + id).burst, { pack: [1, 1] }, extra);
   BM.BONUS_MEGA = { locked: true, text: 'Beat Johto to unlock 🔒', name: 'Mega Stone Stages' }; // the locked card's words (until the unlock)
+  // level-ramp patch Step 2 side effect: the enemy queue (overflow no longer dropped at the field cap) put the Treasure Tower at 1/6 for
+  // its unlock-level deck (phase7 Tower check) — the softening dial s 1 restores 6/6; its LEVEL stays as it was (the brief)
+  BM.softenStage(BM.BONUS_STAGES.find((s) => s.id === 'bonus_tr_item'), 1);
   BM.STAGES.push(...BM.BONUS_STAGES);
   BM.isBonus = (st) => !!(st && st.bonus);
   // Unlocks (BUILD_PLAN §4.3 spirit: Easy after Brock …): the zone itself opens after Brock; XP tiers after Brock / Lt. Surge /

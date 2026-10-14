@@ -166,6 +166,7 @@ window.BM = window.BM || {};
     if (CARRIERS[st.id]) BM.STAGE_CARRIERS[st.id] = CARRIERS[st.id];
     st.enemyBaseHP = BM.johtoBaseHP(st);
   });
+  BM.applyRamp(S, BM.CAP_LADDER.johto); // level-ramp patch Step 1 (stages.js): Lv 1 → cap, endgame over the cap
   BM.JOHTO_STAGES = S;
   BM.STAGES.push(...S);
   // the queued ace attack sheets (#556 Pidgeotto, #557 Steelix, #558 Crobat) make these Kanto-era enemy forms ace-class here

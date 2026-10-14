@@ -489,7 +489,10 @@
         // friend battles: the tap is an INPUT (applied ~0.2 s later on both iPads); 'pending' = already on its way
         const r = PV ? PV.input('spawn', i) : B.spawn(i);
         if (r === 'ok') { dismissHint('spawn'); if (PV) { el.classList.remove('sent'); void el.offsetWidth; el.classList.add('sent'); } } // the spawn event plays the cry (G8)
-        else if (r === 'pending') { /* already sent */ } else { BM.Audio.sfx('deny'); el.classList.remove('denied'); void el.offsetWidth; el.classList.add('denied'); }
+        else if (r === 'pending') { /* already sent */ } else {
+          BM.Audio.sfx('deny'); el.classList.remove('denied'); void el.offsetWidth; el.classList.add('denied');
+          if (r === 'full') toast('Field full!'); // Step 2: 15 out already — nothing sent, no AP spent
+        }
       });
       wrap.appendChild(el);
       cardEls.push({ el, slot: i, cd: el.querySelector('.cd'), cdnum: el.querySelector('.cdnum'), last: '' });
@@ -826,7 +829,7 @@
   // ---------- loop ----------
   const DT = 1 / C.TICK_HZ;
   let acc = 0, lastT = performance.now();
-  // Phase 8 perf overlay (dev mode only): "Fill 40" keeps both sides at the field cap — your cards + the stage's own foes
+  // Phase 8 perf overlay (dev mode only): "Fill 30" keeps both sides at the field cap — your cards + the stage's own foes
   let stressFill = false;
   function stressTick() {
     if (!stressFill || !B || B.S.result) return;

@@ -1,7 +1,7 @@
 // Phase 8 step 5 — performance overlay (hidden dev mode only: hold a logo 2 s, or ?dev). Reads the numbers off a real iPad:
 //   FPS (and the 1% low) · frame interval ms (avg / worst of the last 2 s) · the JS work split per frame: sim (all fixed steps,
 //   so 3× battle speed shows as ~3× sim) · draw (canvas) · hud (DOM) · units per side · fx + floating texts · battle speed.
-// Two stress buttons make the worst cases reproducible on the device: "Fill 40" keeps BOTH sides topped up at the field cap
+// Two stress buttons make the worst cases reproducible on the device: "Fill 30" (2 × the field cap) keeps BOTH sides topped up at the field cap
 // (20 + 20) for as long as it is on; "Burst" fires a timed burst at once. Nothing here runs unless dev mode is on.
 window.BM = window.BM || {};
 BM.Perf = (function () {
@@ -45,7 +45,7 @@ BM.Perf = (function () {
   function ensureEl() {
     if (el) return el;
     el = document.createElement('div'); el.id = 'perf-overlay'; el.className = 'perf-overlay hidden';
-    el.innerHTML = '<pre id="perf-text"></pre><div class="perf-btns"><button id="perf-fill" type="button">Fill 40</button><button id="perf-burst" type="button">Burst</button></div>';
+    el.innerHTML = `<pre id="perf-text"></pre><div class="perf-btns"><button id="perf-fill" type="button">Fill ${2 * BM.C.MAX_PER_SIDE}</button><button id="perf-burst" type="button">Burst</button></div>`;
     document.body.appendChild(el);
     el.querySelector('#perf-fill').addEventListener('pointerdown', (e) => { e.stopPropagation(); hooks.fill && hooks.fill(); render(); });
     el.querySelector('#perf-burst').addEventListener('pointerdown', (e) => { e.stopPropagation(); hooks.burst && hooks.burst(); });

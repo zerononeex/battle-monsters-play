@@ -289,6 +289,132 @@ window.BM = window.BM || {};
   BM.stageById = (id) => BM.STAGES.find((s) => s.id === id);
   BM.KANTO_STAGES = BM.STAGES.filter((s) => !s.dev); // campaign order, 25
   for (const st of BM.KANTO_STAGES) st.region = st.region || 'kanto';
+
+  // ENEMY LEVEL RAMP (level-ramp patch Step 1, user ruling 2026-10-13 — supersedes "stage levels follow the player's team"). In EVERY
+  // region the regular campaign stages, in order, ramp Lv 1 → the region cap (Kanto 60 · Johto 65 · Hoenn 70 · Sinnoh 75 · Unova 80),
+  // linear by stage index. The ENDGAME sits OVER the cap: the four Elite Four stages at cap+1 … cap+4 (Johto's single Elite Four node
+  // = the whole cap+1…cap+4 band, its ace at cap+4), the Champion at cap+5. Nothing else goes over: a post-Champion capstone (Mt.
+  // Silver, the Sky Pillar, the Hisui rift) sits AT the cap; Unova's N's Castle is a regular late stage (`ramp: 'regular'`) and
+  // Alder is its Champion (`ramp: 'champion'`); Arceus (post-game, optional) keeps a very hard cap+5. Player caps don't change.
+  // Re-basing keeps each stage's own spread: every wave / extra ace / summon level × (new ÷ old stage level), rounded, ≥ 1, ≤ the
+  // stage level; the leader's ace sits at the top. Compositions (species, counts, timing, gates) are untouched.
+  // Base HP follows the level: × BM.rampHpMul(old, new) so a stage keeps the time-to-kill it was tuned for (J2 band).
+  // Step 5 (boss over-cap QA) switch: true = the graded over-cap endgame band (E4 cap+1…cap+4, Champion cap+5); false = the Elite Four
+  // and the Champion sit AT the cap. Arceus (post-game) keeps his cap+5 either way.
+  BM.RAMP_OVERCAP = false; // Step 5 verdict (2026-10-14): REMOVED — the Kanto + Johto Champions read 0/6 for the end-of-regular team (CURRENT_STATE)
+  BM.rampClass = (st) => st.ramp || (st.postgame ? 'postgame' : st.kind === 'e4' ? 'e4' : st.regionFinal ? 'champion' : st.capstone ? 'capstone' : 'regular');
+  BM.rampTargets = function (stages, cap) {
+    const reg = stages.filter((s) => BM.rampClass(s) === 'regular'), e4 = stages.filter((s) => BM.rampClass(s) === 'e4'), out = new Map();
+    reg.forEach((s, i) => out.set(s, reg.length > 1 ? Math.round(1 + (cap - 1) * i / (reg.length - 1)) : cap));
+    const O = BM.RAMP_OVERCAP;
+    e4.forEach((s, i) => out.set(s, !O ? cap : e4.length === 1 ? cap + 4 : Math.min(cap + 4, cap + 1 + i)));
+    for (const s of stages) { const c = BM.rampClass(s); if (c === 'champion') out.set(s, O ? cap + 5 : cap); else if (c === 'postgame') out.set(s, cap + 5); else if (c === 'capstone') out.set(s, cap); }
+    return out;
+  };
+  BM.rampHpMul = (oldL, newL) => BM.C.levelScale(newL) / BM.C.levelScale(oldL);
+  BM.rampStage = function (st, L) {
+    const old = st.level, k = L / old, sc = (v) => Math.max(1, Math.min(L, Math.round(v * k)));
+    const hp = BM.enemyBaseHP(st);
+    st.rampFrom = old; st.level = L;
+    st.waves = st.waves.map((w) => ({ ...w, level: sc(w.level) }));
+    if (st.ace) st.ace = { ...st.ace, level: L };
+    if (st.extraAces) st.extraAces = st.extraAces.map((a) => ({ ...a, level: sc(a.level), ...(a.summon ? { summon: { ...a.summon, level: sc(a.summon.level) } } : {}) }));
+    st.enemyBaseHP = Math.round(hp * BM.rampHpMul(old, L) / 50) * 50;
+    return st;
+  };
+  // EARLY-REGION PASS (user call 2026-10-14, after the Step 1 sims): Johto–Unova's stages were built for a Lv 50+ team — fully evolved
+  // waves, the late cadence tier and giant aces from stage 1 — and a native team climbing from Lv 1 could not clear their early /
+  // mid stages at any sane level lead. Below Lv 38 (where Kanto's first giant ace, Erika, sits on the ramp) a later region's regular
+  // stage plays by Kanto's early-game rules: (1) every wave form (and the ace) is the form its LEVEL allows, same species line
+  // (Noctowl at Lv 13 is a Hoothoot; floors: a middle form from Lv 16, a final from Lv 36, a two-stage line's evolution from Lv 20,
+  // a player line's own evolution level when it has one); (2) its cadence tier is the Kanto stage at the same ramp level
+  // (`curveAt`), the late-tier pack / trickle / burst-size overrides dropped; (3) the ace is normal size (no giant, no signature).
+  // Wave lists (start / every / count), species lines, gates, menaces and last stands are untouched.
+  BM.EARLY_RAMP_LV = 38;
+  const preOf = (id) => { const p = BM.PRE_CANON[id]; return p && BM.FORMS[p] ? p : null; };
+  BM.evoFloor = function (id) {
+    const f = BM.FORMS[id], pre = preOf(id);
+    if (!pre) return 1;
+    if (f.evo && (f.evo.level || f.evo.minLevel)) return f.evo.level || f.evo.minLevel;
+    if (preOf(pre)) return 36; // a final of a three-stage line
+    const nx = BM.EVO_CANON[id] || BM.EVO_CANON[BM.speciesOf(f)];
+    return nx && nx.some((e) => BM.FORMS[e]) ? 16 : 20; // a middle form / a two-stage line's evolution
+  };
+  BM.formForLevel = function (id, L) { let f = id; while (preOf(f) && BM.evoFloor(f) > L) f = preOf(f); return f; };
+  BM.earlyPass = function (st) {
+    const L = st.level, dv = (id) => BM.formForLevel(id, L);
+    const map = new Map(), orig = st.waves.map((w) => w.form);
+    st.waves = st.waves.map((w) => { const f = BM.formForLevel(w.form, w.level); map.set(w.form, f); return { ...w, form: f }; });
+    if (st.ace) { const { giant, sig, ...a } = st.ace; map.set(a.form, dv(a.form)); st.ace = { ...a, form: dv(a.form) }; }
+    if (st.extraAces) st.extraAces = st.extraAces.map((x) => { const { giant, sig, ...a } = x; map.set(a.form, dv(a.form)); return { ...a, form: dv(a.form) }; });
+    // the Y1 gate keeps holding what it held — unless a devolved heavy is now the same form as an ungated wave (it can't be held then)
+    // (Y1 still holds the stage's top-tier form — after devolving that can be a different one)
+    if (st.gate) { const free = new Set(st.waves.filter((w, i) => !st.gate.forms.includes(orig[i])).map((w) => w.form));
+      const v = (id) => BM.FORMS[id].bst + BM.FORMS[id].baseHP, all = [...st.waves.map((w) => w.form), ...(st.ace ? [st.ace.form] : [])];
+      const top = all.reduce((a, b) => (v(b) > v(a) ? b : a));
+      st.gate = { ...st.gate, forms: [...new Set([...st.gate.forms.map((f) => map.get(f) || f).filter((f) => !free.has(f)), top])] }; }
+    if (st.burst) { const { pack, trickle, size, every, counterSize, first, ...keep } = st.burst; st.burst = { ...keep, ...(keep.pool ? { pool: keep.pool.map((f) => (typeof f === 'string' ? dv(f) : { ...f, form: dv(f.form) })) } : {}) }; }
+    const k = BM.KANTO_STAGES.find((s) => s.level >= L) || BM.KANTO_STAGES[BM.KANTO_STAGES.length - 1];
+    st.curveAt = k.num; st.early = true;
+    // …and its trickle releases bodies no faster than that Kanto stage's: a stage with more wave rows waits longer between releases
+    // (every row and count stays; Σ 1/every is the trickle's rate before the tier stretch)
+    const rate = (x) => x.waves.reduce((a, w) => a + 1 / w.every, 0), T = BM.CADENCE.tier(k.num);
+    const kr = rate(k) / ((k.burst && k.burst.trickle) || T.trickle);
+    // and each release's PACK shrinks by the same row ratio (every row's FIRST release comes at its start time — with twice
+    // Kanto's rows, full packs flood the opening; the BR-109 Cerulean / Vermilion tune used packs 1–2 the same way)
+    const rows = st.waves.length / k.waves.length, pk = (k.burst && k.burst.pack) || T.pack || [1, 1];
+    st.burst = { ...(st.burst || {}), trickle: +Math.max(T.trickle, rate(st) / kr).toFixed(2),
+      pack: rows > 1 ? pk.map((n) => Math.max(1, Math.round(n / rows))) : pk };
+    if (BM.STAGE_CARRIERS[st.id]) BM.STAGE_CARRIERS[st.id] = BM.STAGE_CARRIERS[st.id].map(dv);
+    return st;
+  };
+
+  // THE SOFTENING DIAL (level-ramp patch, the mirror of BM.hardenStage — the BR-109 Cerulean / Vermilion tune made general): `soft: s`
+  // (0–8) thins a stage the ramp's playthrough sim could not clear — the trickle waits ×(1 + 0.25s), packs 1–(max − ⌈s/2⌉), timed bursts
+  // ⌈s/2⌉ smaller and 5s seconds rarer, counter-bursts ⌈s/2⌉ smaller; from s = 3 no 75 % counter-burst, from 5 only the 25 % one, from 6 no
+  // timed bursts, at 7 / 8 the waves 2 / 4 levels under the stage. Species, wave rows, gates,
+  // aces, menaces and last stands are untouched. Per stage in BM.RAMP_SOFT (sim-tuned: tools/test/ramp.mjs tune).
+  BM.softenStage = function (st, s) {
+    if (!(s > 0)) return st;
+    const B = st.burst || {}, K = BM.CADENCE, T = { ...K.tier(st.curveAt || st.num || 1), ...(['e4', 'champion'].includes(st.kind) ? K.e4 : {}) };
+    const h = Math.ceil(s / 2), pk = B.pack || T.pack || [2, 3], sz = B.size || T.size, ev = B.every || K.every;
+    st.soft = s;
+    if (s > 6) st.waves = st.waves.map((w) => ({ ...w, level: Math.max(1, w.level - 2 * (s - 6)) })); // 7–8: the waves come 2 / 4 levels under (the ace stays on top)
+    st.burst = { ...B, trickle: +((B.trickle || T.trickle || K.trickle) * (1 + 0.25 * s)).toFixed(2), pack: [1, Math.max(1, pk[1] - h)],
+      size: [Math.max(2, sz[0] - h), Math.max(2, sz[1] - h)], every: [ev[0] + 5 * s, ev[1] + 5 * s], counterSize: Math.max(2, (B.counterSize || T.counterSize) - h),
+      ...(s >= 3 ? { thresholds: (B.thresholds || K.thresholds).filter((t) => t <= (s >= 5 ? 0.25 : 0.5)) } : {}), ...(s >= 6 ? { first: 9999 } : {}) };
+    return st;
+  };
+  BM.RAMP_SOFT = { // sim-tuned (ramp.mjs tune: the smallest s at which the playthrough team reads ≥ 3/6; marginal ones re-checked at 24 seeds
+    // for ≥ ~50 %); Gardenia / Burgh also left the hard dial (BR-117 cliff)
+    johto_07_slowpokewell: 1, hoenn_07_slateport: 4, hoenn_09_verdanturf: 1, hoenn_13_norman: 4, hoenn_16_aqua_hideout: 2, hoenn_17_tate_liza: 1,
+    hoenn_19_wallace: 4, sinnoh_07_gardenia: 4, sinnoh_08_fantina: 2, sinnoh_17_spear_pillar: 3, unova_06_pinwheel: 3, unova_07_burgh: 4,
+    unova_08_desert: 1, unova_24_ns_castle: 1,
+    hoenn_18_seafloor_cavern: 6, // the Kyogre + Groudon set piece (0/6 for the playthrough team at 0–4)
+    // Step 5 QA (E4 + Champion at the cap, the end-of-regular team ≥ 3/6): ramp.mjs qa TUNEQA=1
+    kanto_25_champion: 1, johto_24_champion: 6, hoenn_20_sidney: 2, hoenn_22_glacia: 1, hoenn_23_drake: 7,
+    // the region suites' native-deck gates (phase9 / phase10 / phase11 sim, SOFT='{…}' bisection): Whitney's sleepy fairy wall, two
+    // Johto routes, Granite Cave; Arceus (post-game, Lv 80 = cap+5) 0/6 → 1/6 for a full Lv 75 team — very hard, not impossible
+    johto_11_whitney: 5, johto_12_nationalpark: 1, johto_13_burnedtower: 1, hoenn_05_granite_cave: 1, sinnoh_26_arceus: 1 };
+
+  // RAMP XP (Step 1's playthrough sim: at 2 × L² a fresh team fell ~40% under the ramp by mid-region). A REGULAR stage's FIRST clear
+  // pays every line that battled exactly the XP to climb from this stage's level to the NEXT regular stage's (next L³ − L³, never
+  // less than the old 2 × L²; the last regular stage climbs to the cap), so a team that plays every stage meets each stage ON its
+  // level (one stage behind — L³ − prev L³ — the sims lost the mid-region gyms at −3/−4); candies stay the catch-up for new friends.
+  // Elite Four / Champion / capstone / post-game, replays and the Prism Tower keep their own XP.
+  BM.applyRamp = (stages, cap) => {
+    const T = BM.rampTargets(stages, cap), reg = stages.filter((s) => BM.rampClass(s) === 'regular');
+    for (const [st, L] of T) {
+      BM.rampStage(st, L);
+      if (BM.rampClass(st) === 'regular') { const nx = reg[reg.indexOf(st) + 1], N = nx ? T.get(nx) : cap; st.firstXp = Math.max(2 * L * L, N ** 3 - L ** 3); }
+      if (st.region && st.region !== 'kanto' && BM.rampClass(st) === 'regular' && L < BM.EARLY_RAMP_LV) BM.earlyPass(st);
+      if (BM.RAMP_SOFT[st.id]) BM.softenStage(st, BM.RAMP_SOFT[st.id]);
+    }
+  };
+  BM.applyRamp(BM.KANTO_STAGES, BM.CAP_LADDER.kanto);
+  // J2 band on the ramp (phase7 ttk, the 6-card on-level deck): the ramp's on-level team camped these at 9–14 s (floor 15) — base HP up
+  BM.EB_RAMP = { kanto_01_pallet: 1.2, kanto_02_viridian: 1.06, kanto_04_pewter: 1.2, kanto_06_mtmoon: 1.2, kanto_07_cerulean: 1.85, kanto_08_misty: 1.25, kanto_09_vermilion: 1.3 };
+  for (const st of BM.KANTO_STAGES) if (BM.EB_RAMP[st.id]) st.enemyBaseHP = Math.round(st.enemyBaseHP * BM.EB_RAMP[st.id] / 50) * 50;
   BM.isPlayable = (st) => !!st && !st.locked && Array.isArray(st.waves);
 
   // Rewards (stored in Phase 3, spent from Phase 4/5). §4.5 tickets: first clear location 10 · gym 20 · E4 25 ·
@@ -305,7 +431,7 @@ window.BM = window.BM || {};
     return {
       first,
       tickets: first ? FIRST_TICKETS[st.kind] || 10 : 2,
-      xp: (first ? 2 : 1) * st.level * st.level,
+      xp: first ? st.firstXp || 2 * st.level * st.level : st.level * st.level, // first clear: the ramp XP on regular stages (BM.applyRamp)
       gift: first && st.gift ? st.gift : null,
       item: first && st.item ? st.item : null,
       ...(first && st.prize ? { prize: st.prize } : {}), // Johto: a capstone's extra first-clear items { itemId: n } (Mt. Silver)

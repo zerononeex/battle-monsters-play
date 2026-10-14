@@ -130,7 +130,8 @@ window.BM = window.BM || {};
     // N's Castle — N and Ghetsis (champion-class, U2): N's giant ZEKROM at the usual 70 % / 90 s, then Ghetsis's giant HYDREIGON at its own
     // 30 % (never both in one counter-burst). First clear = KYUREM (base form, rewardOnly — Mewtwo → Lugia → Rayquaza → Giratina → Kyurem)
     // + the region's Master Ball; Unova counts as beaten (regionsDone.unova).
-    { id: 'unova_24_ns_castle', name: "N's Castle", leader: 'N & Ghetsis', mapLabel: "N's Castle", kind: 'champion', level: 80, background: 'ns_castle', townMusic: 'town_unova_league',
+    // level-ramp patch Step 1 (user): N's Castle rides the ramp as a regular late stage (at / under the cap); Alder is the Champion (cap+5)
+    { id: 'unova_24_ns_castle', name: "N's Castle", leader: 'N & Ghetsis', mapLabel: "N's Castle", kind: 'champion', ramp: 'regular', level: 80, background: 'ns_castle', townMusic: 'town_unova_league',
       drops: L({ leaders_crest: 2, thunder_stone: 1 }),
       waves: [W('purrloin', 77, 4, 11), W('trubbish', 77, 8, 12), W('klang', 78, 16, 14), W('liepard', 78, 22, 15), W('archeops', 79, 28, 16), W('carracosta', 79, 34, 18), W('zoroark', 79, 40, 18), W('vanilluxe', 79, 46, 20), W('klinklang', 79, 50, 20), W('cofagrigus', 80, 56, 22), W('seismitoad', 80, 60, 22), W('bouffalant', 80, 64, 22), W('eelektross', 80, 68, 24)],
       gate: { by: 'hp', at: 0.9, forms: ['zoroark', 'vanilluxe', 'klinklang', 'seismitoad', 'eelektross', 'zekrom', 'hydreigon'] },
@@ -139,7 +140,7 @@ window.BM = window.BM || {};
       gift: 'kyurem', regionFinal: true },
     // 25 — the CAPSTONE (U2): Champion ALDER, "The True Champion" (BW postgame; the Red pattern) — giant VOLCARONA (his Menace: GIANT).
     // First clear = Master Ball + XP Candy L ×3 + the Hisuian Samurott line (C10).
-    { id: 'unova_25_alder', name: 'Champion', place: 'The True Champion', leader: 'Alder', kind: 'champion', level: 80, background: 'champion_room', townMusic: 'town_unova_league', gift: 'oshawott_samurott_hisui',
+    { id: 'unova_25_alder', name: 'Champion', place: 'The True Champion', leader: 'Alder', kind: 'champion', ramp: 'champion', level: 80, background: 'champion_room', townMusic: 'town_unova_league', gift: 'oshawott_samurott_hisui',
       drops: L({ fire_stone: 2, moon_stone: 1, sun_stone: 1 }),
       waves: [W('larvesta', 77, 4, 11), W('karrablast', 77, 8, 12), W('shelmet', 77, 12, 12), W('vanillish', 78, 20, 14), W('druddigon', 78, 26, 15), W('accelgor', 79, 32, 16), W('bouffalant', 79, 38, 18), W('vanilluxe', 79, 44, 18), W('escavalier', 80, 50, 20)],
       gate: { by: 'hp', at: 0.9, forms: ['accelgor', 'bouffalant', 'vanilluxe', 'escavalier', 'volcarona'] },
@@ -158,7 +159,9 @@ window.BM = window.BM || {};
     unova_11_clay: 'gym_clay', unova_14_skyla: 'gym_skyla', unova_16_brycen: 'gym_brycen', unova_18_drayden: 'gym_drayden',
     unova_20_shauntal: 'e4', unova_21_grimsley: 'e4', unova_22_caitlin: 'e4', unova_23_marshal: 'e4', unova_24_ns_castle: 'champion', unova_25_alder: 'champion' };
   // the difficulty dial per stage (BM.hardenStage, sinnoh_stages.js) — the sim-tuned values recorded in CURRENT_STATE (Act 3 A2)
-  BM.UNOVA_HARD = { 7: 1.75, 9: 1.5, 16: 0.4, 24: 0.35, 25: 0.5 }; // Act 3 A2 (BR-117): native deck 4 4 4 5 5 /6 (4 reads 6/6 at every k once its grown-up waves are gated; 11 / 14 / 21 reach mid-band only past the OOO1 AP-cap guard — left, reported)
+  // level-ramp patch (BR-117 re-read): Burgh (7) left the dial (0/6 for the playthrough team at any k → BM.RAMP_SOFT 4); Elesa (9) 1.5 → 1.15
+  // (1/6 → 3/6 on the native deck)
+  BM.UNOVA_HARD = { 9: 1.15, 16: 0.4, 24: 0.35, 25: 0.5 }; // Act 3 A2 (BR-117): native deck 4 4 4 5 5 /6 (4 reads 6/6 at every k once its grown-up waves are gated; 11 / 14 / 21 reach mid-band only past the OOO1 AP-cap guard — left, reported)
   BM.UNOVA_EB = [[1, 36000], [5, 39000], [10, 42000], [15, 42500], [20, 43000], [25, 45000]];
   BM.unovaBaseHP = function (st) {
     const A = BM.UNOVA_EB, n = st.num;
@@ -175,9 +178,10 @@ window.BM = window.BM || {};
     if (BASES[st.id]) st.baseArt = BASES[st.id];
     if (CARRIERS[st.id]) BM.STAGE_CARRIERS[st.id] = CARRIERS[st.id];
     st.enemyBaseHP = BM.unovaBaseHP(st);
-    if (BM.UNOVA_HARD[st.num]) BM.hardenStage(st, BM.UNOVA_HARD[st.num]);
   });
   for (const st of S) if (st.mapLabel === undefined) delete st.mapLabel;
+  BM.applyRamp(S, BM.CAP_LADDER.unova); // level-ramp patch Step 1 (stages.js): Lv 1 → cap, endgame over the cap — before the dial
+  for (const st of S) if (BM.UNOVA_HARD[st.num]) BM.hardenStage(st, BM.UNOVA_HARD[st.num]);
   BM.UNOVA_STAGES = S;
   BM.STAGES.push(...S);
 })();

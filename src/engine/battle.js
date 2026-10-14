@@ -96,6 +96,21 @@ BM.Battle = function (stage, profile, opts = {}) {
     return u;
   }
 
+  // FIELD CAP (level-ramp patch Step 2, user 2026-10-13: spawn lag): at most CAP Pokémon per side ALIVE at once (a giant counts as 1).
+  // An enemy that would go over the cap is not lost — it waits in S.queue (FIFO; aces / wall-breakers jump to the front) and walks
+  // out the moment a slot frees. The trickle waits behind the queue (its timer holds, so wave order is kept); a timer burst waits
+  // while bodies are still queued (the queue stays bounded); threshold bursts, gate reinforcements and the last stand always queue.
+  S.queue = [];
+  function enemy(form, level, x, post, front = false) {
+    if (!S.queue.length && count(-1) < CAP) { const u = makeUnit(form, level, -1, x); if (post) post(u); return u; }
+    const q = { form, level, x, post };
+    if (front) S.queue.unshift(q); else S.queue.push(q);
+    return null;
+  }
+  function drainQueue() {
+    while (S.queue.length && count(-1) < CAP) { const q = S.queue.shift(); const u = makeUnit(q.form, q.level, -1, q.x); if (q.post) q.post(u); }
+  }
+
   // ---- player actions ----
   // `side` (PvP): which player acts — 1 by default (the campaign player / the host), -1 = the guest
   function canSpawn(slot, side = 1) {
@@ -220,19 +235,16 @@ BM.Battle = function (stage, profile, opts = {}) {
     for (let i = 0; i < n; i++) list.push(pool[Math.floor(rnd() * pool.length)]);
     if (carriers.length) list[list.length - 1] = carriers[Math.floor(rnd() * carriers.length)];
     let made = 0;
-    for (const w of list) {
-      if (count(-1) >= CAP) break;
-      makeUnit(BM.FORMS[w.form], w.level, -1, C.ENEMY_BASE_FRONT + 8 - made * 14 - rnd() * 8); made++;
-    }
+    for (const w of list) { enemy(BM.FORMS[w.form], Math.max(1, w.level), C.ENEMY_BASE_FRONT + 8 - made * 14 - rnd() * 8); made++; } // over the cap: queued, never lost
     let breaker = null;
     if (kind === 'threshold' && CAD.breaker.form) {
       // Y1: a gated wall-breaker waits for its gate — until then the strongest UNgated form breaks the wall
       let bf = CAD.breaker.form;
       if (gated(bf)) { let bv = -1; for (const w of pool) { const f = BM.FORMS[w.form], v = f.bst + f.baseHP; if (v > bv) { bv = v; bf = w.form; } } }
-      breaker = makeUnit(BM.FORMS[bf], CAD.breaker.level, -1, C.ENEMY_BASE_FRONT - 6);
-      breaker.breaker = true; breaker.kbResist = true; breaker.hp = breaker.maxHp = Math.round(breaker.hp * CAD.breakerHp); made++;
+      enemy(BM.FORMS[bf], CAD.breaker.level, C.ENEMY_BASE_FRONT - 6, (u) => { u.breaker = true; u.kbResist = true; u.hp = u.maxHp = Math.round(u.hp * CAD.breakerHp); }, true);
+      breaker = bf; made++;
     }
-    const rec = { kind, t: Math.round(S.t * 10) / 10, at, n: made, breaker: breaker ? breaker.form.id : null };
+    const rec = { kind, t: Math.round(S.t * 10) / 10, at, n: made, breaker };
     S.bursts.push(rec);
     S.events.push({ type: 'burst', ...rec });
   }
@@ -287,25 +299,25 @@ BM.Battle = function (stage, profile, opts = {}) {
       S.events.push({ type: 'gate', by: G.by });
       if (G.by === 'hp') for (const w of S.waves) {
         if (!G.forms.has(w.form)) continue;
-        if (count(-1) < CAP + 2) { makeUnit(BM.FORMS[w.form], w.level, -1, C.ENEMY_BASE_FRONT + 4 - rnd() * 12); w.spawned++; }
+        enemy(BM.FORMS[w.form], w.level, C.ENEMY_BASE_FRONT + 4 - rnd() * 12); w.spawned++;
         w.next = Math.max(w.next, S.t + w.every);
       }
     }
     for (const w of S.waves) {
       if (gated(w.form)) continue;
       if (S.t < w.next || (w.count != null && w.spawned >= w.count)) continue;
-      if (count(-1) >= CAP) { w.next = S.t + 1; continue; }
+      if (S.queue.length || count(-1) >= CAP) continue; // field full: the release waits (timer held) and goes as soon as a slot opens
       // OOO1: a trickle release is a PACK of fodder / medium units (extras 1–2 levels lower); large units come solo (a pair
       // late on, when the pack range allows 3+); aces / bosses always solo
       const n = packSize(BM.FORMS[w.form]);
       // BR-099 (Hoenn tables, `packBase`): the extras come as the line's BASE form — more, weaker bodies, not more power
-      for (let k = 0; k < n && count(-1) < CAP; k++) makeUnit(BM.FORMS[k && stage.packBase ? BM.packBaseOf(w.form, stage.region) : w.form], k ? Math.max(1, w.level - CAD.packLv) : w.level, -1, C.ENEMY_BASE_FRONT + 8 - k * 12 - rnd() * 16);
+      for (let k = 0; k < n; k++) enemy(BM.FORMS[k && stage.packBase ? BM.packBaseOf(w.form, stage.region) : w.form], k ? Math.max(1, w.level - CAD.packLv) : w.level, C.ENEMY_BASE_FRONT + 8 - k * 12 - rnd() * 16); // pack overflow queues
       w.spawned++; w.next += w.every;
     }
 
     // K2: timed bursts (3–5 at once every ~20–30 s) and HP-threshold counter-bursts (75 / 50 / 25%) with a wall-breaker
     if (CAD) {
-      if (S.t >= S.nextBurst) { spawnBurst('timer', null); S.nextBurst = S.t + rint(CAD.every[0], CAD.every[1]); }
+      if (S.t >= S.nextBurst && !S.queue.length) { spawnBurst('timer', null); S.nextBurst = S.t + rint(CAD.every[0], CAD.every[1]); }
       CAD.thresholds.forEach((at, i) => { if (!S.thrFired[i] && S.enemyBase.hp < S.enemyBase.max * at) { S.thrFired[i] = true; spawnBurst('threshold', at); } });
     }
 
@@ -319,39 +331,44 @@ BM.Battle = function (stage, profile, opts = {}) {
     }
     if (LS && LS.queue.length) {
       while (LS.queue.length && count(-1) < CAP) { const w = LS.queue.shift(); const u = makeUnit(BM.FORMS[w.form], w.level, -1, C.ENEMY_BASE_FRONT + 8 - (LS.spawned % 6) * 14 - rnd() * 8); u.lastStand = true; LS.spawned++; }
+      // (the last stand keeps its own queue, drained into free slots ahead of the general queue — over the cap it waits, never lost)
     }
 
+    drainQueue();
     const A = S.ace;
     if (A && !A.out && !gated(A.form) && (S.enemyBase.hp < S.enemyBase.max * C.ACE_BASE_FRAC || S.t >= C.ACE_TIME)) {
-      A.out = true; // the ace ignores the side cap: it always comes out (§4.4)
-      const u = makeUnit(BM.FORMS[A.form], A.level, -1, C.ENEMY_BASE_FRONT - 4);
-      u.ace = true;
-      // GIANT BOSS (§4.4, Phase 7: gym aces from stage 13, every Elite Four ace, the Champion's ace): 2× sprite, HP ×6,
-      // damage ×2, can't be knocked back, and its SIGNATURE move (big AoE, reliable status) from the stage data.
-      if (A.giant) {
-        u.boss = true; u.giant = true; u.kbResist = true;
-        u.hp = u.maxHp = Math.round(u.hp * C.GIANT.hp); u.dmg = Math.round(u.dmg * C.GIANT.dmg);
-        if (A.sig) { u.sig = A.sig; if (A.sig.reach) u.range = Math.max(u.range, A.sig.reach); } // used every C.SIG.every s
-      }
-      applyMenace(u);
-      S.events.push({ type: 'ace', unit: u, leader: stage.leader, giant: !!A.giant });
+      A.out = true; // the ace always comes out (§4.4) — with the field full it takes the FIRST free slot (front of the queue)
+      enemy(BM.FORMS[A.form], A.level, C.ENEMY_BASE_FRONT - 4, (u) => {
+        u.ace = true;
+        // GIANT BOSS (§4.4, Phase 7: gym aces from stage 13, every Elite Four ace, the Champion's ace): 2× sprite, HP ×6,
+        // damage ×2, can't be knocked back, and its SIGNATURE move (big AoE, reliable status) from the stage data.
+        if (A.giant) {
+          u.boss = true; u.giant = true; u.kbResist = true;
+          u.hp = u.maxHp = Math.round(u.hp * C.GIANT.hp); u.dmg = Math.round(u.dmg * C.GIANT.dmg);
+          if (A.sig) { u.sig = A.sig; if (A.sig.reach) u.range = Math.max(u.range, A.sig.reach); } // used every C.SIG.every s
+        }
+        applyMenace(u);
+        S.events.push({ type: 'ace', unit: u, leader: stage.leader, giant: !!A.giant });
+      }, true);
     }
     for (const X of S.extraAces) {
       if (X.out || gated(X.form) || !((X.at != null && S.enemyBase.hp < S.enemyBase.max * X.at) || (X.time != null && S.t >= X.time))) continue;
       X.out = true;
-      const u = makeUnit(BM.FORMS[X.form], X.level, -1, C.ENEMY_BASE_FRONT - 4);
-      u.ace = true; // boss bounty + the ace marker (a blocker too)
-      if (X.giant) {
-        u.boss = true; u.giant = true; u.kbResist = true;
-        u.hp = u.maxHp = Math.round(u.hp * C.GIANT.hp); u.dmg = Math.round(u.dmg * C.GIANT.dmg);
-        if (X.sig) { u.sig = X.sig; if (X.sig.reach) u.range = Math.max(u.range, X.sig.reach); }
-      }
-      if (!X.blocker) applyMenace(u); // Tate & Liza's twin shares the leaders' menace
-      // Sinnoh node 26 (U2): a SUMMONER ace calls reinforcements while it stands — `summon: { pool, n: [lo, hi], every: [lo, hi],
-      // first, level }` (Arceus summons pseudo-legendary-class Pokémon at will); they come at its feet, inside the side cap
-      if (X.summon) u.summon = { ...X.summon, next: S.t + (X.summon.first != null ? X.summon.first : X.summon.every[0]) };
-      S.events.push({ type: 'ace', unit: u, leader: X.blocker ? null : stage.leader, giant: !!X.giant, blocker: !!X.blocker });
+      enemy(BM.FORMS[X.form], X.level, C.ENEMY_BASE_FRONT - 4, (u) => {
+        u.ace = true; // boss bounty + the ace marker (a blocker too)
+        if (X.giant) {
+          u.boss = true; u.giant = true; u.kbResist = true;
+          u.hp = u.maxHp = Math.round(u.hp * C.GIANT.hp); u.dmg = Math.round(u.dmg * C.GIANT.dmg);
+          if (X.sig) { u.sig = X.sig; if (X.sig.reach) u.range = Math.max(u.range, X.sig.reach); }
+        }
+        if (!X.blocker) applyMenace(u); // Tate & Liza's twin shares the leaders' menace
+        // Sinnoh node 26 (U2): a SUMMONER ace calls reinforcements while it stands — `summon: { pool, n: [lo, hi], every: [lo, hi],
+        // first, level }` (Arceus summons pseudo-legendary-class Pokémon at will); they come at its feet, inside the side cap
+        if (X.summon) u.summon = { ...X.summon, next: S.t + (X.summon.first != null ? X.summon.first : X.summon.every[0]) };
+        S.events.push({ type: 'ace', unit: u, leader: X.blocker ? null : stage.leader, giant: !!X.giant, blocker: !!X.blocker });
+      }, true);
     }
+    drainQueue();
     for (const u of S.units) {
       if (u.dead || !u.summon || S.t < u.summon.next) continue;
       const M = u.summon, n = rint(M.n[0], M.n[1]); let k = 0;

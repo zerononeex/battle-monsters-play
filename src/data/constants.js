@@ -6,7 +6,7 @@ BM.C = {
   PLAYER_BASE_FRONT: 40,    // enemy units hit the player base when within range of this x
   ENEMY_BASE_FRONT: 960,
   START_AP: 100,
-  MAX_PER_SIDE: 20,         // UU2 (Phase 7.6): 20 per side = 40 on screen (was 15; BR-002 — the real-iPad check is Phase 8)
+  MAX_PER_SIDE: 15,         // level-ramp patch Step 2 (user 2026-10-13, spawn lag): 15 alive per side (was 20, UU2); enemies over it queue (battle.js)
   // AP generator: [AP per second, AP cap, cost to reach next level]. Phase 7.5 (user): AA1 upgrade costs 50 · 75 · 100 ·
   // 130 · 160 · 190 · 220 (total 925; was 120…600 = 2,520) and AA2 caps 400 · 550 · 700 · 900 · 1100 · 1300 · 1550 · 1800
   // (was 300…1200). Rates unchanged. Pacing is balanced with waves (Q1 rule), never by re-raising these.

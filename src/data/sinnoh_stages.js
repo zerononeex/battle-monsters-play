@@ -183,7 +183,12 @@ window.BM = window.BM || {};
   // J2-STYLE ENEMY BASE HP for Lv 64–75 (Hoenn's curve carried on: anchors by stage number, geometric between, gym ×1.25, E4 / Champion
   // ×1.4); node 26 (Arceus) the biggest of all.
   // the dial per stage (sim-tuned, see BM.hardenStage above) — leader stages to mid-band; node 26 to "very hard"
-  BM.SINNOH_HARD = { 7: 0.85, 10: 1.25, 11: 1.5, 12: 0.5, 15: 1, 23: 1, 24: 1 }; // Act 3 A2 (BR-117): native deck 4 4 5 5 4 4 4 /6
+  // level-ramp patch: Gardenia (7) left the dial — on the ramp it fell off the cliff (the playthrough team 0/6 at any k), now BM.RAMP_SOFT 4
+  // …and Cynthia (24) left it too in Step 5's QA: at the cap with k 1 the end-of-regular team read 0–1/6, at k 0 4/6
+  // level-ramp patch BR-117 re-read: on the ramp (an on-level team, the 15 cap) the dialed stages pin the player at the AP cap — Maylene
+  // 5/6 only at k ≥ 1.25 with AP-cap 30–56 % (OOO1 guard ≤ 25 %), Wake / Candice / Lucian 6/6 at any k with 31–42 %. The guard wins (A2's
+  // rule): Maylene 1.25 → 0.75, Wake 1.5 → 0.5, Candice 1 → 0.5, Lucian 1 → 0.5 — all 6/6 now at AP-cap 6–13 %; Byron stays 0.5
+  BM.SINNOH_HARD = { 10: 0.75, 11: 0.5, 12: 0.5, 15: 0.5, 23: 0.5 };
   BM.SINNOH_EB = [[1, 34000], [5, 37000], [10, 40000], [15, 40500], [20, 41000], [25, 43000], [26, 46000]];
   BM.sinnohBaseHP = function (st) {
     const A = BM.SINNOH_EB, n = st.num;
@@ -226,9 +231,10 @@ window.BM = window.BM || {};
     if (BASES[st.id]) st.baseArt = BASES[st.id];
     if (CARRIERS[st.id]) BM.STAGE_CARRIERS[st.id] = CARRIERS[st.id];
     st.enemyBaseHP = BM.sinnohBaseHP(st);
-    if (BM.SINNOH_HARD[st.num]) BM.hardenStage(st, BM.SINNOH_HARD[st.num]);
   });
   for (const st of S) if (st.mapLabel === undefined) delete st.mapLabel;
+  BM.applyRamp(S, BM.CAP_LADDER.sinnoh); // level-ramp patch Step 1 (stages.js): Lv 1 → cap, endgame over the cap — before the dial
+  for (const st of S) if (BM.SINNOH_HARD[st.num]) BM.hardenStage(st, BM.SINNOH_HARD[st.num]);
   BM.SINNOH_STAGES = S;
   BM.STAGES.push(...S);
 })();

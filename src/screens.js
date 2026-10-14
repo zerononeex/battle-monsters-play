@@ -115,7 +115,10 @@ BM.Screens = function (ui) {
     { id: 'far', name: '🏹 Ranged', test: (f, st) => st.range > BM.C.MELEE_RANGE },
     { id: 'close', name: '👊 Close', test: (f, st) => st.range <= BM.C.MELEE_RANGE },
   ];
-  const F = { sort: null, desc: true, types: new Set(), roles: new Set(), rarity: new Set(), owned: 'all' };
+  const F = { sort: null, desc: true, types: new Set(), roles: new Set(), rarity: new Set(), owned: 'all', region: 'all' };
+  // Region filter (level-ramp patch Step 3): a line's region = the home-region roster it belongs to (regionLines — Hisui forms sit
+  // where the data lands them); single-select, 'all' = no region filtering. Shipped regions only.
+  const lineRegion = (id) => BM.SHIPPED_REGIONS.find((r) => regionLines(r).includes(id)) || null;
   const lineForm = (id) => { const l = prof().lines[id]; return BM.FORMS[l ? l.form : BM.LINES[id].forms[0].id]; };
   const lineLevel = (id) => (prof().lines[id] ? prof().lines[id].level : 1);
   function sortValue(id, key) {
@@ -131,6 +134,7 @@ BM.Screens = function (ui) {
       if (F.types.size && !f.types.some((t) => F.types.has(t))) return false;
       if (F.roles.size && !ROLE_CHIPS.some((r) => F.roles.has(r.id) && r.test(f, st))) return false;
       if (F.rarity.size && !F.rarity.has(BM.rarityOf(id).id)) return false;
+      if (F.region !== 'all' && lineRegion(id) !== F.region) return false;
       return true;
     });
     if (F.sort) {
@@ -139,7 +143,7 @@ BM.Screens = function (ui) {
     }
     return out;
   }
-  const filterCount = () => F.types.size + F.roles.size + F.rarity.size + (F.owned !== 'all' ? 1 : 0) + (F.sort ? 1 : 0);
+  const filterCount = () => F.types.size + F.roles.size + F.rarity.size + (F.owned !== 'all' ? 1 : 0) + (F.region !== 'all' ? 1 : 0) + (F.sort ? 1 : 0);
   let filterCtx = null; // { ids, ownedOnly, done }
   function openFilter(ctxArg) {
     filterCtx = ctxArg;
@@ -168,13 +172,15 @@ BM.Screens = function (ui) {
     for (const r of ROLE_CHIPS) chip(roles, r.name, F.roles.has(r.id), () => { F.roles.has(r.id) ? F.roles.delete(r.id) : F.roles.add(r.id); }).dataset.role = r.id;
     const rar = $('flt-rarity'); rar.innerHTML = '';
     for (const r of BM.RARITIES) chip(rar, '★'.repeat(r.stars) + ' ' + r.name, F.rarity.has(r.id), () => { F.rarity.has(r.id) ? F.rarity.delete(r.id) : F.rarity.add(r.id); }).dataset.rarity = r.id;
+    const reg = $('flt-region'); reg.innerHTML = '';
+    for (const r of ['all', ...BM.SHIPPED_REGIONS]) chip(reg, r === 'all' ? 'All' : BM.REGION_NAMES[r], F.region === r, () => { F.region = r; }).dataset.region = r;
     if (filterCtx) $('flt-n').textContent = `(${applyFilter(filterCtx.ids, filterCtx.ownedOnly).length})`;
   }
   tap($('flt-dir'), () => { F.desc = !F.desc; BM.Audio.sfx('tap'); renderFilter(); });
   function closeFilter() { show('scr-filter', false); if (filterCtx && filterCtx.done) filterCtx.done(); updateFilterBadges(); }
   tap($('btn-filter-x'), closeFilter);
   tap($('btn-filter-done'), () => { BM.Audio.sfx('tap'); closeFilter(); });
-  tap($('btn-filter-reset'), () => { F.sort = null; F.desc = true; F.types.clear(); F.roles.clear(); F.rarity.clear(); F.owned = 'all'; BM.Audio.sfx('tap'); renderFilter(); });
+  tap($('btn-filter-reset'), () => { F.sort = null; F.desc = true; F.types.clear(); F.roles.clear(); F.rarity.clear(); F.owned = 'all'; F.region = 'all'; BM.Audio.sfx('tap'); renderFilter(); });
   $('scr-filter').addEventListener('pointerdown', (e) => { if (e.target.id === 'scr-filter') { e.preventDefault(); closeFilter(); } });
   function updateFilterBadges() { const n = filterCount(); for (const el of document.querySelectorAll('.filter-btn .fcount')) el.textContent = n ? ` ${n}` : ''; }
 

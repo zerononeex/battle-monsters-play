@@ -216,6 +216,7 @@ window.BM = window.BM || {};
     st.enemyBaseHP = BM.hoennBaseHP(st);
   });
   for (const st of S) if (st.mapLabel === undefined) delete st.mapLabel;
+  BM.applyRamp(S, BM.CAP_LADDER.hoenn); // level-ramp patch Step 1 (stages.js): Lv 1 → cap, endgame over the cap
   BM.HOENN_STAGES = S;
   BM.STAGES.push(...S);
 })();
