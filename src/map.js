@@ -120,7 +120,7 @@ BM.MapScreen = function (ui) {
       const b = document.createElement('button');
       b.className = `map-node kind-${st.kind} ${s}`; b.dataset.stage = st.id; b.dataset.num = st.num;
       b.style.left = x * 100 + '%'; b.style.top = y * 100 + '%';
-      b.innerHTML = `<span class="mn-num">${s === 'cleared' ? '✓' : NODE_ICON[st.kind] || st.num}</span>` +
+      b.innerHTML = `<span class="mn-num">${s === 'cleared' ? st.num : NODE_ICON[st.kind] || st.num}</span>` +
         (s === 'soon' || s === 'locked' ? '<span class="mn-lock">🔒</span>' : '');
       const lbl = document.createElement('span'); lbl.className = 'mn-label ' + (M.labels[st.id] || (y > 0.84 ? 'above' : ''));
       lbl.textContent = st.mapLabel || (st.leader && st.kind !== 'champion' ? st.leader : st.name);
