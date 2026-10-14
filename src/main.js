@@ -31,7 +31,7 @@
     show('scr-challenge', name === 'challenge');
     show('scr-bonus', name === 'bonus'); // Phase 6: no music change — the screen you came from keeps playing
     show('scr-friend', name === 'friend'); show('scr-fpause', false);
-    show('scr-chmode', false); show('scr-chover', false);
+    show('scr-chmode', false); show('scr-chover', false); show('scr-prestage', false);
     show('scr-result', false); show('scr-ending', false); show('scr-pause', false); show('scr-bag', false); show('scr-line', false); show('scr-filter', false); show('scr-peek', false); show('scr-rename', false); show('scr-reveal', false); show('scr-legend', false);
     canvas.style.visibility = name === 'battle' ? 'visible' : 'hidden';
     if (name === 'profiles') { BM.Audio.playMusic('title'); renderProfiles(); }
@@ -62,11 +62,13 @@
     applySliders();
   }
   // Phase 6: per-profile mistake allowances for challenges (sliders)
-  // batch1 step 6: the Grade row in Settings (2–7, current lit); a tap saves it and refreshes the home chip + the picker card
+  // batch1 step 6: the Grade row in Settings (K–8, current lit; K = grade 0); a tap saves it and refreshes the home chip + the picker card
+  const gradeTxt = (g) => BM.MathGen.gradeLabel(g);
+  const gradeBtnHtml = (g) => `${gradeTxt(g)}<small>${g === 0 ? 'kinder' : 'grade'}</small>`;
   function applyGrade() {
     const p = prof(), gb = $('set-grade-btns');
     if (!gb.children.length) for (const g of BM.Save.GRADES) {
-      const b = document.createElement('button'); b.className = 'grade-btn'; b.dataset.grade = g; b.innerHTML = `${g}<small>grade</small>`;
+      const b = document.createElement('button'); b.className = 'grade-btn'; b.dataset.grade = g; b.innerHTML = gradeBtnHtml(g);
       tap(b, () => { if (!prof() || BM.Save.setGrade(g) == null) return; BM.Audio.sfx('tap'); applyGrade(); renderChip(); renderProfiles(); });
       gb.appendChild(b);
     }
@@ -131,7 +133,7 @@
         const owned = Object.keys(p.lines).length, cleared = Object.keys(p.cleared).length;
         b.className = 'slot';
         b.innerHTML = `<span class="s-num">Player ${i + 1}</span><span class="s-name"></span>` +
-          `<span class="s-grade">${p.grade ? 'Grade ' + p.grade : 'Grade ?'}</span>` +
+          `<span class="s-grade">${p.grade != null ? 'Grade ' + gradeTxt(p.grade) : 'Grade ?'}</span>` +
           `<span class="s-stats">${owned} character${owned === 1 ? '' : 's'} · ${cleared} stage${cleared === 1 ? '' : 's'}</span>`;
         b.querySelector('.s-name').textContent = p.name;
         tap(b, () => {
@@ -154,14 +156,14 @@
     $('create-name').value = existing ? existing.name : '';
     const gb = $('grade-btns'); gb.innerHTML = '';
     for (const g of BM.Save.GRADES) {
-      const b = document.createElement('button'); b.className = 'grade-btn'; b.innerHTML = `${g}<small>grade</small>`;
+      const b = document.createElement('button'); b.className = 'grade-btn'; b.dataset.grade = g; b.innerHTML = gradeBtnHtml(g);
       tap(b, () => { creating.grade = g; BM.Audio.sfx('tap'); [...gb.children].forEach((c) => c.classList.toggle('on', c === b)); });
       gb.appendChild(b);
     }
     show('scr-create', true);
   }
   tap($('btn-create-go'), () => {
-    if (!creating.grade) { BM.Audio.sfx('deny'); toast('Tap your grade first!'); return; }
+    if (creating.grade == null) { BM.Audio.sfx('deny'); toast('Tap your grade first!'); return; }
     const name = $('create-name').value.trim();
     if (!name) { BM.Audio.sfx('deny'); toast('Type your name first!'); $('create-name').focus(); return; }
     $('create-name').blur();
@@ -176,7 +178,7 @@
   function renderChip() {
     const p = prof(); if (!p) return;
     $('chip-name').textContent = p.name;
-    $('chip-grade').textContent = 'Grade ' + p.grade;
+    $('chip-grade').textContent = 'Grade ' + gradeTxt(p.grade);
   }
   tap($('btn-switch'), () => { BM.Audio.sfx('tap'); go('profiles'); });
 
@@ -443,8 +445,44 @@
   }
   tap($('btn-pre-back'), () => { BM.Audio.sfx('tap'); go(BM.isBonus(BM.stageById(preStage)) ? 'bonus' : 'map'); });
   tap($('btn-pre-team'), () => { BM.Audio.sfx('tap'); teamFrom = 'prebattle'; go('team'); });
-  tap($('btn-pre-go'), () => { BM.Audio.sfx('tap'); startBattle(preStage); });
+  tap($('btn-pre-go'), () => { BM.Audio.sfx('tap'); askThenBattle(preStage); });
   tap($('btn-pre-challenge'), () => { BM.Audio.sfx('tap'); Chal.choose(preStage); });
+
+  // ---------- pre-stage math question (user ruling 2026-10-13) ----------
+  // Every stage battle the player starts — the pre-battle Battle! button and the result's Retry; campaign + Bonus Zone, first
+  // clears and replays — first asks ONE math question at the profile's own grade (rules: BM.Challenge.preQuestion / preTap).
+  // Not friend (PvP) battles (their own flow) and not Clear Stage runs (already question runs). The pending question survives
+  // ✕ / reopen for the same stage, so closing never rerolls it. No rewards, nothing saved.
+  let preQ = null; // { stageId, q }
+  function askThenBattle(stageId) {
+    const st = BM.stageById(stageId);
+    if (!BM.isPlayable(st)) return;
+    if (st.dev) { startBattle(stageId); return; } // dev test arenas only
+    if (!preQ || preQ.stageId !== stageId || preQ.q.done) preQ = { stageId, q: BM.Challenge.preQuestion() };
+    show('scr-result', false); // from Retry
+    renderPreQ(); show('scr-prestage', true); fit($('scr-prestage'));
+  }
+  function renderPreQ() {
+    const q = preQ.q;
+    $('ps-sub').textContent = `Grade ${gradeTxt(q.grade)} · get it right to start the battle!`;
+    const qe = $('ps-q'); qe.className = 'ch-q' + (q.cls ? ' ' + q.cls : ''); qe.textContent = q.text;
+    const box = $('ps-opts'); box.className = 'ch-opts' + (/\bgroups\b/.test(q.cls || '') ? ' groups' : ''); box.innerHTML = '';
+    for (const o of q.options) {
+      const b = document.createElement('button'); b.className = 'ch-opt' + (q.grey.includes(o) ? ' grey' : ''); b.dataset.opt = o; b.textContent = o;
+      tap(b, () => onPreTap(o, b));
+      box.appendChild(b);
+    }
+  }
+  function onPreTap(o, btn) {
+    const r = BM.Challenge.preTap(preQ && preQ.q, o);
+    if (r === 'ignored') return;
+    if (r === 'wrong') { BM.Audio.sfx('wrong'); btn.classList.add('grey', 'shake'); return; } // no penalty, no limit
+    BM.Audio.sfx('correct'); btn.classList.add('right');
+    const id = preQ.stageId; preQ = null;
+    show('scr-prestage', false);
+    startBattle(id); // straight from this tap: the battle music starts on a user gesture (iOS media rule)
+  }
+  tap($('btn-prestage-x'), () => { BM.Audio.sfx('tap'); show('scr-prestage', false); if (screen !== 'prebattle') go('prebattle'); });
 
   // ---------- battle ----------
   let cardEls = [];
@@ -724,7 +762,7 @@
     };
     step();
   }
-  tap($('btn-retry'), () => { if (resultMode !== 'battle' || !B) return; BM.Audio.sfx('tap'); afterResult(() => startBattle(B.S.stage.id)); });
+  tap($('btn-retry'), () => { if (resultMode !== 'battle' || !B) return; BM.Audio.sfx('tap'); afterResult(() => askThenBattle(B.S.stage.id)); });
   let lastRewards = null;
   tap($('btn-map'), () => { BM.Audio.sfx('tap'); afterResult(() => { const rc = lastRewards && lastRewards.regionComplete; B = null; if (rc) { lastRewards.regionComplete = null; show('scr-result', false); showEnding(rc); } else go(BM.isBonus(BM.stageById(preStage)) ? 'bonus' : 'map'); }); });
 
@@ -896,6 +934,6 @@
   });
   // first tap anywhere unlocks audio on iOS and starts the title music
   document.addEventListener('pointerdown', () => { BM.Audio.unlock(); if ((screen === 'title' || screen === 'profiles') && !BM.Audio.currentKey) BM.Audio.playMusic('title'); }, { once: false });
-  window.BM.debug = { types: Types, get battle() { return B; }, get speed() { return speed; }, startBattle, go, get screen() { return screen; }, map: KMap, bonus: Bonus, render: R, evo: Evo, screens: Scr, gacha: Gacha, challenge: Chal, fit, openPrebattle: (id) => { preStage = id; go('prebattle'); },
+  window.BM.debug = { types: Types, get battle() { return B; }, get speed() { return speed; }, startBattle, askThenBattle, get preQ() { return preQ; }, go, get screen() { return screen; }, map: KMap, bonus: Bonus, render: R, evo: Evo, screens: Scr, gacha: Gacha, challenge: Chal, fit, openPrebattle: (id) => { preStage = id; go('prebattle'); },
     get preStage() { return preStage; }, showEnding, friend: Friend, get pvp() { return PV; }, get mySide() { return mySide; }, get lastRewards() { return lastRewards; }, setDev: (v) => { devMode = !!v; }, stress: (v) => { stressFill = !!v; } };
 })();

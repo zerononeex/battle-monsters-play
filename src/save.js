@@ -6,7 +6,7 @@ BM.Save = (function () {
   const KEY = 'battle-monsters.save';
   const VERSION = 9;
   const SLOTS = 3;
-  const GRADES = [2, 3, 4, 5, 6, 7]; // grade drives the Phase 6 math difficulty; set at creation, then a Setting (batch1 step 6: setGrade)
+  const GRADES = [0, 1, 2, 3, 4, 5, 6, 7, 8]; // K (= 0, shown "K") – 8 (widened 2026-10-14; same field, save stays v9). Grade drives the Phase 6 math difficulty; set at creation, then a Setting (batch1 step 6: setGrade)
   // MIGRATIONS[n] upgrades a WHOLE save from version n to n+1. Never edit a shipped step; append.
   const MIGRATIONS = {
     // v1 (Phase 1): one profile, lines {level, form}, no grade picker.
@@ -119,7 +119,7 @@ BM.Save = (function () {
 
   function newProfile(slot, name, grade) {
     const p = {
-      slot, name: name || 'Player ' + (slot + 1), grade: grade || null, created: Date.now(),
+      slot, name: name || 'Player ' + (slot + 1), grade: grade == null ? null : grade, created: Date.now(),
       settings: { music: true, sound: true, mathMistakes: MISTAKES.mathMistakes.def, spellMistakes: MISTAKES.spellMistakes.def, battleSpeed: 1 },
       cleared: {},               // stageId -> number of wins
       lines: {},                 // lineId -> { level, xp (total, L³ curve), form (fielded), unlocked: [formIds] }
@@ -518,9 +518,9 @@ BM.Save = (function () {
     return p.settings[key];
   }
   // Johto fix batch 1 step 6 (user 2026-10-12): grade is a per-profile Setting — the kids grow, and can fall back. ONE grade
-  // drives both subjects (BM.Challenge.gradeFor reads p.grade: earn = grade, clear = grade + 2 capped at 7, spelling likewise).
+  // drives both subjects (BM.Challenge.gradeFor reads p.grade: earn = grade, clear = grade + 2 capped at 8, spelling likewise).
   function setGrade(grade) {
-    const p = profile(), g = Number(grade);
+    const p = profile(), g = grade == null || grade === '' ? NaN : Number(grade); // null must not read as 0 (= K)
     if (!p || !GRADES.includes(g)) return null;
     p.grade = g; persist();
     return p.grade;

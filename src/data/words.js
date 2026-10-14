@@ -183,6 +183,20 @@ BM.WORDS = {
     ['foreign', null, 'She speaks a foreign language.'], ['unanimous', null, 'The vote was unanimous.'],
   ],
 };
+// K / Grade 1 (added 2026-10-14 with the K–8 grade range): a small set of VERY simple words (3 letters, picture = the word
+// exactly, V2) for the bottom of the range — the grade-2 list runs thin there. Pool (BM.spellPool): K = these + grade-2 words
+// of ≤ 3 letters; Grade 1 = these + grade-2 words of ≤ 4 letters; Grade 8 = the grade-7 list's longest words (≥ 9 letters).
+// Kept OUT of BM.WORDS (whose per-grade lists are the ~50-word V3 lists); no word repeats any other list.
+BM.WORDS_EASY = [
+  ['sun', '☀️', 'The sun is hot.'], ['hat', '🎩', 'He has a tall hat.'], ['bee', '🐝', 'The bee likes flowers.'],
+  ['fox', '🦊', 'The fox ran fast.'], ['owl', '🦉', 'The owl says hoot.'], ['bat', '🦇', 'A bat flies at night.'],
+  ['cup', '🥤', 'I drink from a cup.'], ['box', '📦', 'The toy is in the box.'], ['map', '🗺️', 'Look at the map.'],
+  ['bag', '👜', 'Put it in the bag.'], ['web', '🕸️', 'The spider made a web.'], ['log', '🪵', 'The frog sat on a log.'],
+  ['bug', '🐛', 'A bug is on the leaf.'], ['rat', '🐀', 'The rat ate the cheese.'], ['van', '🚐', 'We rode in the van.'],
+  ['ice', '🧊', 'The ice is cold.'], ['pie', '🥧', 'Mom made a pie.'], ['cap', '🧢', 'I wear a cap.'],
+  ['red', null, 'The apple is red.'], ['big', null, 'The bear is big.'], ['run', '🏃', 'I can run fast.'],
+  ['sit', null, 'Sit on the mat.'], ['hop', null, 'The bunny can hop.'], ['yes', null, 'Yes, I can play.'],
+];
 // Bonus list: Pokémon names as spellable words (any grade). [word, form id for the sprite clue, clue sentence]
 BM.WORDS_POKEMON = [
   ['pikachu', 'pikachu', 'Pikachu is an Electric type Pokémon.'], ['charmander', 'charmander', 'Charmander has a flame on its tail.'],
@@ -246,6 +260,15 @@ BM.WORDS_POKEMON = [
 // Johto (Step 2): every new species is a word too (johto.js BM.JOHTO_WORDS — regional / Mega / hyphenated names skip)
 if (BM.JOHTO_WORDS) BM.WORDS_POKEMON.push(...BM.JOHTO_WORDS);
 BM.SPELL_POKEMON_SHARE = 0.15; // share of spelling words drawn from the Pokémon bonus list
+// The spelling pool for a grade (K = 0 … 8). Grades 2–7 are their own lists (unchanged); K / 1 the simplest words, 8 the hardest.
+BM.spellPool = function (g) {
+  if (g <= 0) return [...BM.WORDS_EASY, ...BM.WORDS[2].filter((w) => w[0].length <= 3)];
+  if (g === 1) return [...BM.WORDS_EASY, ...BM.WORDS[2].filter((w) => w[0].length <= 4)];
+  if (g >= 8) return BM.WORDS[7].filter((w) => w[0].length >= 9);
+  return BM.WORDS[g];
+};
+// Pokémon bonus names at K / 1 stay short (K ≤ 5 letters, Grade 1 ≤ 6); other grades use the whole list.
+BM.POKEMON_MAX_LEN = { 0: 5, 1: 6 };
 // Hoenn (Step 2): the same for Hoenn's species (hoenn.js BM.HOENN_WORDS)
 if (BM.HOENN_WORDS) BM.WORDS_POKEMON.push(...BM.HOENN_WORDS);
 // Sinnoh (Act 1 S2) / Unova (Act 2 U-S2): the same for their species (sinnoh.js BM.SINNOH_WORDS · unova.js BM.UNOVA_WORDS)

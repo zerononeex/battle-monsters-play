@@ -17,7 +17,7 @@ BM.ChallengeScreen = function (ui) {
     stageId = id;
     const p = prof(), st = BM.stageById(id), gc = BM.Challenge.gradeFor(p, 'clear');
     const wins = p.cleared[id] || 0;
-    $('btn-ch-clear').innerHTML = `<span class="cp-t">⭐ Clear this stage</span><small>Answer ${CH.GOAL} in a row · Grade ${gc}<br>${wins ? 'replay' : 'first-clear'} rewards, no battle</small>`;
+    $('btn-ch-clear').innerHTML = `<span class="cp-t">⭐ Clear this stage</span><small>Answer ${CH.GOAL} in a row · Grade ${BM.MathGen.gradeLabel(gc)}<br>${wins ? 'replay' : 'first-clear'} rewards, no battle</small>`;
     // P1/MM1: the pre-battle button is Clear Stage only; Poké Balls are earned in the Safari Zone
     $('btn-ch-tickets').innerHTML = `<span class="cp-t">${BM.ballHtml('poke_ball', 'cp-ball')} Want Poké Balls?</span><small>Answer & earn them in the Safari Zone</small>`;
     $('chmode-help').textContent = `${st.name}: math and spelling, all mixed up!`;
@@ -41,7 +41,7 @@ BM.ChallengeScreen = function (ui) {
   let earnFrom = null;
   function renderTop() {
     const st = run.stageId && BM.stageById(run.stageId);
-    $('ch-mode').textContent = `${MODE_TXT[run.mode]} · Grade ${run.grade}`;
+    $('ch-mode').textContent = `${MODE_TXT[run.mode]} · Grade ${BM.MathGen.gradeLabel(run.grade)}`;
     $('ch-stage').innerHTML = st ? '' : `${BM.ballHtml('poke_ball', 'ch-ball')} Safari Zone`; if (st) $('ch-stage').textContent = st.name;
     const m = $('ch-meter'); m.innerHTML = '';
     if (run.mode === 'clear') {
@@ -60,7 +60,8 @@ BM.ChallengeScreen = function (ui) {
     const left = document.createElement('div'); left.className = 'ch-left';
     if (q.kind === 'math') {
       card.innerHTML = `<div class="ch-q" id="ch-q"></div><div class="ch-opts" id="ch-opts"></div>`;
-      $('ch-q').textContent = q.text;
+      $('ch-q').textContent = q.text; if (q.cls) $('ch-q').classList.add(...q.cls.split(' ')); // K / 1 / 8 style hints (math_gen.js)
+      if (/\bgroups\b/.test(q.cls || '')) $('ch-opts').classList.add('groups');
       for (const o of q.options) {
         const b = document.createElement('button'); b.className = 'ch-opt' + (q.grey.includes(o) ? ' grey' : ''); b.dataset.opt = o; b.textContent = o;
         tap(b, () => onMath(o, b));

@@ -8,7 +8,7 @@
 //   Mistake allowances are per-profile SETTINGS (sliders): math default 2 (2–10), spelling default 3 (3–10). Every wrong
 //   tap greys that option / tile (can't be tapped again) and counts a mistake; reaching the allowance DISCARDS the
 //   question/word (the right answer / spelling is shown) and resets the streak to 0. Below it the streak survives.
-//   CLEAR STAGE mode ('clear'): grade + 2 (capped at 7); GOAL (6, BBB1 — was 10) correct in a row clears the stage through the
+//   CLEAR STAGE mode ('clear'): grade + 2 (capped at 8 — the top of the K–8 range); GOAL (6, BBB1 — was 10) correct in a row clears the stage through the
 //   SAME code path as a battle win (BM.Save.recordWin: first-clear tickets / XP to the current team / drops / gift),
 //   consuming no battle item; a discard ends the run ("4 / 6").
 //   EARN mode ('earn', MM1 — was ticket mode): the profile's own grade, until the player stops; ONE Poké Ball per correct
@@ -20,14 +20,16 @@ BM.CHALLENGE = {
   EARN: 1,                  // earn mode: Poké Balls per correct answer (MM1)
   EARN_STREAK_EVERY: 5,     // VVV1: every Nth correct answer in a row…
   EARN_STREAK_BONUS: 5,     // VVV1: …pays this many BONUS Poké Balls on top (user 2026-10-13: 3 → 5 — a flawless five pays 10)
-  GRADE_UP: 2,              // auto-clear grade = own grade + 2 (generator capped at 7)
+  GRADE_UP: 2,              // auto-clear grade = own grade + 2 (clamped at 8: a Grade 7 or 8 profile gets Grade 8)
   SLIDERS: { mathMistakes: { def: 2, min: 2, max: 10 }, spellMistakes: { def: 3, min: 3, max: 10 } },
   MAX_SAME_KIND: 2,         // never 3 of one kind in a row
+  PRE_OPTIONS: 4,           // the pre-stage question's option count (user 2026-10-13)
 };
 BM.Challenge = (function () {
   const CH = BM.CHALLENGE;
   const prof = () => BM.Save.profile();
-  const gradeFor = (p, mode) => BM.MathGen.clampGrade((p.grade || 2) + (mode === 'clear' ? CH.GRADE_UP : 0));
+  // K = grade 0 (a real grade, not "missing"); a profile with no grade yet reads as 2
+  const gradeFor = (p, mode) => BM.MathGen.clampGrade((p.grade == null ? BM.MathGen.DEFAULT_GRADE : p.grade) + (mode === 'clear' ? CH.GRADE_UP : 0));
   const allowance = (p, kind) => {
     const k = kind === 'math' ? 'mathMistakes' : 'spellMistakes', s = CH.SLIDERS[k], v = p.settings && p.settings[k];
     return Math.max(s.min, Math.min(s.max, Number.isFinite(v) ? Math.round(v) : s.def));
@@ -38,7 +40,8 @@ BM.Challenge = (function () {
   function spellWord(grade, rnd, used = new Set()) {
     const g = BM.MathGen.clampGrade(grade);
     const poke = rnd() < BM.SPELL_POKEMON_SHARE;
-    const list = poke ? BM.WORDS_POKEMON.filter((w) => BM.FORMS[w[1]]) : BM.WORDS[g];
+    const maxLen = BM.POKEMON_MAX_LEN[g] || 99;
+    const list = poke ? BM.WORDS_POKEMON.filter((w) => BM.FORMS[w[1]] && w[0].length <= maxLen) : BM.spellPool(g);
     let pool = list.filter((w) => !used.has(w[0]));
     if (!pool.length) pool = list;
     const w = pool[Math.floor(rnd() * pool.length)];
@@ -149,5 +152,20 @@ BM.Challenge = (function () {
     q.filled.length = k;
     return { result: 'returned' };
   }
-  return { start, gradeFor, allowance, spellWord, makeTiles };
+  // PRE-STAGE QUESTION (user ruling 2026-10-13: not enough chances to do math): ONE math question before every campaign /
+  // Bonus Zone stage battle — first clears and replays; NOT friend (PvP) battles, NOT Clear Stage runs. The profile's OWN grade,
+  // PRE_OPTIONS options; a wrong tap greys that option (no penalty, no attempt limit) and the question stays until it is answered
+  // right. No rewards and no economy: nothing here touches the save (no streak, balls, tickets, auto-clear).
+  function preQuestion(rnd = Math.random) {
+    const q = BM.MathGen.question(gradeFor(prof(), 'earn'), rnd, CH.PRE_OPTIONS);
+    q.grey = []; q.done = null;
+    return q;
+  }
+  function preTap(q, text) {
+    if (!q || q.done || !q.options.includes(text) || q.grey.includes(text)) return 'ignored';
+    if (text === q.answer) { q.done = 'correct'; return 'correct'; }
+    q.grey.push(text);
+    return 'wrong';
+  }
+  return { start, gradeFor, allowance, spellWord, makeTiles, preQuestion, preTap };
 })();
