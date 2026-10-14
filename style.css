@@ -263,15 +263,18 @@ button { font: inherit; color: inherit; border: 0; cursor: pointer; touch-action
 .item-btn.stone { background: #f2e6ff; } .item-btn.none { opacity: .65; }
 .item-btn:active { transform: translateY(3px); }
 .items-none { font-size: 15px; font-weight: 800; opacity: .7; }
-.bag-panel { position: relative; max-width: 96vw; gap: 12px; padding: 18px 24px; }
-.bag-grid { display: grid; grid-template-columns: repeat(5, 150px); gap: 10px; }
-.bag-item { position: relative; border-radius: 16px; border: 3px solid var(--ink); background: #fff; padding: 6px; display: flex; flex-direction: column; align-items: center; gap: 1px; text-align: center; }
+/* Bag: fills the overlay (97vw); as many columns of chunky tiles as the width allows, so ui.fit barely scales (F2). */
+.bag-panel { position: relative; width: 97vw; max-width: none; min-width: 0; gap: 6px; padding: 8px 14px 10px; }
+.bag-panel h2 { min-height: 80px; line-height: 80px; font-size: 34px; }
+.bag-panel #btn-bag-x { width: 80px; height: 80px; top: 8px; right: 8px; border-radius: 22px; font-size: 38px; } /* ≥ 64px after ui.fit */
+.bag-grid { display: grid; width: 100%; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 5px; }
+.bag-item { position: relative; border-radius: 16px; border: 3px solid var(--ink); background: #fff; padding: 2px; display: flex; flex-direction: column; align-items: center; gap: 0; text-align: center; min-width: 0; }
 .bag-item.empty { opacity: .45; }
-.bi-icon { height: 46px; display: flex; align-items: center; font-size: 34px; } .bi-icon img { height: 46px; }
+.bag-item > * { pointer-events: none; }
+.bi-icon { height: 50px; display: flex; align-items: center; justify-content: center; font-size: 38px; max-width: 80%; } .bi-icon img { height: 50px; max-width: 100%; object-fit: contain; }
 .bi-n { position: absolute; top: 4px; right: 6px; font-size: 16px; font-weight: 900; background: var(--ink); color: #fff; border-radius: 9px; padding: 0 6px; z-index: 1; }
-.bi-icon { max-width: 70%; } .bi-icon img { max-width: 100%; object-fit: contain; }
-.bi-name { font-size: 15px; font-weight: 900; line-height: 1.1; }
-.bi-blurb { font-size: 12px; font-weight: 700; opacity: .7; line-height: 1.1; }
+.bi-name { font-size: 15px; font-weight: 900; line-height: 1.05; height: 2.1em; overflow: hidden; overflow-wrap: anywhere; -webkit-hyphens: auto; hyphens: auto; }
+.bi-blurb { display: none; }
 .soon { font-size: 11px; font-weight: 900; background: #ffb347; border-radius: 8px; padding: 0 6px; margin-top: 2px; }
 .bag-help { font-size: 16px !important; opacity: .75; }
 .result-panel { gap: 10px; padding: 18px 28px; max-width: 96vw; }

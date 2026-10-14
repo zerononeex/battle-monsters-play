@@ -367,6 +367,7 @@ BM.Screens = function (ui) {
       const d = document.createElement('div'); d.className = 'bag-item' + (n ? '' : ' empty');
       d.innerHTML = `<span class="bi-icon">${icon}</span><span class="bi-n">×${n}</span><span class="bi-name"></span><span class="bi-blurb"></span>` + (soon ? '<span class="soon">coming soon</span>' : '');
       d.querySelector('.bi-name').textContent = name; d.querySelector('.bi-blurb').textContent = blurb;
+      tap(d, () => { BM.Audio.sfx('tap'); toast(`${name}: ${blurb}`); }); // the tile is too small for its blurb
       grid.appendChild(d);
     };
     cell(BM.ticketIcon(), 'Battle Tickets', p.tickets, '10 = one Safari Zone pull', false);
