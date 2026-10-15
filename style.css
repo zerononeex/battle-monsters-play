@@ -798,6 +798,8 @@ button { font: inherit; color: inherit; border: 0; cursor: pointer; touch-action
 /* Sinnoh / Unova: more than 6 Mega floors wrap into rows of 5 (the panel then scales to fit — never scrolls) */
 #bz-mega.open.many { grid-auto-flow: row; grid-template-columns: repeat(5, minmax(0, 1fr)); }
 .bz-card.tier-sinnoh { background: linear-gradient(#eef0ff, #a9b4ec); } .bz-card.tier-unova { background: linear-gradient(#f1f1f1, #a8b0c0); }
+#bz-mega.open.many.lots { grid-template-columns: repeat(7, minmax(0, 1fr)); }
+.bz-card.tier-kalos { background: linear-gradient(#fff0f8, #e0a8cc); } .bz-card.tier-alola { background: linear-gradient(#e6fff8, #8fe0c8); }
 .bz-card { position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 4px; border-radius: 16px; border: 4px solid var(--ink);
   background: var(--panel); box-shadow: 0 4px 0 rgba(0,0,0,.35); min-width: 0; text-align: center; }
 .bz-card > * { pointer-events: none; }
@@ -949,10 +951,16 @@ button { font: inherit; color: inherit; border: 0; cursor: pointer; touch-action
 .bc-names.crowd .bc-leg-info .leg-sprite { width: clamp(34px, 8vh, 72px); height: clamp(34px, 8vh, 72px); }
 .bc-names.crowd .bc-name { font-size: clamp(11px, 2.3vh, 18px); }
 .bc-names.crowd6 .bc-leg-info { flex-direction: column; gap: 0; } .bc-names.crowd6 .bc-name { font-size: clamp(9px, 1.9vh, 15px); }
+/* Kalos + Alola build: Alola's banners carry NINE legendaries (U2b) — tighter sprites + names so the row still fits, never scrolls */
+.bc-names.crowd9 { gap: clamp(1px, 0.5vw, 6px); } .bc-names.crowd9 .bc-leg-info .leg-sprite { width: clamp(26px, 6.2vh, 56px); height: clamp(26px, 6.2vh, 56px); }
+.bc-names.crowd9 .bc-name { font-size: clamp(8px, 1.6vh, 13px); white-space: nowrap; }
 /* Johto Step 2: PC Box region tabs (Kanto · Johto) */
 .coll-regions { display: flex; gap: 6px; }
 .coll-regions .coll-reg { opacity: .65; }
 .coll-regions .coll-reg.on { opacity: 1; background: var(--accent); }
+/* Kalos + Alola build: seven region tabs would push Filter / Items off a phone's header — past five they stack in two compact rows */
+.coll-regions.many { display: grid; grid-template-columns: repeat(4, auto); gap: 3px 4px; align-content: center; }
+.coll-regions.many .coll-reg { min-height: 0; padding: 1px 8px; font-size: clamp(11px, 2vh, 15px); border-width: 2px; border-radius: 9px; }
 /* Johto Step 6: Mega forms on the detail chain + the Safari Zone's Mega Stone section */
 .line-form.mega { border-color: #8a3fd1; background: linear-gradient(160deg, #fff, #f1e3ff); }
 .chain-arrow.mega { font-size: 22px; }

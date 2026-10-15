@@ -218,6 +218,15 @@ BM.Render = function (canvas) {
     if (u.dead) ctx.globalAlpha = Math.max(0, 1 - u.deadT / 0.6);
     // shadow
     ctx.fillStyle = 'rgba(0,0,0,.18)'; ctx.beginPath(); ctx.ellipse(x, y, h * 0.32, h * 0.07, 0, 0, 7); ctx.fill();
+    // Alola TOTEM: the shared aura (assets/effects/totem_aura.png, 3 looping frames) BEHIND the giant ace, centred on its body, scaled to
+    // it — until the art lands a soft golden glow ring (procedural) stands in
+    if (u.totem && !u.dead) {
+      const au = BM.Sprites.fx && BM.Sprites.fx('totem_aura'), t = performance.now() / 1000;
+      if (au) { const fr = au.frames[Math.floor(t * 6) % au.frames.length], k = (h * 1.35) / au.h; ctx.drawImage(fr, x - au.ax * k, y - h * 0.5 - au.ay * k, au.w * k, au.h * k); }
+      else { const r = h * (0.62 + 0.04 * Math.sin(t * 4)), gr = ctx.createRadialGradient(x, y - h * 0.5, r * 0.55, x, y - h * 0.5, r);
+        gr.addColorStop(0, 'rgba(255,200,80,0)'); gr.addColorStop(0.7, 'rgba(255,190,60,.38)'); gr.addColorStop(1, 'rgba(255,150,40,0)');
+        ctx.fillStyle = gr; ctx.beginPath(); ctx.ellipse(x, y - h * 0.5, r * 0.85, r, 0, 0, 7); ctx.fill(); }
+    }
     ctx.translate(x, y);
     // TT1 (Phase 7.6): every sheet is authored facing RIGHT. Facing is a function of the SIDE only — player units face right,
     // enemies are mirrored to face left — never of the state (march / windup / strike / hold) or the frame, so a unit can
@@ -231,7 +240,7 @@ BM.Render = function (canvas) {
       if (u.ace) { // leader's ace marker
         ctx.save(); ctx.font = `900 ${Math.round(Math.max(14, h * 0.2))}px system-ui, sans-serif`; ctx.textAlign = 'center';
         ctx.lineWidth = 4; ctx.strokeStyle = '#2a1a3a'; ctx.fillStyle = '#ffd84a';
-        const tag = u.giant ? '★ GIANT ACE' : '★ ACE';
+        const tag = u.totem ? '★ TOTEM' : u.giant ? '★ GIANT ACE' : '★ ACE';
         ctx.strokeText(tag, x, y - h - 14); ctx.fillText(tag, x, y - h - 14); ctx.restore();
       }
       if (u.hp < u.maxHp) {
@@ -287,7 +296,7 @@ BM.Render = function (canvas) {
       moveFx(BM.combatOf(a.form), a, L.sx(a.x), L.ground() + L.depth(a) - L.unitH(a.form) * 0.55,
         x + (Math.random() - 0.5) * bw * 0.4, L.ground() - bw * 0.5 + (Math.random() - 0.5) * bw * 0.4, BM.TYPE_COLORS[a.form.attackType], now + (ev.k || 0) * 0.11);
     } else if (ev.type === 'ace') {
-      texts.push({ text: ev.blocker ? `A GIANT ${ev.unit.form.name} blocks the way!` : `${ev.leader || 'The leader'} sends out ${ev.giant ? 'GIANT ' : ''}${ev.unit.form.name}!`, x: W * 0.5, y: fieldH * 0.32, t0: now, dur: 2.2, size: ev.giant ? 42 : 36, color: '#ffb347' });
+      texts.push({ text: ev.blocker ? `A GIANT ${ev.unit.form.name} blocks the way!` : ev.totem ? `The TOTEM ${ev.unit.form.name} appears!` : `${ev.leader || 'The leader'} sends out ${ev.giant ? 'GIANT ' : ''}${ev.unit.form.name}!`, x: W * 0.5, y: fieldH * 0.32, t0: now, dur: 2.2, size: ev.giant ? 42 : 36, color: '#ffb347' });
     } else if (ev.type === 'lastStand') { // Step 9.5 Part B: the leader's last stand (once per battle)
       // it replaces the 50% counter-burst's own line (same frame) and sits mid-field, sized to the field (phone landscape is short)
       for (let k = texts.length - 1; k >= 0; k--) if (texts[k].text === 'The den fights back!' && now - texts[k].t0 < 0.3) texts.splice(k, 1);

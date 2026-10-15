@@ -29,10 +29,12 @@ window.BM = window.BM || {};
   // is this Mega form fieldable for the profile right now?
   // Hoenn U4: Mega Rayquaza (`gate: 'rayquaza'`) needs NO stone — it is ready once the profile owns Rayquaza AND has beaten the
   // Hoenn Champion (regionsDone.hoenn). No stone, no drop, no shop row, no icon.
-  const gateOk = (p, f) => (f.gate === 'rayquaza' ? !!(p.regionsDone && p.regionsDone.hoenn) : !!(p.items && p.items[f.stone] > 0));
+  // Kalos U8 (ruled): Mega Zygarde takes the same no-stone gate — own Zygarde + the Kalos Champion beaten (`gate: 'zygarde'`)
+  BM.MEGA_GATES = { rayquaza: 'hoenn', zygarde: 'kalos' };
+  const gateOk = (p, f) => (f.gate ? !!(p.regionsDone && p.regionsDone[BM.MEGA_GATES[f.gate]]) : !!(p.items && p.items[f.stone] > 0));
   BM.megaReady = (p, f) => !!(f && f.mega && BM.megaUnlocked(p) && gateOk(p, f) && p.lines[f.line] && p.lines[f.line].unlocked.includes(f.from));
   // the honest lock line on the collection detail (the Bellossom gate pattern)
-  BM.megaLockText = (p, f) => (f.gate === 'rayquaza' ? (!(p.regionsDone && p.regionsDone.hoenn) ? 'Needs Rayquaza · Beat the Hoenn Champion' : `Needs ${BM.FORMS[f.from].name} first`)
+  BM.megaLockText = (p, f) => (f.gate ? (!(p.regionsDone && p.regionsDone[BM.MEGA_GATES[f.gate]]) ? `Needs ${BM.FORMS[f.from].name} · Beat the ${BM.REGION_NAMES[BM.MEGA_GATES[f.gate]]} Champion` : `Needs ${BM.FORMS[f.from].name} first`)
     : !BM.megaUnlocked(p) ? 'Mega Evolution unlocks when you beat the Johto Champion'
     : !(p.items[f.stone] > 0) ? `Needs a ${BM.ITEMS[f.stone]}` : `Needs ${BM.FORMS[f.from].name} first`);
   // Keeps every owned line's unlocked list in step with the Mega rule (called by the save on load and after every reward /
@@ -81,6 +83,15 @@ window.BM = window.BM || {};
     unova_06_pinwheel: ['audinite'], unova_07_burgh: ['scolipite'], unova_11_clay: ['excadrite'], unova_12_chargestone: ['eelektrossite'],
     unova_13_celestial: ['chandelurite'], unova_20_shauntal: ['golurkite', 'chandelurite'], unova_21_grimsley: ['scraftinite'], unova_23_marshal: ['emboarite'],
   });
+  // Kalos (Kalos + Alola build, the pack's drop table): one type-matched stage per stone. Diancite drops nowhere on the map — the
+  // capstone's first-clear prize (Rogue Mega Night) + the Bonus Zone's Kalos Mega floor; Mega Zygarde has no stone at all (U8).
+  Object.assign(MEGA_DROPS, {
+    kalos_10_korrina: ['hawluchanite'], kalos_11_ramos: ['chesnaughtite'], kalos_17_olympia: ['malamarite', 'meowsticite'],
+    kalos_20_malva: ['delphoxite', 'pyroarite'], kalos_21_siebold: ['greninjite', 'barbaracite'], kalos_23_drasna: ['dragalgite'],
+    kalos_25_rogue_mega_night: ['pyroarite', 'malamarite', 'barbaracite', 'dragalgite', 'hawluchanite', 'meowsticite'],
+  });
+  // Alola (U2a): Golisopite with Guzma (Po Town), Drampanite on Mount Lanakila (Elite Four Hala — Drampa lives on the climb)
+  Object.assign(MEGA_DROPS, { alola_15_po_town: ['golisopite'], alola_22_hala_e4: ['drampanite'] });
   for (const [id, stones] of Object.entries(MEGA_DROPS)) { const st = BM.stageById(id); for (const s of stones) st.drops.push({ item: s, w: 0.6, n: 1, needs: 'mega' }); }
   BM.MEGA_DROPS = MEGA_DROPS;
 })();

@@ -348,7 +348,11 @@ BM.Battle = function (stage, profile, opts = {}) {
           if (A.sig) { u.sig = A.sig; if (A.sig.reach) u.range = Math.max(u.range, A.sig.reach); } // used every C.SIG.every s
         }
         applyMenace(u);
-        S.events.push({ type: 'ace', unit: u, leader: stage.leader, giant: !!A.giant });
+        // Alola TOTEM (a reskin, no new system): the trial's ace — drawn at the giant scale with the totem aura (render.js) — and its
+        // canon SOS allies on the same data-driven `summon` the Arceus node uses
+        if (A.totem) u.totem = true;
+        if (A.summon) u.summon = { ...A.summon, next: S.t + (A.summon.first != null ? A.summon.first : A.summon.every[0]) };
+        S.events.push({ type: 'ace', unit: u, leader: stage.leader, giant: !!A.giant, totem: !!A.totem });
       }, true);
     }
     for (const X of S.extraAces) {
@@ -362,6 +366,7 @@ BM.Battle = function (stage, profile, opts = {}) {
           if (X.sig) { u.sig = X.sig; if (X.sig.reach) u.range = Math.max(u.range, X.sig.reach); }
         }
         if (!X.blocker) applyMenace(u); // Tate & Liza's twin shares the leaders' menace
+        if (X.totem) u.totem = true;
         // Sinnoh node 26 (U2): a SUMMONER ace calls reinforcements while it stands — `summon: { pool, n: [lo, hi], every: [lo, hi],
         // first, level }` (Arceus summons pseudo-legendary-class Pokémon at will); they come at its feet, inside the side cap
         if (X.summon) u.summon = { ...X.summon, next: S.t + (X.summon.first != null ? X.summon.first : X.summon.every[0]) };

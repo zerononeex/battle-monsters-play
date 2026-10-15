@@ -317,7 +317,7 @@ window.BM = window.BM || {};
     const hp = BM.enemyBaseHP(st);
     st.rampFrom = old; st.level = L;
     st.waves = st.waves.map((w) => ({ ...w, level: sc(w.level) }));
-    if (st.ace) st.ace = { ...st.ace, level: L };
+    if (st.ace) st.ace = { ...st.ace, level: L, ...(st.ace.summon ? { summon: { ...st.ace.summon, level: sc(st.ace.summon.level) } } : {}) }; // Alola: a Totem ace summons too
     if (st.extraAces) st.extraAces = st.extraAces.map((a) => ({ ...a, level: sc(a.level), ...(a.summon ? { summon: { ...a.summon, level: sc(a.summon.level) } } : {}) }));
     st.enemyBaseHP = Math.round(hp * BM.rampHpMul(old, L) / 50) * 50;
     return st;
@@ -345,8 +345,14 @@ window.BM = window.BM || {};
     const L = st.level, dv = (id) => BM.formForLevel(id, L);
     const map = new Map(), orig = st.waves.map((w) => w.form);
     st.waves = st.waves.map((w) => { const f = BM.formForLevel(w.form, w.level); map.set(w.form, f); return { ...w, form: f }; });
-    if (st.ace) { const { giant, sig, ...a } = st.ace; map.set(a.form, dv(a.form)); st.ace = { ...a, form: dv(a.form) }; }
-    if (st.extraAces) st.extraAces = st.extraAces.map((x) => { const { giant, sig, ...a } = x; map.set(a.form, dv(a.form)); return { ...a, form: dv(a.form) }; });
+    // TOTEM EXEMPTION (Kalos + Alola build, Alola F1 / U1 — Kakashi-approved): an ace tagged `totem: true` keeps its SPECIES and its
+    // giant scale (a Totem is the trial's over-sized boss — canon's Lv 12 Totem Gumshoos is over-evolved too); its signature move still
+    // drops like every early ace's, and its summons (SOS allies) devolve to the form their own level allows.
+    const ace = (x) => { const { giant, sig, ...a } = x; const sm = a.summon ? { summon: { ...a.summon, pool: a.summon.pool.map((f) => BM.formForLevel(f, a.summon.level)) } } : {};
+      if (x.totem) return { ...a, giant, ...sm };
+      map.set(a.form, dv(a.form)); return { ...a, form: dv(a.form), ...sm }; };
+    if (st.ace) st.ace = ace(st.ace);
+    if (st.extraAces) st.extraAces = st.extraAces.map(ace);
     // the Y1 gate keeps holding what it held — unless a devolved heavy is now the same form as an ungated wave (it can't be held then)
     // (Y1 still holds the stage's top-tier form — after devolving that can be a different one)
     if (st.gate) { const free = new Set(st.waves.filter((w, i) => !st.gate.forms.includes(orig[i])).map((w) => w.form));
@@ -395,7 +401,11 @@ window.BM = window.BM || {};
     kanto_25_champion: 1, johto_24_champion: 6, hoenn_20_sidney: 2, hoenn_22_glacia: 1, hoenn_23_drake: 7,
     // the region suites' native-deck gates (phase9 / phase10 / phase11 sim, SOFT='{…}' bisection): Whitney's sleepy fairy wall, two
     // Johto routes, Granite Cave; Arceus (post-game, Lv 80 = cap+5) 0/6 → 1/6 for a full Lv 75 team — very hard, not impossible
-    johto_11_whitney: 5, johto_12_nationalpark: 1, johto_13_burnedtower: 1, hoenn_05_granite_cave: 1, sinnoh_26_arceus: 1 };
+    johto_11_whitney: 5, johto_12_nationalpark: 1, johto_13_burnedtower: 1, hoenn_05_granite_cave: 1, sinnoh_26_arceus: 1,
+    // Kalos + Alola build Act 3: Diantha (Step 5 QA, end-of-regular team 1/6 → 4/6 at s 3); Alola below (the playthrough + phase14 gates)
+    kalos_24_champion: 3,
+    alola_02_hauoli: 1, alola_04_ten_carat: 4, alola_05_hala: 1, alola_27_necrozma: 1, alola_26_kukui: 1, alola_22_hala_e4: 1, alola_06_paniola: 2, alola_08_kiawe: 2, alola_13_sophocles: 1, alola_11_aether: 4, alola_17_lusamine: 2, alola_18_poni: 8,
+    alola_20_mina: 1, alola_21_hapu: 3 };
 
   // RAMP XP (Step 1's playthrough sim: at 2 × L² a fresh team fell ~40% under the ramp by mid-region). A REGULAR stage's FIRST clear
   // pays every line that battled exactly the XP to climb from this stage's level to the NEXT regular stage's (next L³ − L³, never
@@ -433,6 +443,7 @@ window.BM = window.BM || {};
       tickets: first ? FIRST_TICKETS[st.kind] || 10 : 2,
       xp: first ? st.firstXp || 2 * st.level * st.level : st.level * st.level, // first clear: the ramp XP on regular stages (BM.applyRamp)
       gift: first && st.gift ? st.gift : null,
+      ...(first && st.gift2 ? { gift2: st.gift2 } : {}), // Alola: Kukui's second reward line (Lunala's)
       item: first && st.item ? st.item : null,
       ...(first && st.prize ? { prize: st.prize } : {}), // Johto: a capstone's extra first-clear items { itemId: n } (Mt. Silver)
     };

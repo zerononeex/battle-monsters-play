@@ -94,6 +94,41 @@ BM.BANNERS.push(
     lines: ['zorua_hisui', 'joltik', 'litwick', 'tynamo', 'venipede', 'audino', 'axew', 'rufflet', 'petilil', 'sandile', 'tirtouga', 'emolga', 'larvesta'],
   },
 );
+// KALOS (Kalos + Alola build, pack C4 — "X / Y", U4 as drafted: 3 + 2 legendaries; Kalos has no regular legendary, so the banners are thin
+// — canon, nothing padded): shown once the profile REACHES Kalos (Unova beaten). Banner A ("X") = Xerneas + Diancie + Volcanion (the two
+// mythical slots) · Banner B ("Y") = Yveltal + Hoopa. ZYGARDE (Diantha's reward) is on NO banner. 12 lines each: X exclusives (Swirlix,
+// Clauncher) → A, Y exclusives (Spritzee, Skrelp) → B; the fossils split (Tyrunt A / Amaura B); branch pairs apart (Goomy A / Hisuian
+// Goodra B, Bergmite B / Hisuian Avalugg A). The starters (stage gifts) are on neither.
+BM.BANNERS.push(
+  {
+    id: 'kalos_a', region: 'kalos', name: 'Kalos Banner A', short: 'Kalos A', theme: 'X',
+    legendaries: ['xerneas', 'diancie', 'volcanion'],
+    lines: ['fletchling', 'litleo', 'honedge', 'swirlix', 'clauncher', 'tyrunt', 'inkay', 'goomy', 'noibat', 'helioptile', 'espurr', 'bergmite_avalugg_hisui'],
+  },
+  {
+    id: 'kalos_b', region: 'kalos', name: 'Kalos Banner B', short: 'Kalos B', theme: 'Y',
+    legendaries: ['yveltal', 'hoopa'],
+    lines: ['flabebe', 'pancham', 'spritzee', 'skrelp', 'amaura', 'binacle', 'hawlucha', 'phantump', 'pumpkaboo', 'klefki', 'bergmite', 'goomy_goodra_hisui'],
+  },
+);
+// ALOLA (Kalos + Alola build, pack C4 + the user's U2b ruling — "Ultra Sun / Ultra Moon"): shown once the profile REACHES Alola (Kalos
+// beaten). The ruling's tier (the 4 Tapus + the 7 Sun / Moon Ultra Beasts) split 6 / 5, and the HELD lines PLACED (U2b): A gains
+// Blacephalon, Marshadow, Zeraora; B gains Stakataka, the Poipole line, Magearna, the Meltan line → A 9 legendaries · B 9.
+// SOLGALEO + LUNALA (Kukui's reward), NECROZMA (node 27) and TYPE: NULL (the node-17 gift) are on NO banner. 13 lines each: version
+// exclusives follow their version (Turtonator, Lycanroc Midday, Alolan Sandshrew → A; Drampa, Lycanroc Midnight, Alolan Vulpix → B);
+// branch pairs apart; one Super Rare each (Jangmo-o A / Mimikyu B). The starters + the Hisuian Decidueye branch (gifts) are on neither.
+BM.BANNERS.push(
+  {
+    id: 'alola_a', region: 'alola', name: 'Alola Banner A', short: 'Alola A', theme: 'Ultra Sun',
+    legendaries: ['tapu_koko', 'tapu_bulu', 'buzzwole', 'kartana', 'xurkitree', 'guzzlord', 'blacephalon', 'marshadow', 'zeraora'],
+    lines: ['pikipek', 'grubbin', 'rockruff', 'mareanie', 'fomantis', 'stufful', 'jangmo_o', 'turtonator', 'rattata_alola', 'sandshrew_alola', 'diglett_alola', 'grimer_alola', 'pikachu_raichu_alola'],
+  },
+  {
+    id: 'alola_b', region: 'alola', name: 'Alola Banner B', short: 'Alola B', theme: 'Ultra Moon',
+    legendaries: ['tapu_lele', 'tapu_fini', 'pheromosa', 'celesteela', 'nihilego', 'stakataka', 'poipole', 'magearna', 'meltan'],
+    lines: ['cutiefly', 'rockruff_lycanroc_midnight', 'dewpider', 'salandit', 'bounsweet', 'wimpod', 'mimikyu', 'drampa', 'vulpix_alola', 'meowth_alola', 'geodude_alola', 'exeggcute_exeggutor_alola', 'cubone_marowak_alola'],
+  },
+);
 // Banners the profile can see: its reached regions' (Kanto always; Johto once Kanto is beaten)
 BM.bannersFor = (p) => BM.BANNERS.filter((b) => BM.regionReached(b.region, p));
 // Every line a banner can give (legendaries + the rest).

@@ -262,10 +262,13 @@
     { id: 'johto', name: 'Johto', art: 'ui/region_johto', color: ['#c9a36a', '#7a4f2f'], emoji: '🔔' },
     { id: 'hoenn', name: 'Hoenn', art: 'ui/region_hoenn', color: ['#5ec9c9', '#2f5fa8'], emoji: '🌊' },
     { id: 'sinnoh', name: 'Sinnoh', art: 'ui/region_sinnoh', color: ['#a8b8e8', '#4f4f8f'], emoji: '❄️' },
-    { id: 'unova', name: 'Unova', art: 'ui/region_unova', color: ['#9aa4b8', '#2f3f5f'], emoji: '🌉' }, // the roadmap ends at Unova
+    { id: 'unova', name: 'Unova', art: 'ui/region_unova', color: ['#9aa4b8', '#2f3f5f'], emoji: '🌉' },
+    // Kalos + Alola build: seven regions — the roadmap ends at Alola
+    { id: 'kalos', name: 'Kalos', art: 'ui/region_kalos', color: ['#e8b8d8', '#5a3f8f'], emoji: '🗼' },
+    { id: 'alola', name: 'Alola', art: 'ui/region_alola', color: ['#7ee0d0', '#e8783f'], emoji: '🌺' },
   ];
   // a shipped region's locked card says which Champion opens it (Hoenn Step 1: Hoenn opens after the Johto Champion)
-  const LOCK_TEXT = { johto: 'Beat the Kanto Champion to open Johto', hoenn: 'Beat the Johto Champion to open Hoenn', sinnoh: 'Beat the Hoenn Champion to open Sinnoh', unova: 'Beat the Sinnoh Champion to open Unova' };
+  const LOCK_TEXT = { johto: 'Beat the Kanto Champion to open Johto', hoenn: 'Beat the Johto Champion to open Hoenn', sinnoh: 'Beat the Hoenn Champion to open Sinnoh', unova: 'Beat the Sinnoh Champion to open Unova', kalos: 'Beat N\'s Castle in Unova to open Kalos', alola: 'Beat the Kalos Champion to open Alola' };
   const titleSpriteEl = $('title-sprite'); // (addendum: the region card shows the REGION — no Pokémon pasted on top)
   // H2 Region Carousel: ONE big region card (its map art), ◀ ▶ arrows + dots flip regions; tap the card = its map.
   let regionAt = 0, swiped = false;
@@ -359,8 +362,10 @@
     if (r.prize) for (const [id, n] of Object.entries(r.prize)) add(`${itemIconHtml(id)} ${n > 1 ? n + '× ' : ''}${BM.ITEMS[id]}${id === 'master_ball' ? '! (the Legendary Safari Zone)' : ''}`, 'new legend');
     if (r.masterBall) add(`${itemIconHtml('master_ball')} Master Ball! (the Legendary Safari Zone)`, 'new legend');
     if (r.gift && r.giftNew !== false) add(`🎁 New character: ${BM.LINES[r.gift].name}!`, 'new');
+    if (r.gift2 && r.gift2New !== false) add(`🎁 New character: ${BM.LINES[r.gift2].name}!`, 'new'); // Alola: Kukui's two legends
     if (r.megaUnlocked) add('💎 Mega Evolution unlocked! (Mega Stones: the Safari Zone, the Prism Tower, Johto stages)', 'new legend'); // Johto Step 6
     if (r.megaRayquaza) add('💎 Mega Rayquaza unlocked! (no stone needed)', 'new legend'); // Hoenn Step 6 (U4)
+    if (r.megaZygarde) add('💎 Mega Zygarde unlocked! (no stone needed)', 'new legend'); // Kalos U8
   }
   function renderPrebattle() {
     const st = BM.stageById(preStage), p = prof();
@@ -696,10 +701,13 @@
     const cele = !!(r && r.giftNew && r.gift && (r.regionComplete || BM.LINES[r.gift].legendary));
     show('result-cele', cele);
     if (!cele) return;
-    const f = BM.LINES[r.gift].forms[0];
-    box.appendChild(Scr.thumb(f, 150, false));
-    box.insertAdjacentHTML('beforeend', `<div class="rc-text"><b>${f.name} joins your team!</b><span>The legend of ${BM.REGION_NAMES[r.regionComplete || BM.LINES[r.gift].region] || 'Kanto'} chose YOU — it's in your PC Box at Lv 1${r.giftOnTeam ? ' and on your team' : ''}.</span></div>`);
-    setTimeout(() => BM.Audio.cry(f.id, f.size, 1, 'ui'), 700);
+    // Alola: Kukui grants TWO legends (Solgaleo + Lunala) — both shown, in their fielded (granted-level) forms; a gift's joining level
+    // is its line's level (Lv 1, or the reward's `giftLevel`)
+    const ids = [r.gift, ...(r.gift2 && r.gift2New ? [r.gift2] : [])], P = prof();
+    const fs = ids.map((id) => BM.FORMS[(P.lines[id] && P.lines[id].form) || BM.LINES[id].forms[0].id]), lv = (P.lines[r.gift] && P.lines[r.gift].level) || 1;
+    for (const f of fs) box.appendChild(Scr.thumb(f, fs.length > 1 ? 120 : 150, false));
+    box.insertAdjacentHTML('beforeend', `<div class="rc-text"><b>${fs.map((f) => f.name).join(' and ')} join${fs.length > 1 ? '' : 's'} your team!</b><span>The legend${fs.length > 1 ? 's' : ''} of ${BM.REGION_NAMES[r.regionComplete || BM.LINES[r.gift].region] || 'Kanto'} chose YOU — ${fs.length > 1 ? 'they\'re' : 'it\'s'} in your PC Box at Lv ${lv}${r.giftOnTeam ? ' and on your team' : ''}.</span></div>`);
+    fs.forEach((f, i) => setTimeout(() => BM.Audio.cry(f.id, f.size, 1, 'ui'), 700 + i * 1200));
   }
   // ENDING (Phase 7): after the Champion falls for the first time — the `credits` track, a region-complete summary
   // (stages cleared, friends, legendaries) and "Back to map". Kanto then shows complete on the home carousel.
@@ -717,7 +725,9 @@
     // Hoenn: Johto's ending also opens Hoenn; Hoenn's ending opens Mega Rayquaza and points at the falling star over Sky Pillar
     $('end-next').textContent = { kanto: 'Johto is open — find it on the home screen!', johto: 'Mega Evolution is unlocked — and Hoenn is open! Someone is waiting at the top of Mt. Silver…',
       hoenn: 'Rayquaza can Mega Evolve now! And a falling star is heading for the top of Sky Pillar… — and Sinnoh is open!',
-      sinnoh: 'Unova is open! And a strange rift is tearing open above Spear Pillar…', unova: 'You are the hero of five regions! Champion Alder is waiting for one more battle…' }[region] || 'A new adventure is waiting!';
+      sinnoh: 'Unova is open! And a strange rift is tearing open above Spear Pillar…', unova: 'Kalos is open! And Champion Alder is waiting for one more battle…',
+      kalos: 'Zygarde can Mega Evolve now — and Alola is open! And Rogue Megas are running wild in Lumiose City tonight…',
+      alola: 'You are the hero of seven regions! And high on Mount Lanakila, a strange light is calling…' }[region] || 'A new adventure is waiting!';
     show('scr-ending', true); fit($('scr-ending'));
     BM.Audio.playMusic('credits');
   }

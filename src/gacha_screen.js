@@ -8,7 +8,7 @@ BM.GachaScreen = function (ui) {
   let bannerId = BM.BANNERS[0].id, currency = 'tickets';
   const icon = (key, emo) => { const s = BM.Sprites.artSrc('icons/' + key); return s ? `<img src="${s}" alt="">` : emo; };
   const TK = () => BM.ticketIcon(), PB = () => icon('poke_ball', '🔴'), MB = () => icon('master_ball', '🟣');
-  const legendNames = (b) => b.legendaries.map((id) => BM.LINES[id].name).join(' or ');
+  const legendNames = (b) => (b.legendaries.length > 6 ? `One of these ${b.legendaries.length} legends` : b.legendaries.map((id) => BM.LINES[id].name).join(' or ')); // Alola's nine: one short line
 
   function render() {
     const p = prof(), list = BM.bannersFor(p);
@@ -46,7 +46,7 @@ BM.GachaScreen = function (ui) {
     card.appendChild(stage);
     const info = document.createElement('div'); info.className = 'bc-info'; info.id = 'bc-info';
     const names = document.createElement('div'); names.className = 'bc-names ss1';
-    names.classList.toggle('crowd', b.legendaries.length > 3); names.classList.toggle('crowd6', b.legendaries.length > 5); // Sinnoh / Unova's six: name under the sprite // Hoenn's 5 / 4 legendaries: sprite + name only (chips hidden) so the row fits
+    names.classList.toggle('crowd', b.legendaries.length > 3); names.classList.toggle('crowd6', b.legendaries.length > 5); names.classList.toggle('crowd9', b.legendaries.length > 7); // Alola's nine (U2b): smaller still // Sinnoh / Unova's six: name under the sprite // Hoenn's 5 / 4 legendaries: sprite + name only (chips hidden) so the row fits
     for (const id of b.legendaries) {
       const d = document.createElement('div'); d.className = 'bc-leg-info'; d.dataset.line = id;
       // SS1: the legendary's battle sprite leads its name row (key art above stays uncropped; this is UI below it)
@@ -151,7 +151,9 @@ BM.GachaScreen = function (ui) {
   // Hoenn Step 6: the stones in two tabs — Kanto · Johto (19) and Hoenn (19, once the profile reaches Hoenn) — so the grid never scrolls
   let megaTab = 'kj';
   // Sinnoh / Unova: one more tab each (9 / 8 stones), shown once the profile reaches that region
-  const MEGA_TABS = [['kj', 'Kanto · Johto', (s) => !['hoenn', 'sinnoh', 'unova'].includes(BM.ITEM_INFO[s].region)], ...['hoenn', 'sinnoh', 'unova'].map((r) => [r, BM.REGION_NAMES[r], (s) => BM.ITEM_INFO[s].region === r])];
+  // Kalos + Alola: two more (10 / 2 stones; Mega Zygarde has no stone, U8)
+  const MEGA_LATER = ['hoenn', 'sinnoh', 'unova', 'kalos', 'alola'];
+  const MEGA_TABS = [['kj', 'Kanto · Johto', (s) => !MEGA_LATER.includes(BM.ITEM_INFO[s].region)], ...MEGA_LATER.map((r) => [r, BM.REGION_NAMES[r], (s) => BM.ITEM_INFO[s].region === r])];
   function openMegaShop() {
     const p = prof(), box = $('megashop-grid'); box.innerHTML = '';
     $('megashop-help').innerHTML = `Own a Mega Stone and that Pokémon can Mega Evolve — cycle to its Mega form on the Team screen! ${TK()} ${G.MEGA_STONE_TICKETS} each · you have ${p.tickets}.`;

@@ -22,6 +22,9 @@ window.BM = window.BM || {};
     { id: 'sinnoh', name: 'Sinnoh', ball: 'master_ball', minLv: 66, level: 73, xp: 115000, candy: { xp_candy_l: 3 }, curveAt: 25, sinnoh: true },
     // Unova Act 2 U-S5: the 7th XP floor (Lv 71+ entry), open once Nuvema is cleared (Unova reached) — the top of the Tower
     { id: 'unova', name: 'Unova', ball: 'master_ball', minLv: 71, level: 78, xp: 140000, candy: { xp_candy_l: 3 }, curveAt: 25, unova: true },
+    // Kalos + Alola build: the 8th and 9th XP floors (Lv 76+ / Lv 81+ entry), open once Vaniville / Iki Town is cleared — the top of the Tower
+    { id: 'kalos', name: 'Kalos', ball: 'master_ball', minLv: 76, level: 83, xp: 165000, candy: { xp_candy_l: 3 }, curveAt: 25, kalos: true },
+    { id: 'alola', name: 'Alola', ball: 'master_ball', minLv: 81, level: 88, xp: 190000, candy: { xp_candy_l: 3 }, curveAt: 25, alola: true },
   ];
   // the highest tier a team of `lv` can sensibly farm (the sim's grind; the UI just recommends the band)
   BM.bonusTierFor = (lv) => BM.BONUS_TIERS.filter((t) => lv >= t.minLv).pop() || null;
@@ -36,10 +39,12 @@ window.BM = window.BM || {};
     hoenn: (L) => [W('linoone', L - 2, 3, 7), W('swellow', L, 9, 9), W('exploud', L - 1, 22, 16), W('vigoroth', L, 30, 18)],
     sinnoh: (L) => [W('bibarel', L - 2, 3, 7), W('staraptor', L, 9, 9), W('purugly', L - 1, 22, 16), W('lickilicky', L, 30, 18)],
     unova: (L) => [W('watchog', L - 2, 3, 7), W('unfezant', L, 9, 9), W('stoutland', L - 1, 22, 16), W('bouffalant', L, 30, 18)],
+    kalos: (L) => [W('diggersby', L - 2, 3, 7), W('talonflame', L, 9, 9), W('furfrou', L - 1, 22, 16), W('pyroar', L, 30, 18)],
+    alola: (L) => [W('gumshoos', L - 2, 3, 7), W('toucannon', L, 9, 9), W('komala', L - 1, 22, 16), W('bewear', L, 30, 18)],
   };
   const xpStages = BM.BONUS_TIERS.map((t) => ({
     id: 'bonus_xp_' + t.id, name: `${t.name} XP Stage`, bonus: 'xp', tier: t.id, kind: 'bonus', level: t.level, curveAt: t.curveAt,
-    background: { regular: 'pallet_town', great: 'cerulean_city', ultra: 'celadon_city', master: 'saffron_city', hoenn: 'hoenn_slateport_city', sinnoh: 'sinnoh_jubilife_city', unova: 'unova_accumula_town' }[t.id], ...(t.hoenn ? { hoenn: true } : {}), ...(t.sinnoh ? { sinnoh: true, artRegion: 'sinnoh' } : {}), ...(t.unova ? { unova: true, artRegion: 'unova' } : {}),
+    background: { regular: 'pallet_town', great: 'cerulean_city', ultra: 'celadon_city', master: 'saffron_city', hoenn: 'hoenn_slateport_city', sinnoh: 'sinnoh_jubilife_city', unova: 'unova_accumula_town', kalos: 'kalos_lumiose_city', alola: 'alola_hauoli_city' }[t.id], ...(t.hoenn ? { hoenn: true } : {}), ...(t.sinnoh ? { sinnoh: true, artRegion: 'sinnoh' } : {}), ...(t.unova ? { unova: true, artRegion: 'unova' } : {}), ...(t.kalos ? { kalos: true, artRegion: 'kalos' } : {}), ...(t.alola ? { alola: true, artRegion: 'alola' } : {}),
     // FF3: Tower pre-battle = `tower`, Tower battles = `battle_tower`
     music: 'battle_tower', townMusic: 'tower', ball: t.ball, minLv: t.minLv, bonusXp: t.xp, candy: t.candy,
     waves: XPW[t.id](t.level),
@@ -101,6 +106,14 @@ window.BM = window.BM || {};
     { ...M('unova_spark', 'Mega Spark Cavern', 'eelektrossite', ['eelektrossite', 'excadrite', 'golurkite', 'scolipite'], [['tynamo', -3], ['drilbur', -3], ['joltik', -2, 12, 14], ['eelektrik', -2, 26, 18], ['excadrill', -1, 45, 28]], 'unova_chargestone_cave', 78, '🔋'), unova: true, artRegion: 'unova', megaAfter: 'unova_11_clay' },
     { ...M('unova_flame', 'Mega Ember Tower', 'emboarite', ['emboarite', 'chandelurite', 'scraftinite', 'audinite'], [['litwick', -3], ['scraggy', -3], ['pignite', -2, 12, 14], ['lampent', -2, 26, 18], ['scrafty', -1, 45, 28]], 'unova_dragonspiral_tower', 79, '🔥'), unova: true, artRegion: 'unova', megaAfter: 'unova_11_clay' },
   );
+  // Kalos + Alola build: the Bonus Zone Mega section gains the new stones — two Kalos floors (the 10 Kalos stones, Diancite included;
+  // no Zygardite exists, U8) open after Shalour Gym (Korrina — the Tower of Mastery teaches Mega Evolution), one Alola floor (Golisopite +
+  // Drampanite, U2a) after Po Town (Guzma). Lv 83–89 foes, the first clear guarantees the headline stone.
+  mega.push(
+    { ...M('kalos_bloom', 'Mega Bloom Palace', 'chesnaughtite', ['chesnaughtite', 'delphoxite', 'greninjite', 'meowsticite', 'malamarite'], [['chespin', -3], ['espurr', -3], ['inkay', -2, 12, 14], ['quilladin', -2, 26, 18], ['malamar', -1, 45, 28]], 'kalos_parfum_palace', 83, '🌸'), kalos: true, artRegion: 'kalos', megaAfter: 'kalos_10_korrina' },
+    { ...M('kalos_coast', 'Mega Diamond Coast', 'diancite', ['diancite', 'barbaracite', 'dragalgite', 'hawluchanite', 'pyroarite'], [['binacle', -3], ['skrelp', -3], ['litleo', -2, 12, 14], ['dragalge', -2, 26, 18], ['barbaracle', -1, 45, 28]], 'kalos_glittering_cave', 84, '💎'), kalos: true, artRegion: 'kalos', megaAfter: 'kalos_10_korrina' },
+    { ...M('alola_trial', 'Mega Totem Den', 'golisopite', ['golisopite', 'drampanite'], [['wimpod', -3], ['jangmo_o', -3], ['hakamo_o', -2, 12, 14], ['drampa', -2, 26, 18], ['golisopod', -1, 45, 28]], 'alola_lush_jungle', 89, '🌺'), alola: true, artRegion: 'alola', megaAfter: 'alola_15_po_town' },
+  );
   for (const st of mega) st.burst = { pool: [...new Set(st.waves.map((w) => w.form))] };
   // Hoenn Step 9.5 regression tune (the +~13% prices dropped Mega Ocean Cave / Mega Sky Ruins to 2/6 for the Lv 65 deck): first
   // releases at 1.5× their start, packs 1–2, trickle ×2 — waves only, the floors' foes / stones / levels unchanged (→ 6/6)
@@ -133,7 +146,7 @@ window.BM = window.BM || {};
   // Unlocks (BUILD_PLAN §4.3 spirit: Easy after Brock …): the zone itself opens after Brock; XP tiers after Brock / Lt. Surge /
   // Koga / Giovanni; each treasure stage once the campaign stage its band matches (`curveAt`) is cleared.
   BM.BONUS_OPEN_AFTER = 'kanto_05_brock';
-  const TIER_AFTER = { regular: 'kanto_05_brock', great: 'kanto_10_surge', ultra: 'kanto_15_koga', master: 'kanto_20_giovanni', hoenn: 'hoenn_01_littleroot', sinnoh: 'sinnoh_01_twinleaf', unova: 'unova_01_nuvema' };
+  const TIER_AFTER = { regular: 'kanto_05_brock', great: 'kanto_10_surge', ultra: 'kanto_15_koga', master: 'kanto_20_giovanni', hoenn: 'hoenn_01_littleroot', sinnoh: 'sinnoh_01_twinleaf', unova: 'unova_01_nuvema', kalos: 'kalos_01_vaniville', alola: 'alola_01_iki' };
   BM.bonusUnlockStage = (st) => (st.bonus === 'mega' ? (st.megaAfter || (st.hoenn ? 'hoenn_12_desert' : 'johto_24_champion')) : st.tier ? TIER_AFTER[st.tier] : BM.KANTO_STAGES[Math.max(0, st.curveAt - 1)].id);
   BM.bonusOpen = (st, p) => !!(p && p.cleared[BM.bonusUnlockStage(st)] > 0);
 })();

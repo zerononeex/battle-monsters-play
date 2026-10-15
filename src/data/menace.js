@@ -58,6 +58,23 @@ BM.LEADER_MENACE = {
   unova_11_clay: ['giant'], unova_14_skyla: ['area'], unova_16_brycen: ['status', 'freeze'], unova_18_drayden: ['area'],
   unova_20_shauntal: ['status', 'burn'], unova_21_grimsley: ['giant'], unova_22_caitlin: ['status', 'sleep'], unova_23_marshal: ['giant'],
   unova_24_ns_castle: ['status', 'paralyze', 'N'], unova_25_alder: ['giant'],
+  // Kalos (Kalos + Alola build, from day one — the type rule): Viola's Vivillon (Bug → Poison); Grant's twin fossils GIANT; Korrina's
+  // Hawlucha AREA; Ramos's Gogoat (Grass → Poison); Clemont's Heliolisk PARALYZE; Valerie's Sylveon (Fairy → Sleep); Olympia's Meowstic
+  // SLEEP; Wulfric's Avalugg FREEZE; Malva's Talonflame BURN; Siebold's Barbaracle AREA; Wikstrom's Aegislash GIANT; Drasna's Noivern
+  // AREA; Diantha's Mega Gardevoir GIANT. The capstone (Rogue Mega Night) has no leader — no menace.
+  kalos_04_viola: ['status', 'poison'], kalos_07_grant: ['giant'], kalos_10_korrina: ['area'], kalos_11_ramos: ['status', 'poison'],
+  kalos_13_clemont: ['status', 'paralyze'], kalos_14_valerie: ['status', 'sleep'], kalos_17_olympia: ['status', 'sleep'], kalos_19_wulfric: ['status', 'freeze'],
+  kalos_20_malva: ['status', 'burn'], kalos_21_siebold: ['area'], kalos_22_wikstrom: ['giant'], kalos_23_drasna: ['area'], kalos_24_champion: ['giant'],
+  // Alola (from day one): the 8 trials (their TOTEMS are the aces) + the 4 kahunas + the Lanakila Elite Four + Kukui. Ilima's Gumshoos
+  // (Normal → Sleep); Hala's Crabrawler AREA; Lana's Araquanid (Water → Freeze); Kiawe's Alolan Marowak BURN; Mallow's Lurantis (Grass →
+  // Poison); Olivia's Lycanroc GIANT; Sophocles's Togedemaru PARALYZE; Acerola's Mimikyu SLEEP; Nanu's Alolan Persian AREA; the captainless
+  // canyon's Kommo-o AREA (who = "Vast Poni Canyon"); Mina's Ribombee SLEEP; Hapu's Mudsdale GIANT; E4 Hala's Crabominable FREEZE, Olivia's Lycanroc
+  // GIANT, Acerola's Palossand SLEEP, Kahili's Toucannon BURN; Kukui's Lycanroc GIANT. Necrozma (node 27) has no leader — no menace.
+  alola_03_ilima: ['status', 'sleep'], alola_05_hala: ['area'], alola_07_lana: ['status', 'freeze'], alola_08_kiawe: ['status', 'burn'],
+  alola_09_mallow: ['status', 'poison'], alola_10_olivia: ['giant'], alola_13_sophocles: ['status', 'paralyze'], alola_14_acerola: ['status', 'sleep'],
+  alola_16_nanu: ['area'], alola_19_vast_poni: ['area', null, 'Vast Poni Canyon'], alola_20_mina: ['status', 'sleep'], alola_21_hapu: ['giant'],
+  alola_22_hala_e4: ['status', 'freeze'], alola_23_olivia_e4: ['giant'], alola_24_acerola_e4: ['status', 'sleep'], alola_25_kahili_e4: ['status', 'burn'],
+  alola_26_kukui: ['giant'],
 };
 BM.LAST_STAND_TEXT = '🔥 The Leader is making a last stand!';
 BM.isLeaderStage = (st) => !!(st && !st.dev && !st.bonus && st.leader && ['gym', 'e4', 'champion'].includes(st.kind));
@@ -68,7 +85,9 @@ BM.lastStandCount = function (st) {
   if (st.kind === 'champion') return 10;
   if (st.kind === 'e4') return 9;
   const g = BM.gymNumber(st);
-  return g ? 4 + Math.ceil(g / 2) : 0; // 1–2: 5 · 3–4: 6 · 5–6: 7 · 7–8: 8
+  // Alola's island challenge has 12 gym-kind stages (8 trials + 4 grand trials): its ladder is the same 5 → 8, stretched over 12
+  const n = BM.STAGES.filter((s) => s.kind === 'gym' && s.region === st.region && !s.dev).length;
+  return g ? 4 + Math.ceil(Math.ceil(g * 8 / Math.max(8, n)) / 2) : 0; // 1–2: 5 · 3–4: 6 · 5–6: 7 · 7–8: 8
 };
 // a stage's menace, resolved: { kind, status, icon, word, line } — null on any other stage
 BM.menaceOf = function (st) {
@@ -84,6 +103,6 @@ BM.menaceLine = function (st, known = true) {
   const m = BM.menaceOf(st);
   if (!m) return '';
   const row = BM.LEADER_MENACE[st.id], who = row[2] || st.leader;
-  const owner = `${who}'${/s$/.test(who) ? '' : 's'} ${known ? BM.FORMS[st.ace.form].name : 'ace'}`;
+  const owner = `${who}'${/s$/.test(who) ? '' : 's'} ${st.ace.totem ? 'Totem ' : ''}${known ? BM.FORMS[st.ace.form].name : 'ace'}`; // Alola: "Ilima's Totem Gumshoos"
   return BM.MENACE_KINDS[m.kind].text(owner, m.status);
 };

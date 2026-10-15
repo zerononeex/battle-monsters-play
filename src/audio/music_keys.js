@@ -56,6 +56,23 @@ BM.MUSIC_KEYS = {
   town_driftveil: { loop: true, fallback: 'town_vermilion' }, town_mistralton: { loop: true, fallback: 'town_fuchsia' },
   town_icirrus: { loop: true, fallback: 'town_lavender' }, town_opelucid: { loop: true, fallback: 'town_cinnabar' },
   town_unova_league: { loop: true, fallback: 'town_indigo' },
+  // Kalos (MUSIC_PROMPTS #86–#100, Kalos + Alola build Act 1, the pack's pairings — three Kanto towns used twice (the pack's C12)). Kakashi supplies the MP3s.
+  map_kalos: { loop: true, fallback: 'map_kanto' },
+  town_vaniville: { loop: true, fallback: 'town_pallet' }, town_santalune: { loop: true, fallback: 'town_viridian' },
+  town_lumiose: { loop: true, fallback: 'town_saffron' }, town_camphrier: { loop: true, fallback: 'town_lavender' },
+  town_cyllage: { loop: true, fallback: 'town_pewter' }, town_ambrette: { loop: true, fallback: 'town_cinnabar' },
+  town_shalour: { loop: true, fallback: 'town_cerulean' }, town_coumarine: { loop: true, fallback: 'town_vermilion' },
+  town_laverre: { loop: true, fallback: 'town_celadon' }, town_dendemille: { loop: true, fallback: 'town_viridian' },
+  town_anistar: { loop: true, fallback: 'town_saffron' }, town_geosenge: { loop: true, fallback: 'town_lavender' },
+  town_snowbelle: { loop: true, fallback: 'town_fuchsia' }, town_kalos_league: { loop: true, fallback: 'town_indigo' },
+  // Alola (MUSIC_PROMPTS #101–#112, Kalos + Alola build Act 1, the pack's pairings — each Kanto town paired once (the pack's C12)). Kakashi supplies the MP3s.
+  map_alola: { loop: true, fallback: 'map_kanto' },
+  town_iki: { loop: true, fallback: 'town_pallet' }, town_hauoli: { loop: true, fallback: 'town_vermilion' },
+  town_paniola: { loop: true, fallback: 'town_fuchsia' }, town_royal_avenue: { loop: true, fallback: 'town_celadon' },
+  town_konikoni: { loop: true, fallback: 'town_pewter' }, town_aether: { loop: true, fallback: 'town_saffron' },
+  town_malie: { loop: true, fallback: 'town_cerulean' }, town_tapu_village: { loop: true, fallback: 'town_lavender' },
+  town_po: { loop: true, fallback: 'town_viridian' }, town_seafolk: { loop: true, fallback: 'town_cinnabar' },
+  town_alola_league: { loop: true, fallback: 'town_indigo' },
 };
 // Which file a key plays: its own supplied MP3, else (Johto / Hoenn) its paired Kanto key's MP3, else null (= the synth fallback).
 // Returns { file, via } — `via` = the key whose file plays.

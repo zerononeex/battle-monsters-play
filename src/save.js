@@ -40,6 +40,7 @@ BM.Save = (function () {
           p.tickets += r.tickets;
           if (r.item) p.items[r.item] = (p.items[r.item] || 0) + 1;
           if (r.gift) giveLine(p, r.gift);
+          if (r.gift2) giveLine(p, r.gift2);
         }
         p.mapAt = null;
       }
@@ -143,6 +144,14 @@ BM.Save = (function () {
     const line = BM.LINES[id];
     if (!line || line.enemyOnly || p.lines[id]) return false;
     p.lines[id] = { level: 1, xp: 1, form: line.forms[0].id, unlocked: [line.forms[0].id] };
+    // Kalos + Alola build (Alola C2): a reward line may join at a set level (`giftLevel` — Kukui's Solgaleo / Lunala at Lv 53, so both box
+    // legendaries are unlocked), capped at the profile's level cap; every form its level reaches is unlocked, the last one fielded.
+    // Item evolutions stay item-gated. No new save field — level / xp / unlocked / form are the line's standing fields.
+    if (line.giftLevel) {
+      const L = Math.min(line.giftLevel, BM.levelCap ? BM.levelCap(p) : line.giftLevel), l = p.lines[id];
+      l.level = L; l.xp = Math.pow(L, 3);
+      for (const f of line.forms.slice(1)) { if (!f.evo || f.evo.item || !((f.evo.level || 99) <= L)) break; l.unlocked.push(f.id); l.form = f.id; }
+    }
     return true;
   }
   function blank() { return { v: VERSION, active: null, profiles: Array(SLOTS).fill(null) }; }
@@ -413,10 +422,17 @@ BM.Save = (function () {
       r.giftNew = giveLine(p, r.gift);
       if (r.giftNew && p.team.length < BM.TEAM_SIZE) { p.team.push(r.gift); r.giftOnTeam = true; saveTeam(); }
     }
+    // Alola: Kukui's first clear grants TWO reward lines (Solgaleo's + Lunala's) — the second rides `gift2`, the same grant
+    if (r.gift2) {
+      r.gift2New = giveLine(p, r.gift2);
+      if (r.gift2New && p.team.length < BM.TEAM_SIZE) { p.team.push(r.gift2); r.gift2OnTeam = true; saveTeam(); }
+    }
     // Johto Step 6: the Johto Champion's first clear unlocks Mega Evolution; a dropped Mega Stone readies its form
     if (r.regionComplete === 'johto') r.megaUnlocked = true;
     // Hoenn Step 6 (U4): the Hoenn Champion's first clear (which also grants Rayquaza) opens Mega Rayquaza — no stone exists
     if (r.regionComplete === 'hoenn') r.megaRayquaza = true;
+    // Kalos U8: the Kalos Champion's first clear (which also grants Zygarde) opens Mega Zygarde — no stone exists (the Rayquaza gate)
+    if (r.regionComplete === 'kalos') r.megaZygarde = true;
     if (BM.syncMegas) BM.syncMegas(p);
     persist();
     return r;

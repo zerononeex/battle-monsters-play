@@ -36,7 +36,9 @@ BM.BonusScreen = function (ui) {
     // until then the one locked card ("Beat Johto to unlock 🔒")
     mg.classList.toggle('open', BM.megaUnlocked(prof())); // Hoenn Step 5: 6 floors in one row once open
     if (BM.megaUnlocked(prof())) {
-      mg.classList.toggle('many', BM.BONUS_STAGES.filter((s) => s.bonus === 'mega').length > 6); // Sinnoh / Unova: two rows of 5
+      const nm = BM.BONUS_STAGES.filter((s) => s.bonus === 'mega').length;
+      mg.classList.toggle('many', nm > 6); // Sinnoh / Unova: two rows of 5
+      mg.classList.toggle('lots', nm > 10); // Kalos + Alola: 13 floors — two rows of 7 (never a third row, never a scroll)
       for (const st of BM.BONUS_STAGES.filter((s) => s.bonus === 'mega')) {
         mg.appendChild(card(st, `<span class="bz-icon">${st.icon}</span><b class="bz-name">${st.name}</b><span class="bz-band">Lv ${st.level}</span>` +
           `<span class="bz-pay">${(prof().cleared[st.id] || 0) ? 'Mega Stones likely' : '1st clear: ' + BM.ITEMS[st.headline] + '!'}</span>`, 'treasure mega'));
