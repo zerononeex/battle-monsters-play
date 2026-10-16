@@ -209,7 +209,7 @@ BM.Screens = function (ui) {
     const all = regionLines(collRegion), owned = ownedLines(), ids = applyFilter(all, false);
     $('coll-count').textContent = `${owned.length} / ${all.length}`;
     const rt = $('coll-regions'), regs = BM.SHIPPED_REGIONS.filter((r) => BM.regionReached(r, p));
-    ui.show('coll-regions', regs.length > 1); rt.innerHTML = ''; rt.classList.toggle('many', regs.length > 5); // Kalos + Alola: 7 tabs → two compact rows
+    ui.show('coll-regions', regs.length > 1); rt.innerHTML = ''; rt.classList.toggle('many', regs.length > 5); rt.classList.toggle('lots', regs.length > 8); // Kalos + Alola: 7 tabs → two compact rows · Galar + Paldea: 9 → two rows of 5
     for (const r of regs) { const b = document.createElement('button'); b.className = 'pill-btn coll-reg' + (r === collRegion ? ' on' : ''); b.dataset.region = r; b.textContent = BM.REGION_NAMES[r];
       tap(b, () => { if (collRegion === r) return; collRegion = r; BM.Audio.sfx('tap'); renderCollection(); }); rt.appendChild(b); }
     show('btn-dev-unlock', ui.devMode()); show('btn-dev-items', ui.devMode());

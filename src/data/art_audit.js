@@ -6,7 +6,7 @@
 // Each entry carries its region ('kanto' | 'johto' | 'hoenn' | 'sinnoh' | 'unova' | 'kalos' | 'alola') so an Act 1 can prove the shipped regions stay at ZERO while the new
 // region lists exactly its queue.
 window.BM = window.BM || {};
-BM.ART_REGIONS = ['hoenn', 'sinnoh', 'unova', 'kalos', 'alola']; // the regions whose art queues are their own (Kanto / Johto share theirs)
+BM.ART_REGIONS = ['hoenn', 'sinnoh', 'unova', 'kalos', 'alola', 'galar', 'paldea']; // the regions whose art queues are their own (Kanto / Johto share theirs)
 BM.artAudit = function () {
   const SF = BM.SPRITE_FILES || {}, ART = BM.ART || {}, BG = BM.BG_FILES || {};
   const forms = [];
@@ -29,6 +29,9 @@ BM.artAudit = function () {
   // Kalos + Alola build: the Alola wide carousel card + the shared Totem aura effect (queued in the Alola batch)
   want('ui/regionw_alola', ART['ui/regionw_alola'], 'alola');
   want('fx/totem_aura', (BM.FX_FILES || {}).totem_aura, 'alola');
+  // Galar + Paldea build: their wide carousel cards (queued #1949 / #2178)
+  want('ui/regionw_galar', ART['ui/regionw_galar'], 'galar');
+  want('ui/regionw_paldea', ART['ui/regionw_paldea'], 'paldea');
   for (const b of BM.BANNERS) want('ui/banner_' + b.id, ART['ui/banner_' + b.id], b.region);
   for (const [id, it] of Object.entries(BM.ITEM_INFO)) want('icons/' + id, ART['icons/' + id], it.region || (it.kind === 'mega' ? 'johto' : 'kanto'));
   const uniq = (a) => a.filter((x, i) => a.findIndex((y) => y.key === x.key) === i);

@@ -75,6 +75,29 @@ BM.LEADER_MENACE = {
   alola_16_nanu: ['area'], alola_19_vast_poni: ['area', null, 'Vast Poni Canyon'], alola_20_mina: ['status', 'sleep'], alola_21_hapu: ['giant'],
   alola_22_hala_e4: ['status', 'freeze'], alola_23_olivia_e4: ['giant'], alola_24_acerola_e4: ['status', 'sleep'], alola_25_kahili_e4: ['status', 'burn'],
   alola_26_kukui: ['giant'],
+  // Galar (Galar + Paldea build, from day one — the type rule): Milo's Eldegoss (Grass → Poison); Nessa's Drednaw (Water → Freeze);
+  // Kabu's Centiskorch BURN; Bea's Machamp AREA; Allister's Gengar (Ghost/Poison → POISON, the type rule); Opal's Alcremie (Fairy → Sleep); Gordie's Coalossal
+  // GIANT; Melony's Lapras FREEZE; Piers's Obstagoon AREA; Raihan's Duraludon GIANT; Marnie's Grimmsnarl (Fairy → Sleep); Hop's
+  // Rillaboom (Grass → Poison); the Darkest Day: Rose's Copperajah GIANT (Steel); Leon's Charizard GIANT (the Champion precedent);
+  // Mustard's Urshifu (node 26, the Master Dojo — post-game, a leader stage) AREA (Fighting).
+  galar_06_milo: ['status', 'poison'], galar_08_nessa: ['status', 'freeze'], galar_09_kabu: ['status', 'burn'], galar_11_bea: ['area'],
+  galar_12_allister: ['status', 'poison'], galar_14_opal: ['status', 'sleep'], galar_16_gordie: ['giant'], galar_17_melony: ['status', 'freeze'],
+  galar_19_piers: ['area'], galar_20_raihan: ['giant'], galar_22_marnie: ['status', 'sleep'], galar_23_hop: ['status', 'poison'],
+  galar_24_eternatus: ['giant'], galar_25_leon: ['giant'], galar_26_dojo: ['area'],
+  // Paldea (Galar + Paldea build, from day one — the type rule): the 8 gyms + the 6 Titan stages (the TITANS are the aces; who = the
+  // Titan's site, the Vast Poni Canyon precedent) + the Elite Four + Geeta + Nemona. Katy's Teddiursa (Bug theme → Poison); the Stony
+  // Cliff's Klawf GIANT; Brassius's Sudowoodo (Grass → Poison); the Open Sky's Bombirdier AREA; Iono's Mismagius PARALYZE (Electric gym);
+  // the Lurking Steel's Orthworm GIANT; Kofu's Crabominable (Water → Freeze); Larry's Staraptor GIANT; Ryme's Toxtricity PARALYZE (Electric —
+  // the type rule); Tulip's Florges SLEEP (Psychic); the Quaking Earth's Great Tusk + Iron Treads AREA (Earthquake-class); Grusha's Altaria FREEZE
+  // (Ice gym); the False Dragon's Dondozo GIANT; E4 Rika's Clodsire POISON, Poppy's Tinkaton GIANT, Larry's Flamigo (Flying → Paralyze),
+  // Hassel's Baxcalibur AREA (the Dragon precedent); Geeta's Glimmora GIANT; Nemona's Pawmot GIANT. Team Star bases are trainer stages
+  // (no menace); Area Zero Depths (node 29) has no leader — no menace.
+  paldea_04_katy: ['status', 'poison'], paldea_05_klawf: ['giant', null, 'the Stony Cliff'], paldea_06_brassius: ['status', 'poison'],
+  paldea_07_bombirdier: ['area', null, 'the Open Sky'], paldea_09_iono: ['status', 'paralyze'], paldea_11_orthworm: ['giant', null, 'the Lurking Steel'],
+  paldea_12_kofu: ['status', 'freeze'], paldea_14_larry: ['giant'], paldea_15_ryme: ['status', 'paralyze'], paldea_16_tulip: ['status', 'sleep'],
+  paldea_17_great_tusk: ['area', null, 'the Quaking Earth'], paldea_18_iron_treads: ['area', null, 'the Quaking Earth'], paldea_19_grusha: ['status', 'freeze'],
+  paldea_22_false_dragon: ['giant', null, 'the False Dragon'], paldea_23_rika: ['status', 'poison'], paldea_24_poppy: ['giant'],
+  paldea_25_larry_e4: ['status', 'paralyze'], paldea_26_hassel: ['area'], paldea_27_geeta: ['giant'], paldea_28_nemona: ['giant'],
 };
 BM.LAST_STAND_TEXT = '🔥 The Leader is making a last stand!';
 BM.isLeaderStage = (st) => !!(st && !st.dev && !st.bonus && st.leader && ['gym', 'e4', 'champion'].includes(st.kind));
@@ -103,6 +126,6 @@ BM.menaceLine = function (st, known = true) {
   const m = BM.menaceOf(st);
   if (!m) return '';
   const row = BM.LEADER_MENACE[st.id], who = row[2] || st.leader;
-  const owner = `${who}'${/s$/.test(who) ? '' : 's'} ${st.ace.totem ? 'Totem ' : ''}${known ? BM.FORMS[st.ace.form].name : 'ace'}`; // Alola: "Ilima's Totem Gumshoos"
+  const owner = `${who}'${/s$/.test(who) ? '' : 's'} ${st.ace.totem ? (st.ace.title || 'Totem') + ' ' : ''}${known ? BM.FORMS[st.ace.form].name : 'ace'}`; // Alola: "Ilima's Totem Gumshoos"
   return BM.MENACE_KINDS[m.kind].text(owner, m.status);
 };

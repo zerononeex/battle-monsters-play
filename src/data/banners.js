@@ -129,6 +129,40 @@ BM.BANNERS.push(
     lines: ['cutiefly', 'rockruff_lycanroc_midnight', 'dewpider', 'salandit', 'bounsweet', 'wimpod', 'mimikyu', 'drampa', 'vulpix_alola', 'meowth_alola', 'geodude_alola', 'exeggcute_exeggutor_alola', 'cubone_marowak_alola'],
   },
 );
+// GALAR (Galar + Paldea build, pack C5 + Kakashi ruling 1 — "Sword / Shield"): shown once the profile REACHES Galar (Alola beaten).
+// Ruling 1 moved the Kubfu → Urshifu lines OFF the banners (the Isle of Armor node 26 gift) → A 5 legendaries · B 5. ZACIAN + ZAMAZENTA
+// (Leon's reward) are on NO banner. 13 lines each (the pack's C5 sets — removing the Kubfu lines touches the legendary slots only):
+// version exclusives follow their version (Flapple, Stonjourner, Galarian Farfetch'd / Darumaka → A; Appletun, Eiscue, Galarian Ponyta →
+// B); branch pairs apart (Flapple A / Appletun B, Galarian Slowbro A / Slowking B); one Super Rare each (Dreepy A / Duraludon B).
+BM.BANNERS.push(
+  {
+    id: 'galar_a', region: 'galar', name: 'Galar Banner A', short: 'Galar A', theme: 'Sword',
+    legendaries: ['eternatus', 'regieleki', 'glastrier', 'zapdos_galar', 'moltres_galar'],
+    lines: ['rookidee', 'wooloo', 'rolycoly', 'applin', 'sizzlipede', 'hatenna', 'stonjourner', 'dreepy', 'farfetchd_galar', 'darumaka_galar', 'zigzagoon_galar', 'slowpoke_galar', 'yamask_galar'],
+  },
+  {
+    id: 'galar_b', region: 'galar', name: 'Galar Banner B', short: 'Galar B', theme: 'Shield',
+    legendaries: ['calyrex', 'regidrago', 'spectrier', 'zarude', 'articuno_galar'],
+    lines: ['yamper', 'chewtle', 'applin_appletun', 'toxtricity', 'sinistea', 'impidimp', 'eiscue', 'duraludon', 'ponyta_galar', 'slowpoke_slowking_galar', 'mr_mime_galar', 'stunfisk_galar', 'koffing_weezing_galar'],
+  },
+);
+// PALDEA (Galar + Paldea build, pack C3 — ruling 4: TWO banners as drafted, "Scarlet / Violet"): shown once the profile REACHES Paldea
+// (Leon beaten). A = the 10 ANCIENT Paradox species + Ting-Lu, Chi-Yu, Okidogi, Ogerpon (14) · B = the 10 FUTURE Paradox species +
+// Wo-Chien, Chien-Pao, Munkidori, Fezandipiti, Pecharunt (15). KORAIDON + MIRAIDON (Geeta's reward) and TERAPAGOS (Area Zero) are on NO
+// banner. 13 lines each; Armarouge A / Ceruledge B apart; one Super Rare each (Frigibax A / Gimmighoul B). Archaludon rides Galar B's
+// Duraludon line.
+BM.BANNERS.push(
+  {
+    id: 'paldea_a', region: 'paldea', name: 'Paldea Banner A', short: 'Paldea A', theme: 'Scarlet',
+    legendaries: ['great_tusk', 'scream_tail', 'brute_bonnet', 'flutter_mane', 'slither_wing', 'sandy_shocks', 'roaring_moon', 'walking_wake', 'gouging_fire', 'raging_bolt', 'ting_lu', 'chi_yu', 'okidogi', 'ogerpon'],
+    lines: ['pawmi', 'fidough', 'smoliv', 'nacli', 'charcadet', 'tinkatink', 'frigibax', 'maschiff', 'capsakid', 'varoom', 'tauros_paldea', 'applin_dipplin', 'mankey'],
+  },
+  {
+    id: 'paldea_b', region: 'paldea', name: 'Paldea Banner B', short: 'Paldea B', theme: 'Violet',
+    legendaries: ['iron_treads', 'iron_bundle', 'iron_hands', 'iron_jugulis', 'iron_moth', 'iron_thorns', 'iron_valiant', 'iron_leaves', 'iron_boulder', 'iron_crown', 'wo_chien', 'chien_pao', 'munkidori', 'fezandipiti', 'pecharunt'],
+    lines: ['tandemaus', 'charcadet_ceruledge', 'tadbulb', 'wattrel', 'shroodle', 'finizen', 'greavard', 'glimmet', 'gimmighoul', 'poltchageist', 'flittle', 'cetoddle', 'tatsugiri'],
+  },
+);
 // Banners the profile can see: its reached regions' (Kanto always; Johto once Kanto is beaten)
 BM.bannersFor = (p) => BM.BANNERS.filter((b) => BM.regionReached(b.region, p));
 // Every line a banner can give (legendaries + the rest).

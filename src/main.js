@@ -266,9 +266,12 @@
     // Kalos + Alola build: seven regions — the roadmap ends at Alola
     { id: 'kalos', name: 'Kalos', art: 'ui/region_kalos', color: ['#e8b8d8', '#5a3f8f'], emoji: '🗼' },
     { id: 'alola', name: 'Alola', art: 'ui/region_alola', color: ['#7ee0d0', '#e8783f'], emoji: '🌺' },
+    // Galar + Paldea build: nine regions — the roadmap ends at Paldea
+    { id: 'galar', name: 'Galar', art: 'ui/region_galar', color: ['#9ad08a', '#3f4f8f'], emoji: '🏰' },
+    { id: 'paldea', name: 'Paldea', art: 'ui/region_paldea', color: ['#f0c060', '#b03f6f'], emoji: '☀️' },
   ];
   // a shipped region's locked card says which Champion opens it (Hoenn Step 1: Hoenn opens after the Johto Champion)
-  const LOCK_TEXT = { johto: 'Beat the Kanto Champion to open Johto', hoenn: 'Beat the Johto Champion to open Hoenn', sinnoh: 'Beat the Hoenn Champion to open Sinnoh', unova: 'Beat the Sinnoh Champion to open Unova', kalos: 'Beat N\'s Castle in Unova to open Kalos', alola: 'Beat the Kalos Champion to open Alola' };
+  const LOCK_TEXT = { johto: 'Beat the Kanto Champion to open Johto', hoenn: 'Beat the Johto Champion to open Hoenn', sinnoh: 'Beat the Hoenn Champion to open Sinnoh', unova: 'Beat the Sinnoh Champion to open Unova', kalos: 'Beat N\'s Castle in Unova to open Kalos', alola: 'Beat the Kalos Champion to open Alola', galar: 'Beat the Alola Champion to open Galar', paldea: 'Beat Champion Leon to open Paldea' };
   const titleSpriteEl = $('title-sprite'); // (addendum: the region card shows the REGION — no Pokémon pasted on top)
   // H2 Region Carousel: ONE big region card (its map art), ◀ ▶ arrows + dots flip regions; tap the card = its map.
   let regionAt = 0, swiped = false;
@@ -727,7 +730,9 @@
       hoenn: 'Rayquaza can Mega Evolve now! And a falling star is heading for the top of Sky Pillar… — and Sinnoh is open!',
       sinnoh: 'Unova is open! And a strange rift is tearing open above Spear Pillar…', unova: 'Kalos is open! And Champion Alder is waiting for one more battle…',
       kalos: 'Zygarde can Mega Evolve now — and Alola is open! And Rogue Megas are running wild in Lumiose City tonight…',
-      alola: 'You are the hero of seven regions! And high on Mount Lanakila, a strange light is calling…' }[region] || 'A new adventure is waiting!';
+      alola: 'Galar is open! And high on Mount Lanakila, a strange light is calling…',
+      galar: 'Paldea is open! And on the Isle of Armor, Master Mustard is waiting at his dojo…',
+      paldea: 'You are the hero of nine regions! And deep below the Great Crater, something is glowing…' }[region] || 'A new adventure is waiting!';
     show('scr-ending', true); fit($('scr-ending'));
     BM.Audio.playMusic('credits');
   }
@@ -774,7 +779,7 @@
   }
   tap($('btn-retry'), () => { if (resultMode !== 'battle' || !B) return; BM.Audio.sfx('tap'); afterResult(() => askThenBattle(B.S.stage.id)); });
   let lastRewards = null;
-  tap($('btn-map'), () => { BM.Audio.sfx('tap'); afterResult(() => { const rc = lastRewards && lastRewards.regionComplete; B = null; if (rc) { lastRewards.regionComplete = null; show('scr-result', false); showEnding(rc); } else go(BM.isBonus(BM.stageById(preStage)) ? 'bonus' : 'map'); }); });
+  tap($('btn-map'), () => { BM.Audio.sfx('tap'); afterResult(() => { const rc = lastRewards && (lastRewards.ending || (!lastRewards.endingLater && lastRewards.regionComplete)); B = null; if (rc) { lastRewards.regionComplete = null; lastRewards.ending = null; /* Paldea: Geeta marks it beaten, Nemona rolls the credits */ show('scr-result', false); showEnding(rc); } else go(BM.isBonus(BM.stageById(preStage)) ? 'bonus' : 'map'); }); });
 
   // ---------- PHASE 11: Battle a Friend ----------
   // The battle screen is shared with the campaign; only the inputs (sent, not applied), the side, the mirror and the result differ.

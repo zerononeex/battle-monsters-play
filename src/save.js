@@ -418,6 +418,10 @@ BM.Save = (function () {
     // Johto (Step 1): the same plumbing for every region — the Johto Champion's first clear grants Lugia (the stage gift) + 1 Master
     // Ball and marks Johto done (which also unlocks Mega Evolution, Step 6). Idempotent: `first` is true exactly once per profile.
     if (first && st.regionFinal) { give(p, 'master_ball'); r.masterBall = 1; r.regionComplete = st.region || 'kanto'; p.regionsDone = { ...(p.regionsDone || {}), [r.regionComplete]: 1 }; }
+    // Galar + Paldea build (Paldea C9, ruling): Paldea is beaten on Top Champion GEETA's first clear (regionsDone + the Master Ball above),
+    // but its credits wait for the true finale — NEMONA (`credits: true`). `creditsLater` holds the ending; `credits` plays it.
+    if (first && st.regionFinal && st.creditsLater) r.endingLater = true;
+    if (first && st.credits) r.ending = st.region;
     if (r.gift) {
       r.giftNew = giveLine(p, r.gift);
       if (r.giftNew && p.team.length < BM.TEAM_SIZE) { p.team.push(r.gift); r.giftOnTeam = true; saveTeam(); }

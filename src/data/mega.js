@@ -92,6 +92,11 @@ window.BM = window.BM || {};
   });
   // Alola (U2a): Golisopite with Guzma (Po Town), Drampanite on Mount Lanakila (Elite Four Hala — Drampa lives on the climb)
   Object.assign(MEGA_DROPS, { alola_15_po_town: ['golisopite'], alola_22_hala_e4: ['drampanite'] });
+  // Paldea (Kakashi ruling 2 — one thematically matched LEADER-stage drop each, the wave-1 pattern; + the Bonus Zone Paldea Mega floor and
+  // the Safari Mega section): Scovillainite with Brassius (Artazon — Capsakid's town, the Grass gym), Glimmoranite with Atticus (the Poison
+  // crew), Tatsugirinite at the False Dragon Titan (Tatsugiri's own stage), Baxcalibrite with Elite Four Hassel (his ace IS Baxcalibur).
+  // Galar has no Mega (ruling 2: Mega Falinks OUT).
+  Object.assign(MEGA_DROPS, { paldea_06_brassius: ['scovillainite'], paldea_13_atticus: ['glimmoranite'], paldea_22_false_dragon: ['tatsugirinite'], paldea_26_hassel: ['baxcalibrite'] });
   for (const [id, stones] of Object.entries(MEGA_DROPS)) { const st = BM.stageById(id); for (const s of stones) st.drops.push({ item: s, w: 0.6, n: 1, needs: 'mega' }); }
   BM.MEGA_DROPS = MEGA_DROPS;
 })();

@@ -73,6 +73,21 @@ BM.MUSIC_KEYS = {
   town_malie: { loop: true, fallback: 'town_cerulean' }, town_tapu_village: { loop: true, fallback: 'town_lavender' },
   town_po: { loop: true, fallback: 'town_viridian' }, town_seafolk: { loop: true, fallback: 'town_cinnabar' },
   town_alola_league: { loop: true, fallback: 'town_indigo' },
+  // Galar (MUSIC_PROMPTS #113–#124, Galar + Paldea build Act 1, the pack's pairings). Kakashi supplies the MP3s.
+  map_galar: { loop: true, fallback: 'map_kanto' },
+  town_wedgehurst: { loop: true, fallback: 'town_pallet' }, town_motostoke: { loop: true, fallback: 'town_cinnabar' },
+  town_turffield: { loop: true, fallback: 'town_celadon' }, town_hulbury: { loop: true, fallback: 'town_vermilion' },
+  town_stow_on_side: { loop: true, fallback: 'town_lavender' }, town_ballonlea: { loop: true, fallback: 'town_cerulean' },
+  town_circhester: { loop: true, fallback: 'town_pewter' }, town_spikemuth: { loop: true, fallback: 'town_viridian' },
+  town_hammerlocke: { loop: true, fallback: 'town_fuchsia' }, town_wyndon: { loop: true, fallback: 'town_saffron' },
+  town_galar_league: { loop: true, fallback: 'town_indigo' },
+  // Paldea (MUSIC_PROMPTS #125–#135, Galar + Paldea build Act 1, the pack's pairings). Kakashi supplies the MP3s.
+  map_paldea: { loop: true, fallback: 'map_kanto' },
+  town_mesagoza: { loop: true, fallback: 'town_pallet' }, town_cortondo: { loop: true, fallback: 'town_viridian' },
+  town_artazon: { loop: true, fallback: 'town_celadon' }, town_levincia: { loop: true, fallback: 'town_vermilion' },
+  town_cascarrafa: { loop: true, fallback: 'town_cerulean' }, town_medali: { loop: true, fallback: 'town_saffron' },
+  town_montenevera: { loop: true, fallback: 'town_lavender' }, town_alfornada: { loop: true, fallback: 'town_fuchsia' },
+  town_glaseado: { loop: true, fallback: 'town_pewter' }, town_paldea_league: { loop: true, fallback: 'town_indigo' },
 };
 // Which file a key plays: its own supplied MP3, else (Johto / Hoenn) its paired Kanto key's MP3, else null (= the synth fallback).
 // Returns { file, via } — `via` = the key whose file plays.

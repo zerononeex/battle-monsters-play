@@ -46,7 +46,7 @@ BM.GachaScreen = function (ui) {
     card.appendChild(stage);
     const info = document.createElement('div'); info.className = 'bc-info'; info.id = 'bc-info';
     const names = document.createElement('div'); names.className = 'bc-names ss1';
-    names.classList.toggle('crowd', b.legendaries.length > 3); names.classList.toggle('crowd6', b.legendaries.length > 5); names.classList.toggle('crowd9', b.legendaries.length > 7); // Alola's nine (U2b): smaller still // Sinnoh / Unova's six: name under the sprite // Hoenn's 5 / 4 legendaries: sprite + name only (chips hidden) so the row fits
+    names.classList.toggle('crowd', b.legendaries.length > 3); names.classList.toggle('crowd6', b.legendaries.length > 5); names.classList.toggle('crowd9', b.legendaries.length > 7); names.classList.toggle('crowd14', b.legendaries.length > 11); // Paldea's 14 / 15 (ruling 4): two rows of 8 // Alola's nine (U2b): smaller still // Sinnoh / Unova's six: name under the sprite // Hoenn's 5 / 4 legendaries: sprite + name only (chips hidden) so the row fits
     for (const id of b.legendaries) {
       const d = document.createElement('div'); d.className = 'bc-leg-info'; d.dataset.line = id;
       // SS1: the legendary's battle sprite leads its name row (key art above stays uncropped; this is UI below it)
@@ -152,7 +152,7 @@ BM.GachaScreen = function (ui) {
   let megaTab = 'kj';
   // Sinnoh / Unova: one more tab each (9 / 8 stones), shown once the profile reaches that region
   // Kalos + Alola: two more (10 / 2 stones; Mega Zygarde has no stone, U8)
-  const MEGA_LATER = ['hoenn', 'sinnoh', 'unova', 'kalos', 'alola'];
+  const MEGA_LATER = ['hoenn', 'sinnoh', 'unova', 'kalos', 'alola', 'paldea']; // Galar + Paldea build: Paldea's four Z-A stones (Galar has none)
   const MEGA_TABS = [['kj', 'Kanto · Johto', (s) => !MEGA_LATER.includes(BM.ITEM_INFO[s].region)], ...MEGA_LATER.map((r) => [r, BM.REGION_NAMES[r], (s) => BM.ITEM_INFO[s].region === r])];
   function openMegaShop() {
     const p = prof(), box = $('megashop-grid'); box.innerHTML = '';

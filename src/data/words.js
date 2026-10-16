@@ -271,5 +271,5 @@ BM.spellPool = function (g) {
 BM.POKEMON_MAX_LEN = { 0: 5, 1: 6 };
 // Hoenn (Step 2): the same for Hoenn's species (hoenn.js BM.HOENN_WORDS)
 if (BM.HOENN_WORDS) BM.WORDS_POKEMON.push(...BM.HOENN_WORDS);
-// Sinnoh (Act 1 S2) / Unova (Act 2 U-S2): the same for their species (sinnoh.js BM.SINNOH_WORDS · unova.js BM.UNOVA_WORDS) · Kalos / Alola (build): kalos.js / alola.js
-for (const W of [BM.SINNOH_WORDS, BM.UNOVA_WORDS, BM.KALOS_WORDS, BM.ALOLA_WORDS]) if (W) BM.WORDS_POKEMON.push(...W);
+// Sinnoh (Act 1 S2) / Unova (Act 2 U-S2): the same for their species (sinnoh.js BM.SINNOH_WORDS · unova.js BM.UNOVA_WORDS) · Kalos / Alola (build): kalos.js / alola.js · Galar / Paldea: galar.js / paldea.js
+for (const W of [BM.SINNOH_WORDS, BM.UNOVA_WORDS, BM.KALOS_WORDS, BM.ALOLA_WORDS, BM.GALAR_WORDS, BM.PALDEA_WORDS]) if (W) BM.WORDS_POKEMON.push(...W);

@@ -43,6 +43,15 @@ BM.ITEM_INFO = {
   // Kalos (Kalos + Alola build, pack C9): the two held-item trades → the item, one-step Lv 20 — Swirlix → Slurpuff, Spritzee → Aromatisse.
   whipped_dream: { name: 'Whipped Dream', kind: 'evo', emoji: '🍰', region: 'kalos' },
   sachet: { name: 'Sachet', kind: 'evo', emoji: '👝', region: 'kalos' },
+  // Galar (Galar + Paldea build, pack C9 — ruling 5: real items with icons): canon item / location → the item, one-step Lv 20
+  tart_apple: { name: 'Tart Apple', kind: 'evo', emoji: '🍏', region: 'galar' }, sweet_apple: { name: 'Sweet Apple', kind: 'evo', emoji: '🍎', region: 'galar' },
+  cracked_pot: { name: 'Cracked Pot', kind: 'evo', emoji: '🫖', region: 'galar' }, galarica_cuff: { name: 'Galarica Cuff', kind: 'evo', emoji: '📿', region: 'galar' },
+  galarica_wreath: { name: 'Galarica Wreath', kind: 'evo', emoji: '💐', region: 'galar' }, scroll_of_darkness: { name: 'Scroll of Darkness', kind: 'evo', emoji: '📜', region: 'galar' },
+  scroll_of_waters: { name: 'Scroll of Waters', kind: 'evo', emoji: '📜', region: 'galar' },
+  // Paldea (pack C14 — ruling 5): Armarouge / Ceruledge armour, Dipplin's apple, Sinistcha's teacup, Archaludon's alloy (one-step Lv 20)
+  auspicious_armor: { name: 'Auspicious Armor', kind: 'evo', emoji: '🛡️', region: 'paldea' }, malicious_armor: { name: 'Malicious Armor', kind: 'evo', emoji: '🗡️', region: 'paldea' },
+  syrupy_apple: { name: 'Syrupy Apple', kind: 'evo', emoji: '🍯', region: 'paldea' }, unremarkable_teacup: { name: 'Unremarkable Teacup', kind: 'evo', emoji: '🍵', region: 'paldea' },
+  metal_alloy: { name: 'Metal Alloy', kind: 'evo', emoji: '🔩', region: 'paldea' },
   poke_ball: { name: 'Poké Ball', kind: 'ball', emoji: '🔴', blurb: '1 = one pull · 9 = a 10-pull' },
   master_ball: { name: 'Master Ball', kind: 'ball', emoji: '🟣', blurb: 'Opens the Legendary Safari Zone' },
   // MEGA STONES (Johto Step 6): kind 'mega' — OWNING one (never used up) lets its line field that Mega form once Mega Evolution is
@@ -91,6 +100,9 @@ BM.ITEM_INFO = {
   barbaracite: { name: 'Barbaracite', kind: 'mega', emoji: '💎', region: 'kalos' }, hawluchanite: { name: 'Hawluchanite', kind: 'mega', emoji: '💎', region: 'kalos' },
   // Alola (U2a, user ruling): Golisopite + Drampanite — the Legends: Z-A Megas of two Alola player lines (no Z-Crystals anywhere)
   golisopite: { name: 'Golisopite', kind: 'mega', emoji: '💎', region: 'alola' }, drampanite: { name: 'Drampanite', kind: 'mega', emoji: '💎', region: 'alola' },
+  // Paldea (Kakashi ruling 2): the Legends: Z-A stones of four Paldea player lines (Mega Tatsugiri = Curly only). Galar has none (Mega Falinks OUT).
+  scovillainite: { name: 'Scovillainite', kind: 'mega', emoji: '💎', region: 'paldea' }, glimmoranite: { name: 'Glimmoranite', kind: 'mega', emoji: '💎', region: 'paldea' },
+  tatsugirinite: { name: 'Tatsugirinite', kind: 'mega', emoji: '💎', region: 'paldea' }, baxcalibrite: { name: 'Baxcalibrite', kind: 'mega', emoji: '💎', region: 'paldea' },
   // battle items (Phase 5): armed before a battle, used up only when you WIN
   speed_up: { name: 'Speed Up', kind: 'battle', battle: true, emoji: '⏩', blurb: 'The battle runs 1.5× faster' },
   gen_lv8: { name: 'Generator Lv 8', kind: 'battle', battle: true, emoji: '🔋', blurb: 'Start with the AP Generator at Lv 8' },
@@ -109,7 +121,7 @@ BM.BATTLE_ITEM_FX = { speedMul: 1.5, xpMul: 1.5 };
 // RR1 CAP LADDER (Johto prompt Step 1): the GLOBAL level cap is a ladder value — 60 in Kanto, 65 once Johto is unlocked (Kanto
 // beaten), 70 with Hoenn… — for every line, everywhere. The XP curve never changes; a line held at a cap simply keeps earning
 // towards the next one. BM.C.LEVEL_CAP stays the base rung (60).
-BM.CAP_LADDER = { kanto: 60, johto: 65, hoenn: 70, sinnoh: 75, unova: 80, kalos: 85, alola: 90 }; // Sinnoh + Unova prompt S1 / U-S1: 75 · 80; Kalos + Alola build: 85 · 90
+BM.CAP_LADDER = { kanto: 60, johto: 65, hoenn: 70, sinnoh: 75, unova: 80, kalos: 85, alola: 90, galar: 95, paldea: 100 }; // Sinnoh + Unova prompt S1 / U-S1: 75 · 80; Kalos + Alola build: 85 · 90; Galar + Paldea build: 95 · 100
 BM.levelCap = (p) => { let cap = BM.C.LEVEL_CAP; for (const r of BM.REGION_ORDER) if (BM.CAP_LADDER[r] && BM.regionReached(r, p)) cap = Math.max(cap, BM.CAP_LADDER[r]); return cap; };
 BM.xpForLevel = (lv) => Math.pow(lv, 3);
 BM.levelFromXp = (xp, cap = BM.C.LEVEL_CAP) => Math.max(1, Math.min(cap, Math.floor(Math.cbrt(Math.max(1, xp)) + 1e-9)));
@@ -117,7 +129,7 @@ BM.levelFromXp = (xp, cap = BM.C.LEVEL_CAP) => Math.max(1, Math.min(cap, Math.fl
 // EEE1 (Phase 7.6): REGION GATES on evolutions. A region counts as REACHED only once it has shipped AND the region before it is
 // beaten (beating Kanto unlocks Johto — the regionsDone flag from Phase 7). Johto prompt Step 1: Johto SHIPS — a profile that has
 // beaten Kanto reaches it (its home card goes live, the cap rises to 65, `requiresRegion: 'johto'` evolutions open).
-BM.SHIPPED_REGIONS = ['kanto', 'johto', 'hoenn', 'sinnoh', 'unova', 'kalos', 'alola']; // Hoenn prompt Step 1: Hoenn ships, reached once Johto is beaten (cap 70); Sinnoh Act 1 S1: Sinnoh, once the Hoenn Champion is beaten (cap 75); Unova Act 2 U-S1: Unova, once the Sinnoh Champion is beaten (cap 80); Kalos + Alola build: Kalos once the Unova region is done (N's Castle, cap 85), Alola once the Kalos Champion is beaten (cap 90)
+BM.SHIPPED_REGIONS = ['kanto', 'johto', 'hoenn', 'sinnoh', 'unova', 'kalos', 'alola', 'galar', 'paldea']; // Hoenn prompt Step 1: Hoenn ships, reached once Johto is beaten (cap 70); Sinnoh Act 1 S1: Sinnoh, once the Hoenn Champion is beaten (cap 75); Unova Act 2 U-S1: Unova, once the Sinnoh Champion is beaten (cap 80); Kalos + Alola build: Kalos once the Unova region is done (N's Castle, cap 85), Alola once the Kalos Champion is beaten (cap 90); Galar + Paldea build: Galar once the Alola Champion is beaten (cap 95), Paldea once Champion Leon is beaten (cap 100)
 BM.REGION_ORDER = ['kanto', 'johto', 'hoenn', 'sinnoh', 'unova', 'kalos', 'alola', 'galar', 'paldea'];
 BM.REGION_NAMES = { kanto: 'Kanto', johto: 'Johto', hoenn: 'Hoenn', sinnoh: 'Sinnoh', unova: 'Unova', kalos: 'Kalos', alola: 'Alola', galar: 'Galar', paldea: 'Paldea' };
 BM.regionReached = (region, p) => {

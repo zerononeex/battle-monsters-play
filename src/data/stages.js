@@ -405,7 +405,16 @@ window.BM = window.BM || {};
     // Kalos + Alola build Act 3: Diantha (Step 5 QA, end-of-regular team 1/6 → 4/6 at s 3); Alola below (the playthrough + phase14 gates)
     kalos_24_champion: 3,
     alola_02_hauoli: 1, alola_04_ten_carat: 4, alola_05_hala: 1, alola_27_necrozma: 1, alola_26_kukui: 1, alola_22_hala_e4: 1, alola_06_paniola: 2, alola_08_kiawe: 2, alola_13_sophocles: 1, alola_11_aether: 4, alola_17_lusamine: 2, alola_18_poni: 8,
-    alola_20_mina: 1, alola_21_hapu: 3 };
+    alola_20_mina: 1, alola_21_hapu: 3,
+    // Galar + Paldea build Act 3 (the native playthrough, ramp.mjs tune): the Darkest Day (Rose's Copperajah + a giant Eternatus — after its
+    // wild surge was thinned, pack C17) reads 3/6 at s 6 (the Seafloor set-piece precedent); the Open Sky Titan + the False Dragon at s 1
+    galar_24_eternatus: 6, paldea_07_bombirdier: 1, paldea_22_false_dragon: 1,
+    galar_18_route9: 1, // the phase15 native-deck gate: Circhester Bay 2/6 → 4/6 at s 1
+    // Step 5 QA (the end-of-regular team vs the endgame, TUNEQA): Leon 1 → 5/6, E4 Hassel (giant Baxcalibur) 6 → 4/6
+    galar_25_leon: 1, paldea_26_hassel: 6,
+    // the region suites' post-game gate: Area Zero Depths (Lv 105, giant Terapagos summoning the Paradox species) 0/6 → 1/6 for a full Lv 100
+    // native team — very hard, not impossible (the Arceus / Necrozma shape)
+    paldea_29_area_zero: 1 };
 
   // RAMP XP (Step 1's playthrough sim: at 2 × L² a fresh team fell ~40% under the ramp by mid-region). A REGULAR stage's FIRST clear
   // pays every line that battled exactly the XP to climb from this stage's level to the NEXT regular stage's (next L³ − L³, never
