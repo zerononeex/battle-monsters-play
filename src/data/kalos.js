@@ -9,6 +9,8 @@
 //     11 Megas are all on player lines (Diancie classic + the Legends: Z-A Megas of the starters, Pyroar, Malamar, Meowstic,
 //     Dragalge, Barbaracle, Hawlucha, + Mega Zygarde). C9: Whipped Dream / Sachet (NEW items, Lv 20); Trevenant / Gourgeist trade
 //     -> Lv 30. C13: one form per species (Vivillon Meadow, Flabebe Red, Pyroar / Meowstic male, Aegislash Shield, Zygarde 50%).
+// ZYGARDE FIX: Zygarde Complete Forme = a GATED form on the Zygarde line (`evo: {gate: 'zygarde'}` - the Mega Zygarde gate, not a
+//     Mega: own Zygarde + the Kalos Champion cleared; synced by mega.js). Mega Zygarde = the Mega Evolution of Complete Forme (canon).
 // C15: the Bellsprout line is an enemy-only support line (Ramos's canon Weepinbell).
 window.BM = window.BM || {};
 (function () {
@@ -143,6 +145,7 @@ window.BM = window.BM || {};
   ] });
   BM.addLine({ id: 'zygarde', name: 'Zygarde (50% Forme)', region: 'kalos', legendary: true, rewardOnly: true, rewardStage: 'kalos_24_champion', rarity: 'legendary', forms: [
     {id: 'zygarde', name: 'Zygarde (50% Forme)', trait: 'tank', types: ['dragon', 'ground'], attackType: 'ground', bst: 600, baseHP: 108, baseSpe: 95, role: 'legend', cost: 0, cd: 60, size: 1.7},
+    {id: 'zygarde_complete', name: 'Zygarde (Complete Forme)', cry: 'zygarde', trait: 'tank', types: ['dragon', 'ground'], attackType: 'dragon', bst: 708, baseHP: 216, baseSpe: 85, role: 'legend', cost: 0, cd: 60, size: 1.9, evo: {gate: 'zygarde'}},
   ] });
   BM.KALOS_LINES = ['chespin', 'fennekin', 'froakie', 'fletchling', 'litleo', 'honedge', 'swirlix', 'clauncher', 'tyrunt', 'inkay', 'goomy', 'noibat', 'helioptile', 'espurr', 'bergmite_avalugg_hisui', 'flabebe', 'pancham', 'spritzee', 'skrelp', 'amaura', 'binacle', 'hawlucha', 'phantump', 'pumpkaboo', 'klefki', 'bergmite', 'goomy_goodra_hisui', 'xerneas', 'diancie', 'volcanion', 'yveltal', 'hoopa', 'zygarde'];
   const E = (id, name, types, bst, baseHP, baseSpe, role, extra = {}) => ({ id, name, types, bst, baseHP, baseSpe, role, cost: 0, cd: 0, ...extra });
@@ -174,7 +177,7 @@ window.BM = window.BM || {};
     {id: 'barbaracle_mega', name: 'Mega Barbaracle', from: 'barbaracle', stone: 'barbaracite', cry: 'barbaracle', trait: 'tank', types: ['rock', 'fighting'], attackType: 'fighting', bst: 600, baseHP: 72, baseSpe: 88, role: 'bruiser', cd: 28, size: 1.55},
     {id: 'hawlucha_mega', name: 'Mega Hawlucha', from: 'hawlucha', stone: 'hawluchanite', cry: 'hawlucha', trait: 'swift', types: ['fighting', 'flying'], attackType: 'fighting', bst: 600, baseHP: 78, baseSpe: 118, role: 'rusher', cd: 28, size: 1.4},
     {id: 'diancie_mega', name: 'Mega Diancie', from: 'diancie', stone: 'diancite', cry: 'diancie', types: ['rock', 'fairy'], bst: 700, baseHP: 50, baseSpe: 110, role: 'legend', cd: 60, size: 1.3},
-    {id: 'zygarde_mega', name: 'Mega Zygarde', from: 'zygarde', stone: null, gate: 'zygarde', cry: 'zygarde', trait: 'tank', types: ['dragon', 'ground'], attackType: 'dragon', bst: 778, baseHP: 216, baseSpe: 100, role: 'legend', cd: 60, size: 1.9},
+    {id: 'zygarde_mega', name: 'Mega Zygarde', from: 'zygarde_complete', stone: null, gate: 'zygarde', cry: 'zygarde', trait: 'tank', types: ['dragon', 'ground'], attackType: 'dragon', bst: 778, baseHP: 216, baseSpe: 100, role: 'legend', cd: 60, size: 1.9, rateFix: 1.8, dmgFix: 2.3},
   );
   Object.assign(BM.BASE_STATS, {
     chespin: [56, 61, 65, 48, 45, 38],
@@ -253,6 +256,7 @@ window.BM = window.BM || {};
     yveltal: [126, 131, 95, 131, 98, 99],
     hoopa: [80, 110, 60, 150, 130, 70],
     zygarde: [108, 100, 121, 81, 95, 95],
+    zygarde_complete: [216, 100, 121, 91, 95, 85],
     zygarde_mega: [216, 70, 91, 216, 85, 100],
     bunnelby: [38, 36, 38, 32, 36, 57],
     diggersby: [85, 56, 77, 50, 77, 78],
@@ -336,6 +340,7 @@ window.BM = window.BM || {};
     yveltal: ['Oblivion Wing', 'shadow', 260],
     hoopa: ['Hyperspace Hole', 'shadow', 240],
     zygarde: ['Thousand Arrows', 'rock', 240],
+    zygarde_complete: ['Core Enforcer', 'dragon', 260],
     bunnelby: ['Mud-Slap', 'rock', 110],
     diggersby: ['Dig', 'rock', 70],
     scatterbug: ['Tackle', 'slam', 60],
@@ -359,9 +364,9 @@ window.BM = window.BM || {};
     barbaracle_mega: ['Stone Edge + Cross Chop', 'punch', 70, 3],
     hawlucha_mega: ['Flying Press', 'kick', 70, 3],
     diancie_mega: ['Diamond Storm', 'rock', 240],
-    zygarde_mega: ['Thousand Waves + Core Enforcer', 'rock', 260],
+    zygarde_mega: ['Nihil Light', 'dragon', 260],
   });
-  Object.assign(BM.EXTRA_COMBAT.area, {chesnaught: 60, delphox: 70, pyroar: 80, aegislash: 50, slurpuff: 60, clawitzer: 70, tyrantrum: 70, goodra: 80, noivern: 90, avalugg_hisui: 90, florges: 80, pangoro: 60, aromatisse: 70, dragalge: 60, aurorus: 90, trevenant: 70, gourgeist: 70, avalugg: 90, goodra_hisui: 80, xerneas: 130, diancie: 110, volcanion: 110, yveltal: 130, hoopa: 100, zygarde: 130, vivillon: 80, gogoat: 60, chesnaught_mega: 90, delphox_mega: 90, greninja_mega: 50, pyroar_mega: 100, malamar_mega: 80, meowstic_mega: 80, dragalge_mega: 90, barbaracle_mega: 60, hawlucha_mega: 60, diancie_mega: 130, zygarde_mega: 150});
+  Object.assign(BM.EXTRA_COMBAT.area, {chesnaught: 60, delphox: 70, pyroar: 80, aegislash: 50, slurpuff: 60, clawitzer: 70, tyrantrum: 70, goodra: 80, noivern: 90, avalugg_hisui: 90, florges: 80, pangoro: 60, aromatisse: 70, dragalge: 60, aurorus: 90, trevenant: 70, gourgeist: 70, avalugg: 90, goodra_hisui: 80, xerneas: 130, diancie: 110, volcanion: 110, yveltal: 130, hoopa: 100, zygarde: 130, zygarde_complete: 130, vivillon: 80, gogoat: 60, chesnaught_mega: 90, delphox_mega: 90, greninja_mega: 50, pyroar_mega: 100, malamar_mega: 80, meowstic_mega: 80, dragalge_mega: 90, barbaracle_mega: 60, hawlucha_mega: 60, diancie_mega: 130, zygarde_mega: 220});
   Object.assign(BM.EXTRA_COMBAT.status, {delphox: ['burn', 0.15], pyroar: ['burn', 0.15], slurpuff: ['sleep', 0.1], malamar: ['sleep', 0.15], sliggoo: ['paralyze', 0.1], helioptile: ['paralyze', 0.1], heliolisk: ['paralyze', 0.15], meowstic: ['sleep', 0.1], aromatisse: ['sleep', 0.1], skrelp: ['poison', 0.15], dragalge: ['poison', 0.2], amaura: ['freeze', 0.1], aurorus: ['freeze', 0.15], gourgeist: ['sleep', 0.1], bergmite: ['freeze', 0.1], avalugg: ['freeze', 0.15], volcanion: ['burn', 0.3], vivillon: ['sleep', 0.15], dedenne: ['paralyze', 0.2], weepinbell: ['poison', 0.1], victreebel: ['poison', 0.15], delphox_mega: ['burn', 0.2], pyroar_mega: ['burn', 0.2], malamar_mega: ['sleep', 0.2], meowstic_mega: ['sleep', 0.15], dragalge_mega: ['poison', 0.25]});
   // Step 0f rule: Kalos's biggest names join the 400-500 tier - box art Xerneas / Yveltal, the reward Zygarde, the mythicals Diancie /
   // Hoopa / Volcanion (Kalos has no regular legendary).

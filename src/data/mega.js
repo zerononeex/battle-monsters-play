@@ -33,19 +33,25 @@ window.BM = window.BM || {};
   BM.MEGA_GATES = { rayquaza: 'hoenn', zygarde: 'kalos' };
   const gateOk = (p, f) => (f.gate ? !!(p.regionsDone && p.regionsDone[BM.MEGA_GATES[f.gate]]) : !!(p.items && p.items[f.stone] > 0));
   BM.megaReady = (p, f) => !!(f && f.mega && BM.megaUnlocked(p) && gateOk(p, f) && p.lines[f.line] && p.lines[f.line].unlocked.includes(f.from));
+  // ZYGARDE FIX: a GATED (non-Mega) form on a line's chain — `evo: { gate: '<line>' }` (Zygarde Complete Forme) — takes the same
+  // gate as its line's no-stone Mega, nothing more: own the line + that region's Champion beaten (no stone, no Johto Mega unlock)
+  BM.gatedReady = (p, f) => !!(f && f.evo && f.evo.gate && p.regionsDone && p.regionsDone[BM.MEGA_GATES[f.evo.gate]] && p.lines[f.line]);
+  BM.gatedLockText = (f) => `Beat the ${BM.REGION_NAMES[BM.MEGA_GATES[f.evo.gate]]} Champion`;
   // the honest lock line on the collection detail (the Bellossom gate pattern)
   BM.megaLockText = (p, f) => (f.gate ? (!(p.regionsDone && p.regionsDone[BM.MEGA_GATES[f.gate]]) ? `Needs ${BM.FORMS[f.from].name} · Beat the ${BM.REGION_NAMES[BM.MEGA_GATES[f.gate]]} Champion` : `Needs ${BM.FORMS[f.from].name} first`)
     : !BM.megaUnlocked(p) ? 'Mega Evolution unlocks when you beat the Johto Champion'
     : !(p.items[f.stone] > 0) ? `Needs a ${BM.ITEMS[f.stone]}` : `Needs ${BM.FORMS[f.from].name} first`);
   // Keeps every owned line's unlocked list in step with the Mega rule (called by the save on load and after every reward /
   // purchase): a ready Mega form is fieldable, one that is not ready is not (and a fielded one falls back to its base form).
+  // ZYGARDE FIX: the line's gated chain forms (BM.gatedReady) ride the same sync.
   BM.syncMegas = function (p) {
     if (!p || !p.lines) return;
     for (const [id, l] of Object.entries(p.lines)) {
       const L = BM.LINES[id];
-      if (!L || !L.megas) continue;
-      for (const f of L.megas) {
-        const ready = BM.megaReady(p, f), has = l.unlocked.includes(f.id);
+      const gated = L ? L.forms.filter((f) => f.evo && f.evo.gate) : [];
+      if (!L || (!L.megas && !gated.length)) continue;
+      for (const f of [...gated, ...(L.megas || [])]) {
+        const ready = f.mega ? BM.megaReady(p, f) : BM.gatedReady(p, f), has = l.unlocked.includes(f.id);
         if (ready && !has) l.unlocked.push(f.id);
         if (!ready && has) l.unlocked = l.unlocked.filter((x) => x !== f.id);
       }

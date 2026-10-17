@@ -25845,12 +25845,38 @@ BM.SPRITE_FILES = {
    ]
   }
  },
+ "zygarde_complete": {
+  "attack": {
+   "src": "sprites/zygarde_complete.attack.png",
+   "cellW": 165,
+   "cellH": 130,
+   "anchorX": 82,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1
+   ]
+  },
+  "run": {
+   "src": "sprites/zygarde_complete.run.png",
+   "cellW": 138,
+   "cellH": 130,
+   "anchorX": 69,
+   "anchorY": 129,
+   "frames": [
+    0,
+    1,
+    2,
+    3
+   ]
+  }
+ },
  "zygarde_mega": {
   "attack": {
    "src": "sprites/zygarde_mega.attack.png",
-   "cellW": 169,
+   "cellW": 131,
    "cellH": 130,
-   "anchorX": 84,
+   "anchorX": 65,
    "anchorY": 129,
    "frames": [
     0,
@@ -25859,9 +25885,9 @@ BM.SPRITE_FILES = {
   },
   "run": {
    "src": "sprites/zygarde_mega.run.png",
-   "cellW": 74,
+   "cellW": 121,
    "cellH": 130,
-   "anchorX": 37,
+   "anchorX": 60,
    "anchorY": 129,
    "frames": [
     0,

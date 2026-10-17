@@ -569,6 +569,7 @@ BM.Save = (function () {
       l.xp = Math.max(l.xp || 0, Math.pow(36, 3));
       l.level = BM.levelFromXp(l.xp, BM.levelCap(p));
     }
+    if (BM.syncMegas) BM.syncMegas(p); // ZYGARDE FIX: a gated chain form (Complete Forme) follows its gate, like the Megas
     persist();
   }
   // Dev/test only: 5 of every item (the real sources are the stage drop tables).

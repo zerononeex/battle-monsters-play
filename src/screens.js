@@ -62,6 +62,7 @@ BM.Screens = function (ui) {
     const e = form.evo;
     if (!e) return '';
     if (e.requiresRegion && !BM.evoGateOpen(form, prof())) return BM.evoLockText(form); // EEE1: honest region lock
+    if (e.gate) return BM.gatedLockText(form); // ZYGARDE FIX: Complete Forme — the Mega Zygarde gate (mega.js)
     if (e.item) return `${BM.ITEMS[e.item]} at Lv ${e.minLevel}+`;
     return `Evolves at Lv ${e.level}`;
   }

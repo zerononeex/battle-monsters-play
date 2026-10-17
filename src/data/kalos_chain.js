@@ -94,5 +94,5 @@ window.BM = window.BM || {};
     dedenne: null, carbink: null, bellsprout: null, weepinbell: 'bellsprout', victreebel: 'weepinbell',
   });
   if (!('bergmite' in BM.PRE_CANON)) BM.PRE_CANON.bergmite = null;
-  for (const [id, sp] of [['bergmite_avalugg_hisui', 'bergmite'], ['goomy_goodra_hisui', 'goomy']]) BM.FORMS[id].speciesId = sp;
+  for (const [id, sp] of [['bergmite_avalugg_hisui', 'bergmite'], ['goomy_goodra_hisui', 'goomy'], ['zygarde_complete', 'zygarde']]) BM.FORMS[id].speciesId = sp;
 })();

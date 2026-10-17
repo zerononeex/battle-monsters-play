@@ -117,18 +117,20 @@ BM.awayTag = (form, level, st) => (BM.isAway(form, st) ? `Away from home — fig
 
 // Battle stats for a form at a level. Any form may override hp/dmg/speed/range/interval in data. Trait effects are
 // applied last and also returned (dodge / immune / splash / kbResist) for the battle engine.
+// ZYGARDE FIX (Kakashi ruling): `rateFix` / `dmgFix` on a form = per-form multipliers on its attack interval / per-attack damage,
+// the `costFix` precedent for combat (only Mega Zygarde's cannon uses them: ×1.8 interval, ×2.3 damage — rare huge blasts).
 BM.unitStats = function (form, level) {
   const C = BM.C, role = C.ROLES[form.role] || C.ROLES.balanced, s = C.levelScale(level), t = BM.formTrait(form) || {};
   // G9: reach, hits and the Speed-driven attack rate come from the form's combat identity (combat.js) when loaded
   const cb = BM.combatOf ? BM.combatOf(form) : null;
   const hp = (form.hp != null ? form.hp : form.baseHP * 4 * role.hp) * s * (t.hp || 1);
-  const dmg = (form.dmg != null ? form.dmg : ((form.bst - form.baseHP - form.baseSpe) / 8) * role.dmg) * s;
+  const dmg = (form.dmg != null ? form.dmg : ((form.bst - form.baseHP - form.baseSpe) / 8) * role.dmg) * s * (form.dmgFix || 1);
   return {
     hp: Math.round(hp),
     dmg: Math.max(form.dmg === 0 ? 0 : 1, Math.round(dmg)),
     speed: (form.speed != null ? form.speed : 20 + form.baseSpe * 0.4) * (t.speed || 1),
     range: (form.range != null ? form.range : cb ? cb.reach : (role.range === 'ranged' ? C.RANGED_RANGE : C.MELEE_RANGE)) * (t.range || 1),
-    interval: (form.interval != null ? form.interval : (C.BASE_ATTACK_INTERVAL / role.rate) * (cb ? cb.rateMul : 1)) * (t.interval || 1),
+    interval: (form.interval != null ? form.interval : (C.BASE_ATTACK_INTERVAL / role.rate) * (cb ? cb.rateMul : 1)) * (t.interval || 1) * (form.rateFix || 1),
     hits: cb ? cb.hits : 1,
     dodge: t.dodge ? form.dodge || t.dodge : 0,
     immune: t.immune || null,
